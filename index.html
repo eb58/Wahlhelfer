@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f0e8" />
+    <title>Foto aufnehmen</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="intro" aria-labelledby="title">
+        <span class="eyebrow">Kamera</span>
+        <h1 id="title">Einen Moment<br />festhalten.</h1>
+        <p>Tippe auf den Button und nimm direkt mit deinem Smartphone ein Foto auf.</p>
+      </section>
+
+      <section class="photo-card" aria-live="polite">
+        <div class="preview" id="preview">
+          <div class="placeholder" id="placeholder">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M8.5 6.5 10 4h4l1.5 2.5H19A2.5 2.5 0 0 1 21.5 9v8A2.5 2.5 0 0 1 19 19.5H5A2.5 2.5 0 0 1 2.5 17V9A2.5 2.5 0 0 1 5 6.5h3.5Z" />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+            <span>Noch kein Foto</span>
+          </div>
+          <img id="photo" alt="Dein aufgenommenes Foto" hidden />
+        </div>
+
+        <div class="actions">
+          <button class="camera-button" id="cameraButton" type="button">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M8.5 6.5 10 4h4l1.5 2.5H19A2.5 2.5 0 0 1 21.5 9v8A2.5 2.5 0 0 1 19 19.5H5A2.5 2.5 0 0 1 2.5 17V9A2.5 2.5 0 0 1 5 6.5h3.5Z" />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+            <span id="buttonText">Foto aufnehmen</span>
+          </button>
+          <input
+            id="cameraInput"
+            class="visually-hidden"
+            type="file"
+            accept="image/*"
+            capture="environment"
+          />
+          <p class="status" id="status">Das Foto bleibt auf deinem Gerät.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
