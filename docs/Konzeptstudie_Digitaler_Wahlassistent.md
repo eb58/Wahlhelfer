@@ -20,15 +20,15 @@ Die Idee ist technisch plausibel und adressiert ein reales Belastungsproblem: Na
 
 > **Empfehlung:** Berlin sollte einen ergebnisoffenen, öffentlich begleiteten Pilotversuch für eine scan-gestützte Auszählungsassistenz starten. Im Pilot bleibt die manuelle Auszählung allein verbindlich. Erst nach nachgewiesener Genauigkeit, Zeitersparnis, öffentlicher Verständlichkeit, IT-Sicherheit und einer ausdrücklichen gesetzlichen Grundlage darf über einen amtlichen Einsatz entschieden werden.
 
-Der überzeugende Kern ist nicht "Handys zählen Stimmen", sondern eine kontrollierte Kombination aus Papier, handelsüblichen Smartphones, einer installierungsfreien Webanwendung, lokaler Vorprüfung im Browser, unabhängiger Cloud-Gegenprüfung, offener Software, Vier-Augen-Prinzip und menschlicher Entscheidungshoheit. Für die Aufnahme sind keine Spezialkameras, Halterungen, Scanmatten oder Sonderbeleuchtung erforderlich. Die Smartphones werden aus der Hand bedient; die Webanwendung prüft Bildausschnitt, Schärfe, Perspektive und Vollständigkeit und zeigt unmittelbar eine vorläufige Erkennung an.
+Der Kern ist nicht "Handys zählen Stimmen", sondern eine kontrollierte Kombination aus Papier, handelsüblichen Smartphones, einer installierungsfreien Webanwendung, lokaler Vorprüfung im Browser, unabhängiger Cloud-Gegenprüfung, offener Software, Vier-Augen-Prinzip und menschlicher Entscheidungshoheit. Für die Aufnahme sind keine Spezialkameras, Halterungen, Scanmatten oder Sonderbeleuchtung erforderlich. Die Smartphones werden aus der Hand bedient; die Webanwendung prüft Bildausschnitt, Schärfe, Perspektive und Vollständigkeit und zeigt unmittelbar eine vorläufige Erkennung an.
 
 Die Einführung kann dauerhaft gemischt erfolgen. Zunächst arbeiten nur einzelne Briefwahlvorstände mit der Assistenz, später gegebenenfalls ausgewählte Urnenwahllokale. Alle übrigen Wahlbezirke zählen weiterhin nach dem bisherigen Verfahren. Damit wird die Transparenz zunächst nur für die teilnehmenden Bezirke erweitert, das operative und rechtliche Risiko aber bewusst begrenzt.
 
 Bei der üblichen Besetzung mit acht Wahlhelfern können vier Zweiergruppen parallel arbeiten. Unter der ambitionierten Annahme von drei bis vier Sekunden je klarem Stimmzettel sinkt der reine Erfassungsdurchlauf für 600 bis 700 Stimmzettel rechnerisch auf etwa 7 Minuten 30 Sekunden bis 11 Minuten 40 Sekunden. Für den gesamten Vorgang einschließlich Aufbau, Eingangsabgleich, Zweifelsfällen und Abschlusskontrolle ist im Pilot zunächst mit etwa 20 bis 35 Minuten zu planen.
 
-Der wichtigste demokratische Zusatznutzen ist die unabhängige Nachprüfbarkeit. Die Cloud soll nicht bloß eine fertige Zahl liefern, der man vertrauen muss. Für jeden teilnehmenden Wahlbezirk entsteht ein offenes, maschinenlesbares Prüfpaket mit Datenformat, Zählregeln, Prüfsummen, Sitzungsprotokoll, menschlichen Bestätigungen, Zweifelsfallentscheidungen und signierten Aggregaten. Jede interessierte Person kann den veröffentlichten Referenzcode verwenden oder eine eigene Software schreiben und damit die Ergebnisbildung selbst reproduzieren.
+Ein zentraler demokratischer Zusatznutzen ist die unabhängige Nachprüfbarkeit. Die Cloud soll nicht bloß eine fertige Zahl liefern, der man vertrauen muss. Für jeden teilnehmenden Wahlbezirk entsteht ein offenes, maschinenlesbares Prüfpaket mit Datenformat, Zählregeln, Prüfsummen, Sitzungsprotokoll, menschlichen Bestätigungen, Zweifelsfallentscheidungen und signierten Aggregaten. Jede interessierte Person kann den veröffentlichten Referenzcode verwenden oder eine eigene Software schreiben und damit die Ergebnisbildung selbst reproduzieren.
 
-## Die vier wichtigsten Designentscheidungen
+## Vier zentrale Designentscheidungen
 
 - Keine individuelle Seriennummer auf dem ausgegebenen Stimmzettel. Der QR-Code enthält nur Wahlart, Wahlgebiet, Stimmzetteltyp, Layoutversion und Prüfsumme. Eine digitale laufende Nummer entsteht erst nach Öffnung und Durchmischung der Urne.
 
@@ -86,7 +86,7 @@ Ein QR-Code ist sinnvoll, sofern er auf allen Stimmzetteln desselben Typs identi
 
 ## 3.2 Lageerkennung
 
-Für die geometrische Justierung sollte nicht ein zweiter individueller QR-Code verwendet werden. Robuster sind vier einfache, nicht codierte Passmarken in den Ecken. Sie erlauben Perspektivkorrektur, Drehung, Größenprüfung und die Erkennung abgeschnittener Bereiche. Die rechte obere Ecke muss zugleich mit der bestehenden Regelung für Stimmzettelschablonen vereinbar bleiben; § 45 BWO sieht dort eine Lochung oder einen Eckschnitt vor. \[3\]
+Für die geometrische Justierung sollte nicht ein zweiter individueller QR-Code verwendet werden. Geeigneter erscheinen vier einfache, nicht codierte Passmarken in den Ecken. Sie erlauben Perspektivkorrektur, Drehung, Größenprüfung und die Erkennung abgeschnittener Bereiche. Die rechte obere Ecke muss zugleich mit der bestehenden Regelung für Stimmzettelschablonen vereinbar bleiben; § 45 BWO sieht dort eine Lochung oder einen Eckschnitt vor. \[3\]
 
 ## 3.3 Digitaler Beleg erst nach Urnenöffnung
 
@@ -155,7 +155,7 @@ Die Erkennung soll regelbasiert und nachvollziehbar sein. Ein neuronales Netz ka
 
 # 6. Transparenz und unabhängige Nachzählbarkeit
 
-Der Transparenzgedanke der Ausgangsidee ist stark: Dritte sollen Ergebnisse mit eigener Software nachvollziehen können und auf Antrag auch die zugrunde liegenden Stimmzettelbilder einsehen dürfen. Ein einzelner anonymisierter Stimmzettel ist inhaltlich grundsätzlich kein Geheimnis: Er zeigt nur, welche Markierung auf diesem Papier vorgenommen wurde, nicht wer ihn ausgefüllt hat. Die Bilder enthalten in der Regel keine Namen oder sonstigen direkten personenbezogenen Daten. Der Schutzbedarf entsteht erst durch eine mögliche Verknüpfung mit einer Person oder durch den Missbrauch als beweisbarer Wahlbeleg. Trotzdem muss geprüft werden, ob ungewöhnliche Handschriften, Markierungen, die Reihenfolge oder eine Kombination mit anderen Informationen in Einzelfällen Rückschlüsse ermöglichen. Der Zugang sollte deshalb einfach, zeitnah und grundsätzlich ohne besondere Begründung möglich sein; eine Ablehnung darf nur auf einer konkreten, dokumentierten Gefahr für Wahlgeheimnis, Sicherheit oder ein laufendes Verfahren beruhen. \[3\]
+Der Transparenzgedanke der Ausgangsidee ist wichtig: Dritte sollen Ergebnisse mit eigener Software nachvollziehen können und auf Antrag auch die zugrunde liegenden Stimmzettelbilder einsehen dürfen. Ein einzelner anonymisierter Stimmzettel ist inhaltlich grundsätzlich kein Geheimnis: Er zeigt nur, welche Markierung auf diesem Papier vorgenommen wurde, nicht wer ihn ausgefüllt hat. Die Bilder enthalten in der Regel keine Namen oder sonstigen direkten personenbezogenen Daten. Der Schutzbedarf entsteht erst durch eine mögliche Verknüpfung mit einer Person oder durch den Missbrauch als beweisbarer Wahlbeleg. Trotzdem muss geprüft werden, ob ungewöhnliche Handschriften, Markierungen, die Reihenfolge oder eine Kombination mit anderen Informationen in Einzelfällen Rückschlüsse ermöglichen. Der Zugang sollte deshalb einfach, zeitnah und grundsätzlich ohne besondere Begründung möglich sein; eine Ablehnung darf nur auf einer konkreten, dokumentierten Gefahr für Wahlgeheimnis, Sicherheit oder ein laufendes Verfahren beruhen. \[3\]
 
 ## 6.1 Drei Transparenzebenen
 
@@ -165,7 +165,7 @@ Der Transparenzgedanke der Ausgangsidee ist stark: Dritte sollen Ergebnisse mit 
 | 2 - offene Ergebnisbelege | Signierte Wahlbezirksdateien, anonymisierte Einzeldatensätze, lokale Vorwertungen, Cloud-Gegenprüfungen, menschliche Entscheidungen und kryptografisches Manifest. | Jeder kann Vollständigkeit, Unverändertheit, Konfliktbehandlung und Aggregation unabhängig prüfen.                      |
 | 3 - Originalbilder auf Antrag | Originalbilder und Entscheidungsprotokolle in einem transparenten, gesetzlich geregelten Prüfportal; Zugang grundsätzlich für jeden Antragsteller. | Antragsteller können Markierung und Wertung zettelweise mit dem veröffentlichten Ergebnis vergleichen; begrenzte Ausnahmen müssen konkret begründet werden. |
 
-Ein automatischer Massendownload aller Rohbilder ist nicht zwingend erforderlich. Entscheidend ist ein echter, praktisch nutzbarer Antragszugang: einfache Antragstellung, klare Frist, unveränderte Originaldatei, sichtbare Zuordnung zum Wahlbezirk und ein Prüfprotokoll. Der Antragsteller sollte die Bilder lokal mit eigener Software auswerten können. Wird ein Bild ausnahmsweise zurückgehalten oder nur in normalisierter Form herausgegeben, müssen Grund, Umfang und Rechtsbehelf transparent dokumentiert werden. Der demokratische Prüfgedanke bleibt damit vollständig erhalten, weil Software, Formate, Regeln, Hashes, anonymisierte Datensätze, Originalbilder und Aggregationslogik offen und unabhängig nachrechenbar sind.
+Ein automatischer Massendownload aller Rohbilder ist nicht zwingend erforderlich. Entscheidend ist ein echter, praktisch nutzbarer Antragszugang: einfache Antragstellung, klare Frist, unveränderte Originaldatei, sichtbare Zuordnung zum Wahlbezirk und ein Prüfprotokoll. Der Antragsteller sollte die Bilder lokal mit eigener Software auswerten können. Wird ein Bild ausnahmsweise zurückgehalten oder nur in normalisierter Form herausgegeben, müssen Grund, Umfang und Rechtsbehelf transparent dokumentiert werden. Der demokratische Prüfgedanke wird damit unterstützt, weil Software, Formate, Regeln, Hashes, anonymisierte Datensätze, Originalbilder und Aggregationslogik offen und unabhängig nachrechenbar sind.
 
 ## 6.2 Was der BSW-Fall zeigt - und was nicht
 
@@ -201,7 +201,7 @@ Das Bundesverfassungsgericht verlangt, dass die wesentlichen Schritte von Wahlha
 
 # 8. IT-Sicherheit, Datenschutz und Wahlgeheimnis
 
-Das Smartphone ist der günstigste Teil des Systems; Vertrauen entsteht durch die Kombination aus lokaler Vorprüfung und Web- sowie Cloud-Sicherheitsarchitektur. Die lokale Erkennung läuft nur im Browser-Speicher und schreibt die Aufnahme nicht automatisch in die private Fotogalerie. Web-Code, Stimmzetteldefinitionen und Ergebnisdateien sind digital signiert. Die Cloud erhält Bild, Vorwertung und Prüfdaten nur innerhalb freigegebener Sitzungen, führt unveränderbare Audit-Protokolle und trennt Wahlbezirke technisch voneinander.
+Die Smartphone-Hardware dürfte im Vergleich zu Entwicklung, Prüfung und Betrieb nur einen kleinen Teil der Gesamtkosten ausmachen; Vertrauen entsteht durch die Kombination aus lokaler Vorprüfung und Web- sowie Cloud-Sicherheitsarchitektur. Die lokale Erkennung läuft nur im Browser-Speicher und schreibt die Aufnahme nicht automatisch in die private Fotogalerie. Web-Code, Stimmzetteldefinitionen und Ergebnisdateien sind digital signiert. Die Cloud erhält Bild, Vorwertung und Prüfdaten nur innerhalb freigegebener Sitzungen, führt unveränderbare Audit-Protokolle und trennt Wahlbezirke technisch voneinander.
 
 | **Risiko**                      | **Beispiel**                                                               | **Gegenmaßnahme**                                                                                                                        |
 |---------------------------------|----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
@@ -220,7 +220,7 @@ Das Smartphone ist der günstigste Teil des Systems; Vertrauen entsteht durch di
 | Geprüfte Smartphones + geschützte Webanwendung | Handelsübliche Geräte, handgehaltene Aufnahme, flexible Skalierung, zentrale Aktualisierung. | Geräteprüfung, Browserfreigabe, Verbindung und Cloud-Betrieb müssen geregelt werden. | Empfohlene Pilotvariante. |
 | Dedizierte Dokumentenscanner | Konstante Bildqualität und hoher Durchsatz. | Zusätzliche Beschaffung, Papierstau, geringere Flexibilität. | Nicht erforderlich; allenfalls Vergleichstest. |
 
-Die ursprüngliche Smartphone-Idee bleibt damit vollständig erhalten: Es geht um handelsübliche Smartphones, die aus der Hand fotografieren, und eine webbasierte Bedienoberfläche. Zusätzliche Kameras, Halterungen, Scanner oder eine lokale Installation sind nicht erforderlich. Für den amtlichen Pilot sollten die Geräte lediglich vorab geprüft und die Webanwendung gegen private Speicher- und Weiterleitungsfunktionen abgesichert werden.
+Die ursprüngliche Smartphone-Idee bleibt damit im Kern erhalten: Es geht um handelsübliche Smartphones, die aus der Hand fotografieren, und eine webbasierte Bedienoberfläche. Zusätzliche Kameras, Halterungen, Scanner oder eine lokale Installation sind nicht erforderlich. Für den amtlichen Pilot sollten die Geräte lediglich vorab geprüft und die Webanwendung gegen private Speicher- und Weiterleitungsfunktionen abgesichert werden.
 
 Für einen vollständig besetzten Wahlvorstand genügen daher vier geeignete Smartphones und eine geschützte Cloud-Webanwendung. Die Software muss vier parallele Bildströme verarbeiten können, ohne dass die Teams aufeinander warten.
 
@@ -316,7 +316,7 @@ Es wird nicht beantragt, die manuelle Auszählung kurzfristig abzuschaffen. Bean
 
 - sichtbare, verantwortungsbewusste Digitalisierung, ohne die Papierwahl aufzugeben.
 
-> **Kernaussage an die Landeswahlleitung:** Der digitale Wahlassistent verbindet den demokratischen Vorteil des Papierstimmzettels mit der Rechen- und Dokumentationsstärke digitaler Systeme. Er ersetzt weder Öffentlichkeit noch menschliches Urteil. Er macht beides gezielter, überprüfbarer und im Erfolgsfall weniger belastend.
+> **Kernaussage an die Landeswahlleitung:** Der digitale Wahlassistent verbindet den demokratischen Vorteil des Papierstimmzettels mit der Rechen- und Dokumentationsstärke digitaler Systeme. Er ersetzt weder Öffentlichkeit noch menschliches Urteil. Er unterstützt beides durch nachvollziehbare Abläufe und dokumentierte Prüfschritte.
 
 # Anlage A: Kurzanschreiben an den Landeswahlleiter
 
