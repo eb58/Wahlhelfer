@@ -30,7 +30,7 @@ Ein zentraler demokratischer Zusatznutzen ist die unabhängige Nachprüfbarkeit.
 
 ## Vier zentrale Designentscheidungen
 
-- Keine individuelle Seriennummer auf dem ausgegebenen Stimmzettel. Der QR-Code enthält nur Wahlart, Wahlgebiet, Stimmzetteltyp, Layoutversion und Prüfsumme. Eine digitale laufende Nummer entsteht erst nach Öffnung und Durchmischung der Urne.
+- Jeder Stimmzettel erhält einen individuellen QR-Code mit einer zufällig erzeugten, nicht sprechenden Kennung. Der Code enthält Wahl-ID, Wahlbezirk beziehungsweise Wahllokal, Stimmzetteltyp, Layoutversion, die individuelle Stimmzettelkennung sowie eine Prüfsumme. Die Cloud akzeptiert nur Kennungen, deren Hash im autoritativen Verzeichnis der ausgegebenen Stimmzettel enthalten ist; unbekannte oder bereits verwendete Kennungen werden zurückgewiesen oder als Zweifelsfall vorgelegt. Die Kennung wird nicht mit dem Wählerverzeichnis, der Ausgabe-Reihenfolge oder einer Person verbunden.
 
 - Keine vollautomatische Letztentscheidung. Die Software erkennt klare Markierungen; Mehrfachmarkierungen, schwache Kreuze, Zusätze und sonstige Zweifelsfälle gehen sichtbar an den Wahlvorstand.
 
@@ -78,11 +78,11 @@ Der digitale Wahlassistent ist ein optisches Markierungserkennungssystem (OMR), 
 
 # 3. Stimmzettelgestaltung
 
-## 3.1 QR-Code: Metadaten, aber keine Individualisierung
+## 3.1 QR-Code: individuelle technische Kennung, keine Personenkennung
 
-Ein QR-Code ist sinnvoll, sofern er auf allen Stimmzetteln desselben Typs identisch ist. Er sollte ausschließlich folgende Angaben enthalten: Wahl-ID, Gebietskörperschaft, Wahlkreis bzw. Stimmzetteltyp, Layoutversion und Prüfsumme. Dieselben Angaben werden zusätzlich menschenlesbar gedruckt. So lädt die Erfassungssoftware automatisch die richtige Felddefinition, ohne eine einzelne Wählerin oder einen einzelnen Wähler identifizierbar zu machen.
+Jeder Stimmzettel erhält einen eigenen QR-Code mit einer eindeutigen, zufällig erzeugten Kennung. Der Code enthält Wahl-ID, Gebietskörperschaft, Wahlbezirk beziehungsweise Wahllokal, Stimmzetteltyp, Layoutversion, die individuelle Stimmzettelkennung sowie eine Prüfsumme. Dieselben nicht geheimen Metadaten werden zusätzlich menschenlesbar gedruckt. Die Kennung dient dazu, das Bild technisch zu identifizieren, Doppelaufnahmen zu erkennen, fehlende Datensätze festzustellen und die Prüfkette zu schließen. Die Cloud prüft den Hash der Kennung gegen das autoritative Verzeichnis der ausgegebenen Stimmzettel; ein selbst erzeugter oder unbekannter Hash wird nicht akzeptiert. Die Kennung enthält keine personenbezogenen Daten und wird nicht mit dem Wählerverzeichnis verbunden.
 
-> **Nicht empfohlen:** Eine vorab gedruckte, fortlaufende Einzelnummer kann als vermeintlicher oder tatsächlicher Beleg der Stimmabgabe missbraucht werden. Wird die Ausgabe-Reihenfolge beobachtet oder protokolliert, entsteht zumindest ein Rückverfolgungsverdacht. Das schwächt Vertrauen und kann Anreize für Stimmenkauf oder Zwang schaffen.
+> **Nicht empfohlen:** Eine sprechende, fortlaufende oder bei der Ausgabe protokollierte Einzelnummer. Wird die Ausgabe-Reihenfolge beobachtet oder mit dem Wählerverzeichnis verbunden, kann daraus ein Rückverfolgungsverdacht entstehen. Empfohlen wird deshalb eine zufällige, nicht sprechende Kennung ohne Personenbezug.
 
 ## 3.2 Lageerkennung
 
@@ -90,7 +90,7 @@ Für die geometrische Justierung sollte nicht ein zweiter individueller QR-Code 
 
 ## 3.3 Digitaler Beleg erst nach Urnenöffnung
 
-Beim Scan erhält der Datensatz eine zufällige Sitzung-ID und eine laufende Erfassungsnummer. Diese Kennung wird nicht auf den Stimmzettel gedruckt und nicht mit Ausgabezeit, Wählerverzeichnis oder Personendaten verbunden. Ein kryptografischer Hash bindet Bild, Erkennungsergebnis und Prüfentscheidung zusammen. Dadurch lassen sich Doppelaufnahmen, nachträgliche Änderungen und fehlende Datensätze feststellen, ohne einen "Wahlbeleg" für die wählende Person zu erzeugen.
+Beim Scan erhält der Datensatz zusätzlich eine zufällige Sitzung-ID und eine laufende Erfassungsnummer. Die auf dem Stimmzettel gedruckte Kennung wird nicht mit Ausgabezeit, Wählerverzeichnis oder Personendaten verbunden. Ein kryptografischer Hash bindet QR-Kennung, Bild, Erkennungsergebnis und Prüfentscheidung zusammen. Dadurch lassen sich Doppelaufnahmen, nachträgliche Änderungen und fehlende Datensätze feststellen, ohne einen "Wahlbeleg" für die wählende Person zu erzeugen.
 
 # 4. Ablauf im Wahllokal
 
