@@ -16,17 +16,17 @@ Version: 1.4 - Normsprachliche Terminologie
 
 # Kurzfassung und Empfehlung
 
-Die Idee ist technisch plausibel und adressiert ein reales Belastungsproblem: Nach einem langen Wahltag müssen ehrenamtliche Wahlvorstände viele Stimmzettel unter Zeitdruck sortieren, mehrfach zählen, Erst- und Zweitstimmen auseinanderhalten und Zahlen fehlerfrei übertragen. Mit zunehmender Zahl von Parteien, Wahlvorschlägen und gleichzeitig stattfindenden Abstimmungen steigt die organisatorische Komplexität. \[2, 3\]
+Ausgangspunkt der Studie ist die Belastung der Wahlvorstände: Nach einem langen Wahltag müssen ehrenamtliche Wahlvorstände viele Stimmzettel unter Zeitdruck sortieren, mehrfach zählen, Erst- und Zweitstimmen auseinanderhalten und Zahlen fehlerfrei übertragen. Mit zunehmender Zahl von Parteien, Wahlvorschlägen und gleichzeitig stattfindenden Abstimmungen steigt die organisatorische Komplexität. \[2, 3\]
 
 > **Empfehlung:** Berlin sollte einen ergebnisoffenen, öffentlich begleiteten Pilotversuch für eine scan-gestützte Auszählungsassistenz starten. Im Pilot bleibt die manuelle Auszählung allein verbindlich. Erst nach nachgewiesener Genauigkeit, Zeitersparnis, öffentlicher Verständlichkeit, IT-Sicherheit und einer ausdrücklichen gesetzlichen Grundlage darf über einen amtlichen Einsatz entschieden werden.
 
-Der Kern ist nicht "Handys zählen Stimmen", sondern eine kontrollierte Kombination aus Papier, handelsüblichen Smartphones, einer installierungsfreien Webanwendung, lokaler Vorprüfung im Browser, unabhängiger Cloud-Gegenprüfung, offener Software, Vier-Augen-Prinzip und menschlicher Entscheidungshoheit. Für die Aufnahme sind keine Spezialkameras, Halterungen, Scanmatten oder Sonderbeleuchtung erforderlich. Die Smartphones werden aus der Hand bedient; die Webanwendung prüft Bildausschnitt, Schärfe, Perspektive und Vollständigkeit und zeigt unmittelbar eine vorläufige Erkennung an.
+Das Konzept kombiniert Papier, handelsübliche Smartphones, eine installierungsfreie Webanwendung, eine lokale Vorprüfung im Browser, eine unabhängige Cloud-Gegenprüfung, offene Software, das Vier-Augen-Prinzip und menschliche Entscheidungshoheit. Für die Aufnahme sind keine Spezialkameras, Halterungen, Scanmatten oder Sonderbeleuchtung erforderlich. Die Smartphones werden aus der Hand bedient; die Webanwendung prüft Bildausschnitt, Schärfe, Perspektive und Vollständigkeit und zeigt unmittelbar eine vorläufige Erkennung an.
 
 Die Einführung kann dauerhaft gemischt erfolgen. Zunächst arbeiten nur einzelne Briefwahlvorstände mit der Assistenz, später gegebenenfalls ausgewählte Urnenwahllokale. Alle übrigen Wahlbezirke zählen weiterhin nach dem bisherigen Verfahren. Damit wird die Transparenz zunächst nur für die teilnehmenden Bezirke erweitert, das operative und rechtliche Risiko aber bewusst begrenzt.
 
 Bei der üblichen Besetzung mit acht Wahlhelfern können vier Zweiergruppen parallel arbeiten. Unter der ambitionierten Annahme von drei bis vier Sekunden je klarem Stimmzettel sinkt der reine Erfassungsdurchlauf für 600 bis 700 Stimmzettel rechnerisch auf etwa 7 Minuten 30 Sekunden bis 11 Minuten 40 Sekunden. Für den gesamten Vorgang einschließlich Aufbau, Eingangsabgleich, Zweifelsfällen und Abschlusskontrolle ist im Pilot zunächst mit etwa 20 bis 35 Minuten zu planen.
 
-Ein zentraler demokratischer Zusatznutzen ist die unabhängige Nachprüfbarkeit. Die Cloud soll nicht bloß eine fertige Zahl liefern, der man vertrauen muss. Für jeden teilnehmenden Wahlbezirk entsteht ein offenes, maschinenlesbares Prüfpaket mit Datenformat, Zählregeln, Prüfsummen, Sitzungsprotokoll, menschlichen Bestätigungen, Zweifelsfallentscheidungen und signierten Aggregaten. Jede interessierte Person kann den veröffentlichten Referenzcode verwenden oder eine eigene Software schreiben und damit die Ergebnisbildung selbst reproduzieren.
+Das Konzept sieht eine unabhängige Nachprüfbarkeit vor. Die Cloud soll nicht bloß eine fertige Zahl liefern, der man vertrauen muss. Für jeden teilnehmenden Wahlbezirk entsteht ein offenes, maschinenlesbares Prüfpaket mit Datenformat, Zählregeln, Prüfsummen, Sitzungsprotokoll, menschlichen Bestätigungen, Zweifelsfallentscheidungen und signierten Aggregaten. Jede interessierte Person kann den veröffentlichten Referenzcode verwenden oder eine eigene Software schreiben und damit die Ergebnisbildung selbst reproduzieren.
 
 ## Vier zentrale Designentscheidungen
 
@@ -44,7 +44,7 @@ Der Berliner Landeswahlleiter betont selbst, die digitale Transformation der Wah
 
 # 1. Ausgangslage: Wo der heutige Prozess belastet
 
-Die Bundeswahlordnung bildet die Belastung geradezu ab: § 69 BWO verlangt zunächst mehrere Stimmzettelstapel, sodann Prüfungen und Zählungen unter gegenseitiger Kontrolle sowie eine weitere Sortierung nach Zweitstimmen bei abweichender Kombination. Dieses Verfahren ist öffentlich und robust, bindet aber viele Hände, viel Tischfläche und hohe Konzentration. \[3\]
+Die Bundeswahlordnung bildet die Belastung geradezu ab: § 69 BWO verlangt zunächst mehrere Stimmzettelstapel, sodann Prüfungen und Zählungen unter gegenseitiger Kontrolle sowie eine weitere Sortierung nach Zweitstimmen bei abweichender Kombination. Dieses Verfahren ist öffentlich, bindet aber viele Hände, viel Tischfläche und hohe Konzentration. \[3\]
 
 | **Belastung**          | **Heutige Ursache**                                                                             | **Beitrag des Assistenzsystems**                                                                               |
 |------------------------|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
@@ -128,8 +128,8 @@ Als Erfahrungsannahme werden 600 bis 700 abgegebene Stimmzettel je Urnenwahlloka
 
 > `T = (N × s) / k`
 
-| **Menge**  | **Teams/Smartphones** | **3 Sekunden/Zettel** | **4 Sekunden/Zettel**  | **Vorläufiger Planwert einschließlich Nebenzeiten** |
-|------------|---------------|-----------------------|------------------------|-----------------------------------------------------|
+| **Menge**  | **Teams** | **3 Sek./Zettel** | **4 Sek./Zettel**  | **Planwert inkl. Nebenzeiten** |
+|------------|----------|-------------------|----------------------|-------------------------------|
 | 600 Zettel | 1             | 30 Minuten            | 40 Minuten             | ca. 45-60 Minuten                                   |
 | 600 Zettel | 4             | 7 Minuten 30 Sekunden | 10 Minuten             | ca. 20-30 Minuten                                   |
 | 700 Zettel | 1             | 35 Minuten            | 46 Minuten 40 Sekunden | ca. 50-70 Minuten                                   |
@@ -145,11 +145,11 @@ Die Erkennung soll regelbasiert und nachvollziehbar sein. Ein neuronales Netz ka
 
 | **Prüfstufe** | **Automatische Aufgabe**                                                            | **Menschliche Rolle**                                          |
 |---------------|-------------------------------------------------------------------------------------|----------------------------------------------------------------|
-| Bildqualität  | Schärfe, Reflexe, Vollständigkeit, Perspektive und richtige Vorderseite prüfen.     | Zettel neu auflegen, wenn die Aufnahme nicht freigegeben wird. |
+| Bild-qualität  | Schärfe, Reflexe, Vollständigkeit, Perspektive und richtige Vorderseite prüfen.     | Zettel neu auflegen, wenn die Aufnahme nicht freigegeben wird. |
 | Layout        | QR-Code und Passmarken lesen; Feldkoordinaten und Wahlart zuordnen.                 | Bei nicht passendem oder beschädigtem Zettel eingreifen.       |
-| Markierung    | Für jedes Feld "leer", "markiert" oder "unklar" bestimmen.                          | Unsichere Felder sichtbar prüfen.                              |
+| Mark.         | Für jedes Feld "leer", "markiert" oder "unklar" bestimmen.                          | Unsichere Felder sichtbar prüfen.                              |
 | Wahlregel     | Mehrfachmarkierung, fehlende Stimme und formale Konflikte als Prüfhinweis erkennen. | Nur der Wahlvorstand entscheidet strittige Gültigkeitsfragen.  |
-| Aggregation   | Freigegebene Erst- und Zweitstimmen getrennt summieren; Prüfsummen bilden.          | Summen und Differenzberichte bestätigen.                       |
+| Summe         | Freigegebene Erst- und Zweitstimmen getrennt summieren; Prüfsummen bilden.          | Summen und Differenzberichte bestätigen.                       |
 
 > **Grundsatz:** Das System darf lieber zu viele Stimmzettel als "unklar" vorlegen als einen zweifelhaften Zettel unbemerkt falsch zuzuordnen. Der Pilot optimiert daher nicht nur Trefferquote, sondern vor allem die Rate stiller Fehler.
 
@@ -260,7 +260,7 @@ Für einen vollständig besetzten Wahlvorstand genügen daher vier geeignete Sma
 
 ## 10.3 Stufenweiser und gemischter Rollout
 
-Die Technik muss nicht flächendeckend eingeführt werden, um praktischen Nutzen zu stiften. Ein gemischter Betrieb ist organisatorisch möglich, sofern Ergebnisdateien eindeutig kennzeichnen, nach welchem Verfahren ein Wahlbezirk ausgezählt wurde, und die amtliche Aggregation beide Wege korrekt zusammenführt.
+Die Technik kann schrittweise und in ausgewählten Wahlbezirken erprobt werden. Ein gemischter Betrieb ist organisatorisch möglich, sofern Ergebnisdateien eindeutig kennzeichnen, nach welchem Verfahren ein Wahlbezirk ausgezählt wurde, und die amtliche Aggregation beide Wege korrekt zusammenführt.
 
 | **Ausbaustufe** | **Beteiligte Stellen**                     | **Transparenzreichweite**                           | **Zweck**                                                                               |
 |-----------------|----------------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------|
@@ -269,7 +269,7 @@ Die Technik muss nicht flächendeckend eingeführt werden, um praktischen Nutzen
 | C               | Ausgewählte Urnenwahllokale                  | Beteiligte Wahlbezirke vollständig                | Alltagstauglichkeit in unterschiedlichen Räumen und Teams testen.                       |
 | D               | Breiter Regelbetrieb mit manuellen Ausnahmen | Großer Anteil der Wahl; Rest weiterhin traditionell | Nutzen ausrollen, ohne ungeeignete Standorte oder Sonderfälle zu zwingen.               |
 
-Eine teilweise Einführung erlaubt keine digitale Einzelprüfung der gesamten Wahl. Sie schafft aber für jeden teilnehmenden Wahlbezirk eine zusätzliche, transparente Belegspur. Zugleich bleibt ein direkter Vergleich zwischen neuem und altem Verfahren möglich. Dieser Parallelvergleich ist für eine glaubwürdige Evaluation besonders wertvoll.
+Eine teilweise Einführung erlaubt keine digitale Einzelprüfung der gesamten Wahl. Sie schafft aber für jeden teilnehmenden Wahlbezirk eine zusätzliche, transparente Belegspur. Zugleich bleibt ein direkter Vergleich zwischen neuem und altem Verfahren möglich. Dieser Parallelvergleich liefert eine zusätzliche Grundlage für die Evaluation.
 
 # 11. Organisation, Aufwand und Beschaffung
 
@@ -300,7 +300,7 @@ Es wird nicht beantragt, die manuelle Auszählung kurzfristig abzuschaffen. Bean
 
 5.  **Entscheidung:** Erst danach entscheidet die Landeswahlleitung, ob ein rein zusätzlicher Schattenpilot bei einer geeigneten späteren Wahl beantragt wird.
 
-## Erwarteter strategischer Nutzen
+## Mögliche strategische Wirkungen
 
 - Entlastung ehrenamtlicher Wahlvorstände bei Routinearbeit;
 
