@@ -1,17 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { stimmZeilen, summary, istEindeutig, drawFelder } from '../src/wertungAnzeige.js';
-import { storeTyp, loadTyp, forgetTyp, STORAGE_KEY } from '../src/storage.js';
-import { registerWahlzettel } from '../src/wahlzettelTyp.js';
+import { ladeKalibrierung } from '../src/kalibrierung.js';
 import { musterZettel, kreuzeAn } from './zettelWerkstatt.js';
 
+const lies = datei => readFileSync(new URL(`../Kalibrierungen/${datei}`, import.meta.url), 'utf8');
 const muster = musterZettel();
-const typ = await registerWahlzettel(muster, { name: 'Anzeigetest' });
+const typ = ladeKalibrierung(lies('bundestagswahl-2017-muster.json'));
 
 test('eindeutiger Zettel wird als Wertung angezeigt', () => {
   const ergebnis = typ.recognize(kreuzeAn(muster, typ, ['E2', 'Z4']));
   assert.ok(istEindeutig(ergebnis));
-  assert.equal(summary(ergebnis), 'Erststimme: E2 | Zweitstimme: Z4');
+  assert.equal(summary(ergebnis), 'Erststimme: Jedermann, Jürgen (PARTEI B) | Zweitstimme: PARTEI D');
 });
 
 test('Zweifelsfall wird nicht als Wertung ausgegeben', () => {
@@ -26,14 +27,16 @@ test('leerer Zettel gilt nicht als eindeutig', () => {
 
 test('Zeilen nennen Stimme, Wertung und Treffer', () => {
   const [erst, zweit] = stimmZeilen(typ.recognize(kreuzeAn(muster, typ, ['E5'])));
-  assert.deepEqual({ titel: erst.titel, status: erst.status, treffer: erst.treffer }, { titel: 'Erststimme', status: 'gueltig', treffer: ['E5'] });
+  assert.deepEqual({ titel: erst.titel, status: erst.status, treffer: erst.treffer },
+    { titel: 'Erststimme', status: 'gueltig', treffer: ['Musterherr, Manfred (PARTEI E)'] });
   assert.deepEqual({ status: zweit.status, treffer: zweit.treffer }, { status: 'leer', treffer: [] });
 });
 
-test('Beschriftung ersetzt die Feld-ID, wenn vorhanden', () => {
-  const ergebnis = typ.recognize(kreuzeAn(muster, typ, ['Z3']));
-  const beschriftet = { ...ergebnis, felder: ergebnis.felder.map(f => (f.id === 'Z3' ? { ...f, beschriftung: 'PARTEI C' } : f)) };
-  assert.deepEqual(stimmZeilen(beschriftet)[1].treffer, ['PARTEI C']);
+test('ein Zettel mit nur einer Stimme ergibt genau eine Zeile', () => {
+  // Die Stimmen stehen in der Kalibrierung: die Europawahl kennt nur eine.
+  const europa = ladeKalibrierung(lies('europawahl-sh-2024.json'));
+  const zeilen = stimmZeilen({ felder: europa.felder, stimmen: [{ id: 'stimme', name: 'Stimme', status: 'leer', treffer: [] }] });
+  assert.deepEqual(zeilen.map(zeile => zeile.titel), ['Stimme']);
 });
 
 test('drawFelder malt einen Ring je Feld', () => {
@@ -44,41 +47,4 @@ test('drawFelder malt einen Ring je Feld', () => {
   });
   drawFelder(context, typ.recognize(muster));
   assert.equal(calls.length, 14);
-});
-
-/* --- Ablage ------------------------------------------------------------- */
-
-const fakeStorage = () => {
-  const content = new Map();
-  return {
-    getItem: key => content.get(key) ?? null,
-    setItem: (key, value) => content.set(key, value),
-    removeItem: key => content.delete(key),
-  };
-};
-
-test('gespeicherter Typ kommt als Erkenner zurueck', () => {
-  const storage = fakeStorage();
-  storeTyp(typ, storage);
-  const geladen = loadTyp(storage);
-  assert.equal(geladen.name, 'Anzeigetest');
-  assert.deepEqual(geladen.recognize(muster).erststimme, { treffer: [], status: 'leer' });
-});
-
-test('ohne Eintrag gibt es keinen Typ', () => {
-  assert.equal(loadTyp(fakeStorage()), undefined);
-});
-
-test('unlesbarer Eintrag blockiert die Anwendung nicht', () => {
-  const storage = fakeStorage();
-  storage.setItem(STORAGE_KEY, '{kein json');
-  assert.equal(loadTyp(storage), undefined);
-  assert.equal(storage.getItem(STORAGE_KEY), null, 'kaputter Eintrag wird entfernt');
-});
-
-test('forgetTyp entfernt den Eintrag', () => {
-  const storage = fakeStorage();
-  storeTyp(typ, storage);
-  forgetTyp(storage);
-  assert.equal(loadTyp(storage), undefined);
 });

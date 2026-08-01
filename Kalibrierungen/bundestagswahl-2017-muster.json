@@ -1,0 +1,40 @@
+{
+  "version": 3,
+  "name": "Bundestagswahl 2017, Muster Wahlkreis 16",
+  "quelle": "Testdaten/Wahlzettel1.png",
+  "vermessenAm": "2026-08-01",
+  "referenz": { "breite": 1248, "hoehe": 1748 },
+  "frame": { "left": 53.5, "right": 1194, "top": 56.5, "bottom": 1689 },
+  "radius": 25,
+  "thresholds": { "angekreuzt": 0.18, "zweifel": 0.06 },
+  "stimmen": [
+    {
+      "id": "erststimme",
+      "name": "Erststimme",
+      "auswahl": 1,
+      "felder": [
+        { "id": "E1", "nummer": 1, "x": 572, "y": 726, "beschriftung": "Musterfrau, Julia (PARTEI A)" },
+        { "id": "E2", "nummer": 2, "x": 572, "y": 836, "beschriftung": "Jedermann, Jürgen (PARTEI B)" },
+        { "id": "E3", "nummer": 3, "x": 572, "y": 945, "beschriftung": "Mustermann, Manuel (PARTEI C)" },
+        { "id": "E4", "nummer": 4, "x": 572, "y": 1052, "beschriftung": "Soundso, Sabine (PARTEI D)" },
+        { "id": "E5", "nummer": 5, "x": 572, "y": 1165, "beschriftung": "Musterherr, Manfred (PARTEI E)" },
+        { "id": "E6", "nummer": 8, "x": 572, "y": 1483, "beschriftung": "Jederfrau, Jennifer" },
+        { "id": "E7", "nummer": 9, "x": 572, "y": 1594, "beschriftung": "Musterdame, Marie" }
+      ]
+    },
+    {
+      "id": "zweitstimme",
+      "name": "Zweitstimme",
+      "auswahl": 1,
+      "felder": [
+        { "id": "Z1", "nummer": 1, "x": 677, "y": 726, "beschriftung": "PARTEI A" },
+        { "id": "Z2", "nummer": 2, "x": 677, "y": 836, "beschriftung": "PARTEI B" },
+        { "id": "Z3", "nummer": 3, "x": 677, "y": 945, "beschriftung": "PARTEI C" },
+        { "id": "Z4", "nummer": 4, "x": 677, "y": 1052, "beschriftung": "PARTEI D" },
+        { "id": "Z5", "nummer": 5, "x": 677, "y": 1165, "beschriftung": "PARTEI E" },
+        { "id": "Z6", "nummer": 6, "x": 677, "y": 1269, "beschriftung": "PARTEI F" },
+        { "id": "Z7", "nummer": 7, "x": 677, "y": 1377, "beschriftung": "PARTEI G" }
+      ]
+    }
+  ]
+}

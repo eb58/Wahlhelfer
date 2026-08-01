@@ -7,14 +7,12 @@
     <title>Wahlassistent</title>
     <link rel="stylesheet" href="styles.css" />
     <!--
-      Die Anwendung laedt zur Laufzeit nichts aus dem Netz. tesseract.js und pdf.js kommen
-      lokal aus node_modules; ohne diese Zuordnung wuerden sie still auf ein CDN ausweichen.
-      Ihre Worker- und WASM-Dateien liegen unter vendor/ (`npm run vendor`).
+      Die Anwendung laedt zur Laufzeit nichts aus dem Netz. pdf.js kommt lokal aus
+      node_modules; ohne diese Zuordnung wuerde es still auf ein CDN ausweichen.
     -->
     <script type="importmap">
       {
         "imports": {
-          "tesseract.js": "./node_modules/tesseract.js/dist/tesseract.esm.min.js",
           "pdfjs-dist": "./node_modules/pdfjs-dist/build/pdf.min.mjs"
         }
       }
@@ -31,13 +29,8 @@
         </p>
       </section>
 
-      <nav class="reiter" role="tablist">
-        <button class="reiter-knopf" id="reiterErfassen" role="tab" type="button" aria-selected="true" aria-controls="ansichtErfassen">Erfassen</button>
-        <button class="reiter-knopf" id="reiterAdmin" role="tab" type="button" aria-selected="false" aria-controls="ansichtAdmin">Zettel registrieren</button>
-      </nav>
-
-      <!-- Erfassen: Aufnahme eines ausgefuellten Zettels -->
-      <section class="karte" id="ansichtErfassen" role="tabpanel" aria-labelledby="reiterErfassen">
+      <!-- Erfassen: Aufnahme eines ausgefuellten Zettels. Die Zettelart steht in konfiguration.js. -->
+      <section class="karte" id="ansichtErfassen">
         <div class="preview">
           <div class="placeholder" id="erfassenPlatzhalter">
             <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -59,47 +52,8 @@
             </svg>
             <span id="erfassenKnopfText">Stimmzettel aufnehmen</span>
           </button>
-          <input id="erfassenEingabe" class="visually-hidden" type="file" accept="image/*" capture="environment" aria-label="Stimmzettel aufnehmen" />
+          <input id="erfassenEingabe" class="visually-hidden" type="file" accept="image/*,application/pdf" capture="environment" aria-label="Stimmzettel aufnehmen" />
           <p class="status" id="erfassenStatus">Aufnahmen bleiben auf diesem Gerät.</p>
-        </div>
-      </section>
-
-      <!-- Admin: neuen Wahlzettel registrieren -->
-      <section class="karte" id="ansichtAdmin" role="tabpanel" aria-labelledby="reiterAdmin" hidden>
-        <div class="preview">
-          <div class="placeholder" id="adminPlatzhalter">
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M6 3.5h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z" />
-              <path d="M13.5 3.5v4.5H18" />
-            </svg>
-            <span>Noch kein Zetteltyp registriert</span>
-          </div>
-          <canvas id="adminBild" hidden></canvas>
-        </div>
-
-        <div class="actions">
-          <div class="typ-info" id="typInfo" aria-live="polite" hidden></div>
-
-          <label class="feld">
-            <span>Bezeichnung</span>
-            <input id="typName" type="text" placeholder="z. B. Bundestagswahl 2025, Wahlkreis 16" />
-          </label>
-
-          <label class="schalter">
-            <input id="mitOcr" type="checkbox" />
-            <span>Beschriftungen per Texterkennung lesen (dauert länger)</span>
-          </label>
-
-          <button class="knopf" id="adminKnopf" type="button">
-            <span id="adminKnopfText">Leeren Musterzettel wählen (Bild oder PDF)</span>
-          </button>
-          <input id="adminEingabe" class="visually-hidden" type="file" accept="image/*,application/pdf" aria-label="Leeren Musterzettel wählen" />
-
-          <div class="knopf-reihe">
-            <button class="knopf knopf--zweit" id="exportKnopf" type="button" disabled>Typ exportieren</button>
-            <button class="knopf knopf--zweit" id="loeschKnopf" type="button" disabled>Typ verwerfen</button>
-          </div>
-          <p class="status" id="adminStatus">Ein leerer Musterzettel als Bild oder PDF – einmal je Zettelart.</p>
         </div>
       </section>
     </main>

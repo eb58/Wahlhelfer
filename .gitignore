@@ -1,8 +1,4 @@
 node_modules/
-*-tmp.*
-# von tesseract.js beim ersten Lauf heruntergeladen
-*.traineddata
-vendor/
 
-# Ausgabe von scripts/registerWahlzettel.js (enthaelt Zeitstempel)
-Testdaten/wahlzettelTyp.json
+# Zwischenstaende, u. a. die Ausgabe von scripts/pruefeKalibrierung.py
+*-tmp.*

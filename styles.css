@@ -72,44 +72,21 @@ h1 {
   backdrop-filter: blur(12px);
 }
 
-.reiter {
-  display: flex;
-  margin-bottom: 16px;
-  gap: 6px;
-  padding: 5px;
-  border-radius: 16px;
-  background: rgb(255 255 255 / 60%);
-}
-
-.reiter-knopf {
-  flex: 1;
-  padding: 11px 8px;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: #5c6b60;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 700;
-}
-
-.reiter-knopf[aria-selected='true'] {
-  background: #1f4d35;
-  color: #fff;
-}
-
-.reiter-knopf:focus-visible {
-  outline: 3px solid rgb(31 77 53 / 28%);
-  outline-offset: 2px;
-}
-
+/*
+ * Stimmzettel sind heute oft sehr lang (Europawahl: Seitenverhaeltnis rund 1:4). Eingepasst
+ * waere so ein Zettel nur noch ein Streifen. Deshalb laeuft die Vorschau in voller Breite und
+ * wird senkrecht gescrollt; app.js springt dabei zur ersten Markierung.
+ */
 .preview {
   position: relative;
   display: grid;
   min-height: 300px;
-  overflow: hidden;
-  place-items: center;
+  max-height: 62dvh;
+  align-content: safe center;
+  grid-template-columns: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
   background:
     linear-gradient(135deg, rgb(73 111 88 / 8%), transparent),
     #e9e8df;
@@ -119,6 +96,7 @@ h1 {
   display: grid;
   justify-items: center;
   gap: 12px;
+  padding: 24px;
   color: #7c877f;
   font-size: 0.9rem;
 }
@@ -133,10 +111,10 @@ h1 {
 }
 
 .preview canvas {
+  display: block;
   width: 100%;
-  max-height: 62dvh;
+  height: auto;
   background: #172019;
-  object-fit: contain;
 }
 
 .actions {
@@ -189,96 +167,6 @@ h1 {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.75;
-}
-
-.knopf--zweit {
-  min-height: 46px;
-  border: 1px solid rgb(31 77 53 / 22%);
-  background: transparent;
-  color: #1f4d35;
-  font-size: 0.86rem;
-}
-
-.knopf--zweit:hover:not(:disabled) {
-  background: rgb(31 77 53 / 8%);
-}
-
-.knopf--zweit:disabled {
-  border-color: rgb(30 43 37 / 10%);
-  background: transparent;
-  color: #a7b1a9;
-}
-
-.knopf-reihe {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.knopf-reihe .knopf {
-  flex: 1;
-}
-
-.feld {
-  display: grid;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-
-.feld span {
-  color: #5c6b60;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.feld input {
-  min-height: 46px;
-  padding: 0 14px;
-  border: 1px solid rgb(30 43 37 / 16%);
-  border-radius: 14px;
-  background: rgb(255 255 255 / 80%);
-  color: inherit;
-  font: inherit;
-}
-
-.feld input:focus-visible {
-  border-color: #1f4d35;
-  outline: 2px solid rgb(31 77 53 / 22%);
-}
-
-.schalter {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  color: #5c6b60;
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-
-.schalter input {
-  width: 20px;
-  height: 20px;
-  flex: none;
-  accent-color: #1f4d35;
-}
-
-.typ-info {
-  display: grid;
-  gap: 3px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  margin-bottom: 16px;
-  background: rgb(31 77 53 / 8%);
-  color: #334037;
-  font-size: 0.84rem;
-}
-
-.typ-info strong {
-  color: #1e2b25;
-  font-size: 0.95rem;
 }
 
 .wertung {

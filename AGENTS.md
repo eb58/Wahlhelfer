@@ -20,33 +20,37 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 
 ## Aufbau der Erkennung
 
-- `registerWahlzettel(musterBild)` lernt einen Zetteltyp aus einem **leeren** Musterzettel und
-  liefert einen Erkenner (`typ.recognize(aufnahme)`). Kein Modul kennt einen konkreten Stimmzettel:
-  Spaltenzahl, Feldanzahl, Radius und Rahmen stammen aus dem Bild. Registriert wird einmal je
-  Zettelart, gespeichert per `toJson()` / `fromJson()`.
-- Fuer die Ausrichtung gibt es zwei Wege, in dieser Reihenfolge:
-  1. **Rahmen** (`frame.js`): Feldlagen relativ zu den durchgehenden Drucklinien. Schnell und
-     ohne OCR, setzt aber eine gerade gehaltene Aufnahme voraus.
-  2. **Anker** (`alignment.js`): gelernte Ankerwoerter per OCR, daraus eine
-     Aehnlichkeitstransformation (Verschiebung, Drehung, Massstab). Faengt Schraeglage auf.
-  `typ.recognize()` nutzt nur Weg 1, `typ.recognizeRobust()` faellt auf Weg 2 zurueck. Das Ergebnis
-  nennt in `method` den genutzten Weg. Anker werden beim Registrieren mit `ocr` gelernt; mehrfach
-  vorkommende Woerter (auf einem Stimmzettel z. B. "PARTEI") taugen nicht und werden verworfen.
+- **Die Kalibrierung wird nicht berechnet, sondern abgelesen.** Je Zettelart liegt unter
+  `Kalibrierungen/` eine von Hand am leeren Musterzettel vermessene Datei. Es gibt bewusst kein
+  Verfahren mehr, das Ankreuzfelder selbst sucht (fruehere Kreissuche, Spaltenbildung,
+  Radiusabstimmung) - das war aufwendig und unzuverlaessig. Neue Zettelart heisst: neue Datei.
+- Aufbau einer Kalibrierungsdatei: `frame` (die Rahmenlinien des Musterzettels), `radius` und
+  je Stimme (`erststimme`, `zweitstimme`, bei nur einer Stimme schlicht `stimme`) die Felder mit
+  `x`/`y` in Musterzettel-Pixeln, `nummer` (Listenplatz wie gedruckt) und `beschriftung`.
+  `auswahl` sagt, wie viele Markierungen je Stimme gueltig sind.
+- `ladeKalibrierung(json)` rechnet die Pixel gegen `frame` in rahmenrelative Lagen um und
+  liefert den Erkenner `typ.recognize(aufnahme)`. Ausgerichtet wird ausschliesslich ueber die
+  durchgehenden Drucklinien (`frame.js`); das setzt eine gerade gehaltene Aufnahme voraus.
 - Jedes Feld wird zum Schluss auf seinen gedruckten Ring eingerastet (`adjustFeld`). Bewertet
   wird dabei nur der Ring, nicht das Innere - sonst wuerde ein Kreuz die Suche stoeren.
-- Ob ein Feld angekreuzt ist, entscheidet die Pixelmessung (`ankreuzErkennung.js`), nie OCR.
-  OCR (`beschriftung.js`) liefert nur Beschriftung und Anker und darf ausfallen.
-- OCR-Wortkoordinaten stehen im Massstab des vergroesserten Bildes, die Feldlagen im Original.
-  Ueberall, wo beides zusammentrifft, muss `scale` mitgereicht werden.
+- Ob ein Feld angekreuzt ist, entscheidet allein die Pixelmessung (`ankreuzErkennung.js`).
 - Bilddaten immer ueber `toDarkness()` einlesen: es rechnet Transparenz ueber Weiss. Sonst
   liefert `canvas.getImageData()` durchsichtige Bereiche als Schwarz und der Rahmen verrutscht.
+- Stimmzettel sind heute oft sehr lang (Europawahl rund 1:4). Deshalb begrenzt `browserImage.js`
+  die **Breite** der Aufnahme, nicht die laengste Kante, und die Vorschau scrollt, statt den
+  Zettel auf Streifenbreite einzupassen.
+
+## Werkzeuge
+
+- `python scripts/pruefeKalibrierung.py <datei.json> [ausgabe.png]` zeichnet die Feldlagen in
+  den Musterzettel - die Sichtkontrolle nach jeder Aenderung an einer Kalibrierung.
+- `konfiguration.js` legt fest, welche Kalibrierung im Einsatz gilt. Pro Wahl einmal setzen;
+  die Oberflaeche bietet keine Auswahl an.
 
 ## Externe Ressourcen
 
-- Zur Laufzeit wird nichts aus dem Netz geladen. Die Tesseract-Sprachdaten kommen aus dem Paket
-  `@tesseract.js-data/deu`; `ocrPaths.js` setzt `langPath` und `cacheMethod: 'none'`. Ohne beides
-  laedt tesseract.js vom jsdelivr-CDN und legt `deu.traineddata` im Arbeitsverzeichnis ab.
-- Vorbild ist das Projekt `gratulationsdienst` (`public/vendor/tesseract`, dort per Vite gespiegelt); hier erledigt das `npm run vendor`.
+- Zur Laufzeit wird nichts aus dem Netz geladen. pdf.js kommt lokal aus `node_modules`
+  (Importmap in `index.html`); ohne diese Zuordnung wuerde es still auf ein CDN ausweichen.
 
 ## Pruefen
 
@@ -58,7 +62,7 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 
 - Begriffe der Wahldomaene bleiben deutsch: Wahlzettel, Stimme, Erst-/Zweitstimme, Ankreuzfeld
   (`felder`), ankreuzen, Markierung, Fuellgrad, Wertung, Zweifelsfall, Musterzettel, Beschriftung,
-  Kalibrierung.
+  Kalibrierung, Auswahl (zulaessige Markierungen je Stimme).
 - Alles Uebrige ist englisch: read/write, image, darkness, frame, path, word, anchor, transform,
   scale, rotate, crop, canvas, store/load, draw, find, threshold, column, circle.
 - Gemischte Namen sind gewollt und richtig, z. B. `drawFelder`, `adjustFeld`, `storeTyp`.

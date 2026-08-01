@@ -12,25 +12,21 @@ const STIMM_TEXT = {
   leer: 'Keine Markierung',
 };
 
-export const stimmName = stimme => (stimme === 'erststimme' ? 'Erststimme' : 'Zweitstimme');
-
 /** Nur eine eindeutige Wertung darf ohne Rueckfrage weiterlaufen. */
-export const istEindeutig = ergebnis => ergebnis.erststimme.status === 'gueltig' && ergebnis.zweitstimme.status === 'gueltig';
+export const istEindeutig = ergebnis => ergebnis.stimmen.every(stimme => stimme.status === 'gueltig');
 
 const feldName = (felder, id) => felder.find(f => f.id === id)?.beschriftung ?? id;
 
-/** Eine Zeile je Stimme: Wertung plus die getroffenen Felder im Klartext. */
+/** Eine Zeile je Stimme: Wertung plus die getroffenen Felder im Klartext. Die Stimmen
+ *  stehen in der Kalibrierung - ein Zettel mit nur einer Stimme ist genauso moeglich. */
 export const stimmZeilen = ergebnis =>
-  ['erststimme', 'zweitstimme'].map(stimme => {
-    const wertung = ergebnis[stimme];
-    return {
-      stimme,
-      titel: stimmName(stimme),
-      status: wertung.status,
-      text: STIMM_TEXT[wertung.status],
-      treffer: wertung.treffer.map(id => feldName(ergebnis.felder, id)),
-    };
-  });
+  ergebnis.stimmen.map(stimme => ({
+    stimme: stimme.id,
+    titel: stimme.name,
+    status: stimme.status,
+    text: STIMM_TEXT[stimme.status],
+    treffer: stimme.treffer.map(id => feldName(ergebnis.felder, id)),
+  }));
 
 /** Kurzfassung fuer die Statuszeile. */
 export const summary = ergebnis =>

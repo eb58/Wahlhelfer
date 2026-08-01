@@ -17,29 +17,6 @@ export const toDarkness = ({ width, height, data }) => {
   return { width, height, values };
 };
 
-/**
- * Verkleinert eine Dunkelheitskarte um einen ganzzahligen Faktor (Mittelwert je Block).
- *
- * Der Mittelwert bildet nach, wie eine niedriger aufgeloeste Aufnahme desselben Zettels
- * aussaehe. Das Maximum waere naheliegend, um duenne Linien zu erhalten, macht aber
- * kleine Schrift zu geschlossenen Flecken - die Ringsuche findet darin Scheinkreise.
- */
-export const downscale = ({ width, height, values }, factor) => {
-  if (factor <= 1) return { width, height, values };
-  const w = Math.floor(width / factor), h = Math.floor(height / factor);
-  const out = new Float32Array(w * h);
-  const blockSize = factor * factor;
-
-  for (let y = 0; y < h; y++)
-    for (let x = 0; x < w; x++) {
-      let sum = 0;
-      for (let dy = 0; dy < factor; dy++)
-        for (let dx = 0; dx < factor; dx++) sum += values[(y * factor + dy) * width + x * factor + dx];
-      out[y * w + x] = sum / blockSize;
-    }
-  return { width: w, height: h, values: out };
-};
-
 export const darknessAt = ({ width, height, values }, x, y) => {
   const px = Math.round(x), py = Math.round(y);
   return px < 0 || py < 0 || px >= width || py >= height ? 0 : values[py * width + px];
@@ -53,15 +30,6 @@ export const ringDarkness = (map, cx, cy, r, samples = 48) => {
     sum += darknessAt(map, cx + r * Math.cos(angle), cy + r * Math.sin(angle));
   }
   return sum / samples;
-};
-
-/** Mittlere Darkness der Kreisflaeche - der Fuellgrad eines Ankreuzfelds. */
-export const areaDarkness = (map, cx, cy, r) => {
-  let sum = 0, count = 0;
-  for (let dy = -r; dy <= r; dy++)
-    for (let dx = -r; dx <= r; dx++)
-      if (dx * dx + dy * dy <= r * r) { sum += darknessAt(map, cx + dx, cy + dy); count++; }
-  return count ? sum / count : 0;
 };
 
 /**

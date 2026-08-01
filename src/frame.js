@@ -17,7 +17,13 @@ const lines = (length, across, count, minRatio) =>
  * Sucht die aeusseren Senkrechten und die oberste/unterste waagerechte Tabellenlinie.
  * @returns {{left:number,right:number,top:number,bottom:number}|undefined}
  */
-export const findFrame = ({ width, height, values }, { darkThreshold = 0.4, verticalRatio = 0.9, horizontalRatio = 0.6, edgeRatio = 0.02 } = {}) => {
+/**
+ * `verticalRatio` bewusst deutlich unter 1: bei langen Streifenzetteln (Landtagswahl,
+ * Europawahl) unterbrechen Kopf- und Fussbereich die Seitenlinien. Gemessen erreicht die
+ * laengste Senkrechte dort nur 85 % der Bildhoehe. Zwischen 0,8 und 0,6 aendert sich am
+ * gefundenen Rahmen aller Musterzettel nichts - der Wert ist also unkritisch.
+ */
+export const findFrame = ({ width, height, values }, { darkThreshold = 0.4, verticalRatio = 0.75, horizontalRatio = 0.6, edgeRatio = 0.02 } = {}) => {
   const dark = (x, y) => (values[y * width + x] > darkThreshold ? 1 : 0);
   const column = x => { let s = 0; for (let y = 0; y < height; y++) { s += dark(x, y); } return s; };
   const row = y => { let s = 0; for (let x = 0; x < width; x++) { s += dark(x, y); } return s; };

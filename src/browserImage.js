@@ -3,8 +3,13 @@
  * Das Gegenstueck zu png.js, das dieselbe Struktur in Node liefert.
  */
 
-/** Sehr grosse Aufnahmen kosten nur Rechenzeit; die Ankreuzerkennung braucht sie nicht. */
-export const MAX_EDGE = 2000;
+/**
+ * Sehr grosse Aufnahmen kosten nur Rechenzeit; die Ankreuzerkennung braucht sie nicht.
+ * Begrenzt wird bewusst die Breite und nicht die laengste Kante: die Groesse eines
+ * Ankreuzfelds haengt an der Zettelbreite. Ein sehr langer Zettel (Europawahl) wuerde
+ * ueber die laengste Kante so stark verkleinert, dass die Kreise zu klein zum Messen waeren.
+ */
+export const MAX_WIDTH = 1600;
 
 const createCanvas = (width, height) =>
   typeof OffscreenCanvas === 'function'
@@ -18,7 +23,7 @@ const createCanvas = (width, height) =>
 export const toImageData = async file => {
   const bitmap = await createImageBitmap(file);
   try {
-    const factor = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const factor = Math.min(1, MAX_WIDTH / bitmap.width);
     const width = Math.round(bitmap.width * factor), height = Math.round(bitmap.height * factor);
     const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d', { willReadFrequently: true });
@@ -30,22 +35,6 @@ export const toImageData = async file => {
   } finally {
     bitmap.close?.();
   }
-};
-
-/**
- * Vergroesserte Fassung fuer die Texterkennung: tesseract liest kleine Schrift sonst schlecht.
- * Rueckgabe ist bewusst ein Canvas-Element - rohe ImageData nimmt tesseract.js nicht an.
- * Die Ankreuzerkennung selbst arbeitet weiter im Originalmassstab.
- */
-export const scaleToCanvas = (imageData, factor) => {
-  const source = createCanvas(imageData.width, imageData.height);
-  source.getContext('2d').putImageData(imageData, 0, 0);
-
-  const target = document.createElement('canvas');
-  target.width = imageData.width * factor;
-  target.height = imageData.height * factor;
-  target.getContext('2d').drawImage(source, 0, 0, target.width, target.height);
-  return target;
 };
 
 /** Bilddaten als anzeigbare Bildquelle - fuer die Vorschau samt Markierungen. */
