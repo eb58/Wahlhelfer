@@ -27,9 +27,9 @@ body {
 }
 
 .app {
-  width: min(100% - 32px, 480px);
+  width: min(100% - 12px, 720px);
   margin: 0 auto;
-  padding: max(40px, env(safe-area-inset-top)) 0 max(32px, env(safe-area-inset-bottom));
+  padding: max(16px, env(safe-area-inset-top)) 0 max(16px, env(safe-area-inset-bottom));
 }
 
 .intro {
@@ -55,6 +55,18 @@ h1 {
   line-height: 0.88;
 }
 
+.wahl {
+  margin: 22px 0 0;
+  padding: 9px 12px;
+  border-left: 4px solid #1f4d35;
+  border-radius: 0 12px 12px 0;
+  background: rgb(255 255 255 / 65%);
+  color: #1f4d35;
+  font-size: 0.95rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
 .intro p {
   max-width: 32rem;
   margin: 24px 0 0;
@@ -72,49 +84,17 @@ h1 {
   backdrop-filter: blur(12px);
 }
 
-/*
- * Stimmzettel sind heute oft sehr lang (Europawahl: Seitenverhaeltnis rund 1:4). Eingepasst
- * waere so ein Zettel nur noch ein Streifen. Deshalb laeuft die Vorschau in voller Breite und
- * wird senkrecht gescrollt; app.js springt dabei zur ersten Markierung.
- */
-.preview {
-  position: relative;
-  display: grid;
-  min-height: 300px;
-  max-height: 62dvh;
-  align-content: safe center;
-  grid-template-columns: 100%;
-  overflow: auto;
-  overscroll-behavior: contain;
-  scroll-behavior: smooth;
-  background:
-    linear-gradient(135deg, rgb(73 111 88 / 8%), transparent),
-    #e9e8df;
+.wertung-bereich {
+  padding: 20px 18px 0;
 }
 
-.placeholder {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  padding: 24px;
-  color: #7c877f;
-  font-size: 0.9rem;
-}
-
-.placeholder svg {
-  width: 44px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.25;
-}
-
-.preview canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: #172019;
+.wertung-bereich h2 {
+  margin: 0 0 12px;
+  color: #496f58;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .actions {
@@ -172,7 +152,7 @@ h1 {
 .wertung {
   display: grid;
   gap: 10px;
-  margin: 0 0 16px;
+  margin: 0;
 }
 
 .wertung-zeile {
@@ -182,7 +162,7 @@ h1 {
   border-left: 4px solid var(--farbe);
   border-radius: 0 14px 14px 0;
   background: rgb(255 255 255 / 70%);
-  font-size: 0.95rem;
+  font-size: 1.02rem;
 }
 
 .wertung-zeile strong {
@@ -231,10 +211,6 @@ h1 {
 @media (min-width: 700px) {
   .app {
     padding-top: 64px;
-  }
-
-  .preview {
-    min-height: 340px;
   }
 }
 

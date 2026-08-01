@@ -37,8 +37,8 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 - Bilddaten immer ueber `toDarkness()` einlesen: es rechnet Transparenz ueber Weiss. Sonst
   liefert `canvas.getImageData()` durchsichtige Bereiche als Schwarz und der Rahmen verrutscht.
 - Stimmzettel sind heute oft sehr lang (Europawahl rund 1:4). Deshalb begrenzt `browserImage.js`
-  die **Breite** der Aufnahme, nicht die laengste Kante, und die Vorschau scrollt, statt den
-  Zettel auf Streifenbreite einzupassen.
+  die **Breite** der Aufnahme, nicht die laengste Kante. Die Aufnahme wird nur intern erkannt;
+  die Oberflaeche zeigt keine Bildvorschau, sondern konzentriert sich auf die Wertung.
 
 ## Werkzeuge
 

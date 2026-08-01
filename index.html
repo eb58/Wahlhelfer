@@ -22,29 +22,19 @@
     <main class="app">
       <section class="intro">
         <span class="eyebrow">Auszählung</span>
-        <h1>Wahl<br />assistent.</h1>
-        <p>
-          Stimmzettel fotografieren, Markierungen prüfen lassen, Zweifelsfälle dem Wahlvorstand
-          vorlegen. Das Papier bleibt das Original.
-        </p>
+        <h1>Digitaler</h1>
+        <h1>Wahlassistent.</h1>
+        <p class="wahl" id="wahl" hidden></p>
       </section>
 
       <!-- Erfassen: Aufnahme eines ausgefuellten Zettels. Die Zettelart steht in konfiguration.js. -->
       <section class="karte" id="ansichtErfassen">
-        <div class="preview">
-          <div class="placeholder" id="erfassenPlatzhalter">
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M8.5 6.5 10 4h4l1.5 2.5H19A2.5 2.5 0 0 1 21.5 9v8A2.5 2.5 0 0 1 19 19.5H5A2.5 2.5 0 0 1 2.5 17V9A2.5 2.5 0 0 1 5 6.5h3.5Z" />
-              <circle cx="12" cy="13" r="3.5" />
-            </svg>
-            <span id="erfassenPlatzhalterText">Noch kein Stimmzettel erfasst</span>
-          </div>
-          <canvas id="erfassenBild" hidden></canvas>
+        <div class="wertung-bereich" id="wertungBereich" hidden>
+          <h2>Ergebnis der Ankreuzerkennung</h2>
+          <p class="wertung" id="wertung" aria-live="polite" hidden></p>
         </div>
 
         <div class="actions">
-          <p class="wertung" id="wertung" aria-live="polite" hidden></p>
-
           <button class="knopf" id="erfassenKnopf" type="button">
             <svg aria-hidden="true" viewBox="0 0 24 24">
               <path d="M8.5 6.5 10 4h4l1.5 2.5H19A2.5 2.5 0 0 1 21.5 9v8A2.5 2.5 0 0 1 19 19.5H5A2.5 2.5 0 0 1 2.5 17V9A2.5 2.5 0 0 1 5 6.5h3.5Z" />
@@ -53,7 +43,7 @@
             <span id="erfassenKnopfText">Stimmzettel aufnehmen</span>
           </button>
           <input id="erfassenEingabe" class="visually-hidden" type="file" accept="image/*,application/pdf" capture="environment" aria-label="Stimmzettel aufnehmen" />
-          <p class="status" id="erfassenStatus">Aufnahmen bleiben auf diesem Gerät.</p>
+          <p class="status" id="erfassenStatus" hidden></p>
         </div>
       </section>
     </main>

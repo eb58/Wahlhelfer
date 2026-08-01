@@ -4,7 +4,7 @@
  */
 import { ladeKalibrierung } from './src/kalibrierung.js';
 import { toImageData } from './src/browserImage.js';
-import { stimmZeilen, summary, istEindeutig, drawFelder, COLORS } from './src/wertungAnzeige.js';
+import { stimmZeilen, istEindeutig, COLORS } from './src/wertungAnzeige.js';
 import { setLogging } from './src/log.js';
 import { istPdf, pdfSeiteAlsBild } from './src/pdf.js';
 import { KALIBRIERUNG } from './konfiguration.js';
@@ -18,33 +18,11 @@ const state = { typ: undefined };
 const showError = (field, error) => {
   field.textContent = error.message;
   field.dataset.art = 'fehler';
-};
-
-const showStatus = (field, text) => {
-  field.textContent = text;
-  delete field.dataset.art;
-};
-
-/**
- * Zeichnet die Aufnahme in ein Canvas und legt die erkannten Felder darueber.
- * Lange Zettel laufen in voller Breite und werden gescrollt - deshalb anschliessend
- * zur ersten Markierung springen, sonst sucht der Wahlhelfer sie im Bild.
- */
-const showImage = (imageData, ergebnis) => {
-  const canvas = $('erfassenBild');
-  canvas.width = imageData.width;
-  canvas.height = imageData.height;
-  const context = canvas.getContext('2d');
-  context.putImageData(imageData, 0, 0);
-  drawFelder(context, ergebnis, { lineWidth: Math.max(2, imageData.width / 400) });
-  canvas.hidden = false;
-
-  const auffaellig = ergebnis.felder.find(feld => feld.status !== 'leer');
-  const sicht = canvas.parentElement;
-  sicht.scrollTop = auffaellig ? (auffaellig.y / canvas.height) * canvas.offsetHeight - sicht.clientHeight / 2 : 0;
+  field.hidden = false;
 };
 
 const showWertung = ergebnis => {
+  $('wertungBereich').hidden = false;
   const field = $('wertung');
   field.dataset.eindeutig = String(istEindeutig(ergebnis));
   field.innerHTML = stimmZeilen(ergebnis).map(zeile => `
@@ -62,15 +40,13 @@ const alsBild = async file => (istPdf(file) ? (await pdfSeiteAlsBild(file)).imag
 const erfasse = async file => {
   const status = $('erfassenStatus');
   $('erfassenKnopf').disabled = true;
-  showStatus(status, 'Stimmzettel wird geprüft…');
+  status.hidden = true;
+  delete status.dataset.art;
   try {
     const imageData = await alsBild(file);
     const ergebnis = state.typ.recognize(imageData);
-    $('erfassenPlatzhalter').hidden = true;
-    showImage(imageData, ergebnis);
     showWertung(ergebnis);
     $('erfassenKnopfText').textContent = 'Nächsten Stimmzettel aufnehmen';
-    showStatus(status, summary(ergebnis));
   } catch (error) {
     showError(status, error);
   } finally {
@@ -93,9 +69,10 @@ $('erfassenEingabe').addEventListener('change', event => {
 // Ohne brauchbare Kalibrierung gibt es nichts zu erkennen - dann bleibt der Knopf gesperrt.
 try {
   state.typ = ladeKalibrierung(await (await fetch(KALIBRIERUNG)).text());
-  showStatus($('erfassenStatus'), `${state.typ.name} – Aufnahmen bleiben auf diesem Gerät.`);
+  const wahl = $('wahl');
+  wahl.textContent = state.typ.name;
+  wahl.hidden = false;
 } catch (error) {
   $('erfassenKnopf').disabled = true;
-  $('erfassenPlatzhalterText').textContent = 'Keine Kalibrierung geladen';
   showError($('erfassenStatus'), error);
 }
