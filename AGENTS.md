@@ -20,8 +20,8 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 
 ## Aufbau der Erkennung
 
-- `registriereWahlzettel(musterBild)` lernt einen Zetteltyp aus einem **leeren** Musterzettel und
-  liefert einen Erkenner (`typ.erkenne(aufnahme)`). Kein Modul kennt einen konkreten Stimmzettel:
+- `registerWahlzettel(musterBild)` lernt einen Zetteltyp aus einem **leeren** Musterzettel und
+  liefert einen Erkenner (`typ.recognize(aufnahme)`). Kein Modul kennt einen konkreten Stimmzettel:
   Spaltenzahl, Feldanzahl, Radius und Rahmen stammen aus dem Bild. Registriert wird einmal je
   Zettelart, gespeichert per `toJson()` / `fromJson()`.
 - Fuer die Ausrichtung gibt es zwei Wege, in dieser Reihenfolge:
@@ -29,12 +29,12 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
      ohne OCR, setzt aber eine gerade gehaltene Aufnahme voraus.
   2. **Anker** (`alignment.js`): gelernte Ankerwoerter per OCR, daraus eine
      Aehnlichkeitstransformation (Verschiebung, Drehung, Massstab). Faengt Schraeglage auf.
-  `typ.erkenne()` nutzt nur Weg 1, `typ.erkenneRobust()` faellt auf Weg 2 zurueck. Das Ergebnis
+  `typ.recognize()` nutzt nur Weg 1, `typ.recognizeRobust()` faellt auf Weg 2 zurueck. Das Ergebnis
   nennt in `method` den genutzten Weg. Anker werden beim Registrieren mit `ocr` gelernt; mehrfach
   vorkommende Woerter (auf einem Stimmzettel z. B. "PARTEI") taugen nicht und werden verworfen.
 - Jedes Feld wird zum Schluss auf seinen gedruckten Ring eingerastet (`adjustFeld`). Bewertet
   wird dabei nur der Ring, nicht das Innere - sonst wuerde ein Kreuz die Suche stoeren.
-- Ob ein Feld angekreuzt ist, entscheidet die Pixelmessung (`ankreuzerkennung.js`), nie OCR.
+- Ob ein Feld angekreuzt ist, entscheidet die Pixelmessung (`ankreuzErkennung.js`), nie OCR.
   OCR (`beschriftung.js`) liefert nur Beschriftung und Anker und darf ausfallen.
 - OCR-Wortkoordinaten stehen im Massstab des vergroesserten Bildes, die Feldlagen im Original.
   Ueberall, wo beides zusammentrifft, muss `scale` mitgereicht werden.

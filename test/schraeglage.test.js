@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { registriereWahlzettel } from '../src/wahlzettelTyp.js';
+import { registerWahlzettel } from '../src/wahlzettelTyp.js';
 import { localOcrOptions } from '../src/ocrPaths.js';
 import { writePng } from '../src/png.js';
 import { toDarkness } from '../src/image.js';
@@ -25,14 +25,14 @@ const asFile = (image, name) => {
 test.after(() => files.forEach(path => rmSync(path, { force: true })));
 
 const muster = musterZettel();
-const typ = await registriereWahlzettel(muster, {
+const typ = await registerWahlzettel(muster, {
   name: 'Musterzettel mit Ankern',
   ocr: { source: asFile(scale(muster, factor), 'muster'), scale: factor, ...localOcrOptions() },
 });
 
 /** OCR braucht die vergroesserte Fassung; die Ankreuzerkennung misst im Originalmassstab. */
-const erkenneSchraeg = (image, name) =>
-  typ.erkenneRobust(image, { ocr: { source: asFile(scale(image, factor), name), scale: factor, ...localOcrOptions() } });
+const recognizeSchraeg = (image, name) =>
+  typ.recognizeRobust(image, { ocr: { source: asFile(scale(image, factor), name), scale: factor, ...localOcrOptions() } });
 
 test('Registrierung lernt Ankerwoerter aus dem Musterzettel', () => {
   assert.ok(typ.anchors.length >= 4, `zu wenige Anker: ${typ.anchors.length}`);
@@ -40,7 +40,7 @@ test('Registrierung lernt Ankerwoerter aus dem Musterzettel', () => {
 });
 
 test('gerader Zettel geht weiterhin ohne OCR ueber den Rahmen', async () => {
-  const ergebnis = await erkenneSchraeg(kreuzeAn(muster, typ, ['E3', 'Z5']), 'gerade');
+  const ergebnis = await recognizeSchraeg(kreuzeAn(muster, typ, ['E3', 'Z5']), 'gerade');
   assert.equal(ergebnis.method, 'rahmen');
   assert.deepEqual(ergebnis.erststimme.treffer, ['E3']);
 });
@@ -51,7 +51,7 @@ test('gedrehter Zettel verliert die Rahmenlinien', () => {
 });
 
 test('gedrehter Zettel wird ueber die Ankerwoerter erkannt', async () => {
-  const ergebnis = await erkenneSchraeg(rotate(kreuzeAn(muster, typ, ['E3', 'Z5']), 4), 'gedreht');
+  const ergebnis = await recognizeSchraeg(rotate(kreuzeAn(muster, typ, ['E3', 'Z5']), 4), 'gedreht');
   assert.equal(ergebnis.method, 'anker');
   assert.ok(Math.abs(ergebnis.drehung - 4) < 1.5, `Drehung falsch geschaetzt: ${ergebnis.drehung}`);
   assert.deepEqual(ergebnis.erststimme, { treffer: ['E3'], status: 'gueltig' });
@@ -59,14 +59,14 @@ test('gedrehter Zettel wird ueber die Ankerwoerter erkannt', async () => {
 });
 
 test('auch die Gegenrichtung wird ausgeglichen', async () => {
-  const ergebnis = await erkenneSchraeg(rotate(kreuzeAn(muster, typ, ['E1', 'Z7']), -3), 'gegen');
+  const ergebnis = await recognizeSchraeg(rotate(kreuzeAn(muster, typ, ['E1', 'Z7']), -3), 'gegen');
   assert.equal(ergebnis.method, 'anker');
   assert.deepEqual(ergebnis.erststimme.treffer, ['E1']);
   assert.deepEqual(ergebnis.zweitstimme.treffer, ['Z7']);
 });
 
 test('leerer gedrehter Zettel bleibt leer - keine Scheintreffer durch Schraeglage', async () => {
-  const ergebnis = await erkenneSchraeg(rotate(muster, 4), 'leer');
+  const ergebnis = await recognizeSchraeg(rotate(muster, 4), 'leer');
   assert.equal(ergebnis.method, 'anker');
   assert.ok(ergebnis.felder.every(f => f.status === 'leer'), 'Schraeglage darf keine Markierung erfinden');
 });

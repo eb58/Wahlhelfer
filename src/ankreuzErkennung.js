@@ -10,6 +10,7 @@ import { toDarkness, darkRatio } from './image.js';
 import { findFrame, toAbsolute, frameWidth } from './frame.js';
 import { innerRadius, adjustFeld } from './kalibrierung.js';
 import { findTransform, transformScale, transformAngle } from './alignment.js';
+import { log, round } from './log.js';
 
 /** Ab diesem Fuellgrad ueber dem Leerwert gilt ein Feld als angekreuzt bzw. als Zweifelsfall. */
 export const defaultThresholds = { angekreuzt: 0.18, zweifel: 0.06 };
@@ -34,7 +35,11 @@ const werteStimme = (felder, stimme) => {
 /** Ausrichtung ueber die durchgehenden Drucklinien - ohne OCR, aber nur bei gerader Aufnahme. */
 const viaFrame = (map, kalibrierung, options) => {
   const frame = findFrame(map, options);
-  if (!frame) return undefined;
+  if (!frame) {
+    log('Ausrichtung: keine durchgehenden Rahmenlinien gefunden');
+    return undefined;
+  }
+  log(`Ausrichtung ueber Rahmen: x ${round(frame.left)}..${round(frame.right)}, y ${round(frame.top)}..${round(frame.bottom)}`);
   return {
     method: 'rahmen',
     frame,
@@ -45,11 +50,19 @@ const viaFrame = (map, kalibrierung, options) => {
 
 /** Ausrichtung ueber gelernte Ankerwoerter - vertraegt Drehung, braucht aber OCR-Treffer. */
 const viaAnchors = (map, kalibrierung, words, options) => {
-  if (!kalibrierung.anchors?.length) return undefined;
+  if (!kalibrierung.anchors?.length) {
+    log('Ausrichtung: keine Ankerwoerter gelernt - Rueckfallweg nicht moeglich');
+    return undefined;
+  }
   const { transform, pairs } = findTransform(
     words, kalibrierung.anchors, kalibrierung.reference, { width: map.width, height: map.height }, options,
   );
-  if (!transform) return undefined;
+  if (!transform) {
+    log(`Ausrichtung: ${words.length} Woerter gelesen, aber kein Anker sicher zuzuordnen`);
+    return undefined;
+  }
+  log(`Ausrichtung ueber Anker: ${pairs.length} von ${kalibrierung.anchors.length} zugeordnet, `
+    + `Drehung ${round(transformAngle(transform))} Grad, Massstab ${round(transformScale(transform))}`);
   return {
     method: 'anker',
     anchors: pairs.length,
@@ -70,13 +83,18 @@ const messe = (map, kalibrierung, alignment, { thresholds, adjust }) => {
     return { ...feld, x, y, fuellgrad, fuellung, status: bewerte(fuellung, thresholds) };
   });
 
+  // Nur auffaellige Felder protokollieren - 14 Zeilen je Zettel waeren nicht mehr lesbar.
+  const auffaellig = felder.filter(f => f.status !== 'leer')
+    .map(f => `${f.id} ${round(f.fuellung)} (${f.status})`);
+  log(`Markierungen: ${auffaellig.join(', ') || 'keine'}`);
+
+  const erststimme = werteStimme(felder, 'erststimme');
+  const zweitstimme = werteStimme(felder, 'zweitstimme');
+  log(`Wertung: Erststimme ${erststimme.status} ${erststimme.treffer.join('+') || '-'}, `
+    + `Zweitstimme ${zweitstimme.status} ${zweitstimme.treffer.join('+') || '-'}`);
+
   const { position, ...angaben } = alignment;
-  return {
-    felder,
-    ...angaben,
-    erststimme: werteStimme(felder, 'erststimme'),
-    zweitstimme: werteStimme(felder, 'zweitstimme'),
-  };
+  return { felder, ...angaben, erststimme, zweitstimme };
 };
 
 /**
@@ -84,7 +102,7 @@ const messe = (map, kalibrierung, alignment, { thresholds, adjust }) => {
  * @param {{width:number,height:number,data:Uint8ClampedArray}} image Aufnahme des Zettels
  * @param {object} kalibrierung Ergebnis von kalibriere()
  */
-export const erkenneAnkreuzungen = (image, kalibrierung, { thresholds = defaultThresholds, adjust = true, ...options } = {}) => {
+export const recognizeAnkreuzungen = (image, kalibrierung, { thresholds = defaultThresholds, adjust = true, ...options } = {}) => {
   const map = toDarkness(image);
   const alignment = viaFrame(map, kalibrierung, options);
   if (!alignment) throw new Error('Kein Zettelrahmen erkannt - Aufnahme zeigt den Stimmzettel nicht vollstaendig.');
@@ -92,12 +110,12 @@ export const erkenneAnkreuzungen = (image, kalibrierung, { thresholds = defaultT
 };
 
 /**
- * Wie erkenneAnkreuzungen, faellt aber auf die Ankerwoerter zurueck, wenn die
+ * Wie recognizeAnkreuzungen, faellt aber auf die Ankerwoerter zurueck, wenn die
  * Rahmenlinien fehlen - etwa weil der Zettel schraeg fotografiert wurde.
  *
  * @param {Function} readWords liefert die OCR-Woerter der Aufnahme (nur bei Bedarf aufgerufen)
  */
-export const erkenneAnkreuzungenRobust = async (image, kalibrierung, readWords, { thresholds = defaultThresholds, adjust = true, ...options } = {}) => {
+export const recognizeAnkreuzungenRobust = async (image, kalibrierung, readWords, { thresholds = defaultThresholds, adjust = true, ...options } = {}) => {
   const map = toDarkness(image);
   const alignment = viaFrame(map, kalibrierung, options)
     ?? viaAnchors(map, kalibrierung, await readWords(), options);

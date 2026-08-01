@@ -4,6 +4,7 @@
  */
 import { toDarkness, ringDarkness, areaDarkness, darkRatio } from './image.js';
 import { findFrame, toRelative, frameWidth } from './frame.js';
+import { log, round } from './log.js';
 
 /** Innenradius, auf dem der Fuellgrad gemessen wird - haelt Abstand zum gedruckten Ring. */
 export const innerRadius = radius => Math.max(2, Math.round(radius * 0.68));
@@ -77,6 +78,9 @@ export const kalibriere = (image, { minFelder = 3, columnTolerance = 12, ...opti
   // Ankreuzfelder liegen in Tabellenzeilen, also unterhalb der obersten Tabellenlinie.
   // Das trennt sie von gedruckten Symbolen der Kopfzeile (z. B. dem Hinweis-Kreuzkreis).
   const inTable = all.filter(c => Math.abs(c.r - radius) <= 1 && c.y >= frame.top - radius);
+  log(`Kalibrierung: Rahmen x ${round(frame.left)}..${round(frame.right)}, y ${round(frame.top)}..${round(frame.bottom)}`);
+  log(`Kalibrierung: ${all.length} Kreise gefunden, Radius ${radius}, davon ${inTable.length} in der Tabelle`);
+
   const columns = toColumns(inTable, columnTolerance, minFelder);
   if (columns.length < 2) throw new Error(`Erwartet werden zwei Stimmenspalten, erkannt: ${columns.length}.`);
 
@@ -92,6 +96,9 @@ export const kalibriere = (image, { minFelder = 3, columnTolerance = 12, ...opti
       refY: c.y,
       leerFuellgrad: darkRatio(map, c.x, c.y, innerRadius(radius)),
     })));
+
+  log(`Kalibrierung: ${columns.length} Spalten, ${felder.length} Ankreuzfelder `
+    + `(${columns.slice(0, 2).map(s => s.length).join(' + ')})`);
 
   return {
     radius: radius / frameWidth(frame),

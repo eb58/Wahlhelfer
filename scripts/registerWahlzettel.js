@@ -2,7 +2,7 @@
 /**
  * Admin-Werkzeug: neuen Wahlzetteltyp aus einem leeren Musterzettel registrieren.
  *
- *   node scripts/registriereWahlzettel.js <muster.png> [ziel.json] [--name "..."] [--ocr]
+ *   node scripts/registerWahlzettel.js <muster.png> [ziel.json] [--name "..."] [--ocr]
  *
  * Ergebnis ist eine JSON-Datei, die per `fromJson()` wieder zum fertigen Erkenner wird.
  * Die Registrierung erfolgt einmal je Zettelart, nicht je Aufnahme.
@@ -11,16 +11,19 @@ import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, basename } from 'node:path';
 import { readPng, writePng } from '../src/png.js';
-import { registriereWahlzettel, beschreibe } from '../src/wahlzettelTyp.js';
+import { registerWahlzettel, beschreibe } from '../src/wahlzettelTyp.js';
 import { recommendedScale } from '../src/beschriftung.js';
 import { localOcrOptions } from '../src/ocrPaths.js';
+import { setLogging } from '../src/log.js';
+
+setLogging(true);
 
 const args = process.argv.slice(2);
 const valueOf = flag => args[args.indexOf(flag) + 1];
 const [musterPath, targetPath = 'wahlzettelTyp.json'] = args.filter(a => !a.startsWith('--') && a !== valueOf('--name'));
 
 if (!musterPath) {
-  console.error('Aufruf: node scripts/registriereWahlzettel.js <muster.png> [ziel.json] [--name "..."] [--ocr]');
+  console.error('Aufruf: node scripts/registerWahlzettel.js <muster.png> [ziel.json] [--name "..."] [--ocr]');
   process.exit(1);
 }
 
@@ -44,7 +47,7 @@ const ocrPath = join(tmpdir(), `wahlzettel-ocr-${process.pid}.png`);
 if (withOcr) writeFileSync(ocrPath, writePng(scale(recommendedScale)));
 
 try {
-  const typ = await registriereWahlzettel(image, {
+  const typ = await registerWahlzettel(image, {
     name,
     ...(withOcr ? { ocr: { source: ocrPath, scale: recommendedScale, ...localOcrOptions() } } : {}),
   });

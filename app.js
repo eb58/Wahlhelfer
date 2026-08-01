@@ -2,11 +2,15 @@
  * Oberflaeche des Wahlassistenten: Zettel registrieren (Admin) und Zettel erfassen (Wahlhelfer).
  * Die Auswertung selbst steckt in src/ - hier stehen nur Bedienung und Anzeige.
  */
-import { registriereWahlzettel, beschreibe } from './src/wahlzettelTyp.js';
+import { registerWahlzettel, beschreibe } from './src/wahlzettelTyp.js';
 import { toImageData, scaleToCanvas } from './src/browserImage.js';
 import { recommendedScale } from './src/beschriftung.js';
 import { loadTyp, storeTyp, forgetTyp } from './src/storage.js';
 import { stimmZeilen, summary, istEindeutig, drawFelder, COLORS } from './src/wertungAnzeige.js';
+import { setLogging } from './src/log.js';
+
+// Der Ablauf ist in der Browser-Konsole mitzulesen (Praefix "[Wahl]").
+setLogging(true);
 
 const $ = id => document.querySelector(`#${id}`);
 const state = { typ: undefined };
@@ -100,15 +104,15 @@ const showTypInfo = typ => {
  * Alle Ringe werden gleich eingefaerbt: hier geht es um die Lage, nicht um Markierungen.
  */
 const showKalibrierung = (imageData, typ) => {
-  const ergebnis = typ.erkenne(imageData);
+  const ergebnis = typ.recognize(imageData);
   showImage($('adminBild'), imageData, { ...ergebnis, felder: ergebnis.felder.map(f => ({ ...f, status: 'unklar' })) });
 };
 
-const registriere = async file => {
+const register = async file => {
   const status = $('adminStatus');
   await whileBusy($('adminKnopf'), status, 'Musterzettel wird eingemessen…', async () => {
     const imageData = await toImageData(file);
-    const typ = await registriereWahlzettel(imageData, {
+    const typ = await registerWahlzettel(imageData, {
       name: $('typName').value.trim() || file.name.replace(/\.[^.]+$/, ''),
       ...($('mitOcr').checked ? { ocr: ocrSource(imageData) } : {}),
     });
@@ -131,7 +135,7 @@ $('adminKnopf').addEventListener('click', () => {
 
 $('adminEingabe').addEventListener('change', event => {
   const [file] = event.target.files;
-  if (file) registriere(file);
+  if (file) register(file);
 });
 
 $('exportKnopf').addEventListener('click', () => {
@@ -179,8 +183,8 @@ const erfasse = async file => {
     // Mit gelernten Ankern wird eine schraege Aufnahme aufgefangen; OCR laeuft nur dann,
     // wenn die Rahmenlinien versagen - der gerade Zettel bleibt also schnell.
     const ergebnis = state.typ.anchors?.length
-      ? await state.typ.erkenneRobust(imageData, { ocr: ocrSource(imageData) })
-      : state.typ.erkenne(imageData);
+      ? await state.typ.recognizeRobust(imageData, { ocr: ocrSource(imageData) })
+      : state.typ.recognize(imageData);
 
     $('erfassenPlatzhalter').hidden = true;
     showImage($('erfassenBild'), imageData, ergebnis);

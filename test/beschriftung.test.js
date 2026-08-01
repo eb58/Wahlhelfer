@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { registriereWahlzettel } from '../src/wahlzettelTyp.js';
+import { registerWahlzettel } from '../src/wahlzettelTyp.js';
 import { beschrifteFelder } from '../src/beschriftung.js';
 import { localOcrOptions } from '../src/ocrPaths.js';
 import { writePng } from '../src/png.js';
@@ -19,7 +19,7 @@ const path = join(tmpdir(), `wahlzettel-ocr-${process.pid}.png`);
 writeFileSync(path, writePng(scale(musterZettel(), factor)));
 test.after(() => rmSync(path, { force: true }));
 
-const typ = await registriereWahlzettel(musterZettel(), {
+const typ = await registerWahlzettel(musterZettel(), {
   name: 'Musterzettel mit OCR',
   ocr: { source: path, scale: factor, ...localOcrOptions() },
 });
@@ -57,7 +57,7 @@ test('schlecht lesbare Zeilen kosten kein Ankreuzfeld', () => {
 });
 
 test('ohne OCR bleiben die Felder unbeschriftet', async () => {
-  const ohne = await registriereWahlzettel(musterZettel());
+  const ohne = await registerWahlzettel(musterZettel());
   assert.ok(ohne.felder.every(f => f.beschriftung === undefined));
 });
 

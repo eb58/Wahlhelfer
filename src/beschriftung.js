@@ -2,7 +2,7 @@
  * Beschriftung der Ankreuzfelder per OCR (tesseract.js).
  *
  * OCR liefert die *Bedeutung* der Zeilen (Nummer, Kandidat, Partei), nicht die Markierung.
- * Ob ein Feld angekreuzt ist, entscheidet die Pixelmessung in ankreuzerkennung.js.
+ * Ob ein Feld angekreuzt ist, entscheidet die Pixelmessung in ankreuzErkennung.js.
  */
 import { toRelative } from './frame.js';
 

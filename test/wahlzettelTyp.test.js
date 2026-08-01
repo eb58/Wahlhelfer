@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { registriereWahlzettel, fromJson, beschreibe } from '../src/wahlzettelTyp.js';
+import { registerWahlzettel, fromJson, beschreibe } from '../src/wahlzettelTyp.js';
 import { musterZettel } from './zettelWerkstatt.js';
 
-const typ = await registriereWahlzettel(musterZettel(), { name: 'Bundestagswahl 2017 Muster' });
+const typ = await registerWahlzettel(musterZettel(), { name: 'Bundestagswahl 2017 Muster' });
 
 test('registriert beide Stimmenspalten aus dem Musterzettel', () => {
   assert.equal(typ.felder.filter(f => f.stimme === 'erststimme').length, 7);
@@ -37,7 +37,7 @@ test('durchsichtige Bildbereiche zaehlen als Papier, nicht als Druck', async () 
     image.data[i * 4] = image.data[i * 4 + 1] = image.data[i * 4 + 2] = 0;
     image.data[i * 4 + 3] = 0;
   }
-  const durchsichtig = await registriereWahlzettel(image);
+  const durchsichtig = await registerWahlzettel(image);
   assert.equal(durchsichtig.felder.length, 14);
 });
 
@@ -45,7 +45,7 @@ test('Typ ueberlebt Speichern und Laden', () => {
   const geladen = fromJson(typ.toJson());
   assert.deepEqual(geladen.felder, typ.felder);
   assert.equal(geladen.name, typ.name);
-  assert.equal(typeof geladen.erkenne, 'function');
+  assert.equal(typeof geladen.recognize, 'function');
 });
 
 test('fromJson weist fremde Versionen zurueck', () => {
@@ -60,5 +60,5 @@ test('beschreibe fasst den Typ fuer das Admin-Modul zusammen', () => {
 
 test('ohne erkennbaren Zettel schlaegt die Registrierung fehl', async () => {
   const leer = { width: 40, height: 40, data: new Uint8ClampedArray(40 * 40 * 4).fill(255) };
-  await assert.rejects(() => registriereWahlzettel(leer), /rahmen|Ankreuzfelder/i);
+  await assert.rejects(() => registerWahlzettel(leer), /rahmen|Ankreuzfelder/i);
 });
