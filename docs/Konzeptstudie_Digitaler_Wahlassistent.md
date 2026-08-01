@@ -1,32 +1,28 @@
 # Konzeptstudie: Scan-gestützte Auszählung von Papierstimmzetteln
 
-> Ein öffentlich überprüfbares, menschlich kontrolliertes Assistenzsystem für Wahlvorstände
+> Ein öffentlich überprüfbares, menschlich kontrolliertes Assistenzsystem für die Auszählung von Wahlen
 
 **Konzeptname: Digitaler Wahlassistent**
 
-Adressat: Prof. Dr. Stephan Bröchler, Landeswahlleiter für Berlin
-
 Stand: 30. Juli 2026
 
-Version: 1.4 - Normsprachliche Terminologie
+Version: 1.5
 
-> **Leitidee:** Das Papier bleibt die maßgebliche Originalurkunde. Smartphones öffnen per Link eine Webanwendung, prüfen das Bild und die Ankreuzerkennung zunächst unmittelbar auf dem Gerät; die Cloud führt die unabhängige Gegenprüfung, Protokollierung und Aggregation durch. Unklare Fälle entscheidet weiterhin der Wahlvorstand.
+> **Leitidee:** Das Papier bleibt das Original. Nach dem Öffnen der Urne fotografieren Wahlhelfer die Stimmzettel mit handelsüblichen Smartphones. Der Browser prüft das Bild vor Ort; die Cloud führt eine zweite Prüfung durch und protokolliert den Ablauf. Über unklare Fälle entscheidet weiterhin der Wahlvorstand.
 
 *Rechtliche Vorprüfung und technisches Zielbild - kein abschließendes Rechtsgutachten*
 
-# Kurzfassung und Empfehlung
+# Kurzfassung
 
-Ausgangspunkt der Studie ist die Belastung der Wahlvorstände: Nach einem langen Wahltag müssen ehrenamtliche Wahlvorstände viele Stimmzettel unter Zeitdruck sortieren, mehrfach zählen, Erst- und Zweitstimmen auseinanderhalten und Zahlen fehlerfrei übertragen. Mit zunehmender Zahl von Parteien, Wahlvorschlägen und gleichzeitig stattfindenden Abstimmungen steigt die organisatorische Komplexität. \[2, 3\]
+Nach einem langen Wahltag müssen ehrenamtliche Wahlvorstände viele Stimmzettel sortieren, mehrfach zählen, Erst- und Zweitstimmen auseinanderhalten und Zahlen übertragen. Je mehr Parteien, Wahlvorschläge und gleichzeitige Abstimmungen es gibt, desto aufwendiger wird dieser Teil der Arbeit. \[2, 3\]
 
-> **Empfehlung:** Berlin sollte einen ergebnisoffenen, öffentlich begleiteten Pilotversuch für eine scan-gestützte Auszählungsassistenz starten. Im Pilot bleibt die manuelle Auszählung allein verbindlich. Erst nach nachgewiesener Genauigkeit, Zeitersparnis, öffentlicher Verständlichkeit, IT-Sicherheit und einer ausdrücklichen gesetzlichen Grundlage darf über einen amtlichen Einsatz entschieden werden.
+Vorgesehen sind Papierstimmzettel, handelsübliche Smartphones und eine Webanwendung ohne App-Installation. Der Browser prüft Bildausschnitt, Schärfe, Perspektive und Vollständigkeit und zeigt eine vorläufige Erkennung an. Eine zweite Prüfung läuft in der Cloud. Spezialkameras, Halterungen, Scanmatten und Sonderbeleuchtung sind nicht erforderlich; die Smartphones werden aus der Hand bedient.
 
-Das Konzept kombiniert Papier, handelsübliche Smartphones, eine installierungsfreie Webanwendung, eine lokale Vorprüfung im Browser, eine unabhängige Cloud-Gegenprüfung, offene Software, das Vier-Augen-Prinzip und menschliche Entscheidungshoheit. Für die Aufnahme sind keine Spezialkameras, Halterungen, Scanmatten oder Sonderbeleuchtung erforderlich. Die Smartphones werden aus der Hand bedient; die Webanwendung prüft Bildausschnitt, Schärfe, Perspektive und Vollständigkeit und zeigt unmittelbar eine vorläufige Erkennung an.
+Der Einsatz kann schrittweise erfolgen. Zunächst könnten einzelne Briefwahlvorstände teilnehmen, später ausgewählte Urnenwahllokale. Alle anderen Wahlbezirke würden zunächst wie bisher zählen. So lässt sich die Technik unter realen Bedingungen prüfen, ohne das gesamte Verfahren umzustellen.
 
-Die Einführung kann dauerhaft gemischt erfolgen. Zunächst arbeiten nur einzelne Briefwahlvorstände mit der Assistenz, später gegebenenfalls ausgewählte Urnenwahllokale. Alle übrigen Wahlbezirke zählen weiterhin nach dem bisherigen Verfahren. Damit wird die Transparenz zunächst nur für die teilnehmenden Bezirke erweitert, das operative und rechtliche Risiko aber bewusst begrenzt.
+Bei acht Wahlhelfern könnten vier Zweiergruppen parallel arbeiten. Rechnet man mit drei bis vier Sekunden je eindeutigem Stimmzettel, dauert die reine Aufnahme von 600 bis 700 Zetteln rechnerisch etwa 7 Minuten 30 Sekunden bis 11 Minuten 40 Sekunden. Für den gesamten Ablauf einschließlich Aufbau, Abgleich, Zweifelsfällen und Abschlusskontrolle sollte ein Pilot zunächst 20 bis 35 Minuten einplanen.
 
-Bei der üblichen Besetzung mit acht Wahlhelfern können vier Zweiergruppen parallel arbeiten. Unter der ambitionierten Annahme von drei bis vier Sekunden je klarem Stimmzettel sinkt der reine Erfassungsdurchlauf für 600 bis 700 Stimmzettel rechnerisch auf etwa 7 Minuten 30 Sekunden bis 11 Minuten 40 Sekunden. Für den gesamten Vorgang einschließlich Aufbau, Eingangsabgleich, Zweifelsfällen und Abschlusskontrolle ist im Pilot zunächst mit etwa 20 bis 35 Minuten zu planen.
-
-Das Konzept sieht eine unabhängige Nachprüfbarkeit vor. Die Cloud soll nicht bloß eine fertige Zahl liefern, der man vertrauen muss. Für jeden teilnehmenden Wahlbezirk entsteht ein offenes, maschinenlesbares Prüfpaket mit Datenformat, Zählregeln, Prüfsummen, Sitzungsprotokoll, menschlichen Bestätigungen, Zweifelsfallentscheidungen und signierten Aggregaten. Jede interessierte Person kann den veröffentlichten Referenzcode verwenden oder eine eigene Software schreiben und damit die Ergebnisbildung selbst reproduzieren.
+Die Ergebnisse sollen sich unabhängig nachrechnen lassen. Die Cloud liefert deshalb nicht nur eine Summe, sondern für jeden teilnehmenden Wahlbezirk ein maschinenlesbares Prüfpaket. Darin stehen unter anderem Datenformat, Zählregeln, Prüfsummen, Sitzungsprotokoll, menschliche Bestätigungen, Zweifelsfallentscheidungen und signierte Summen. Mit dem veröffentlichten Referenzcode oder einer eigenen Software kann dann nachvollzogen werden, wie das Ergebnis entstanden ist.
 
 ## Vier zentrale Designentscheidungen
 
@@ -54,13 +50,13 @@ Die Bundeswahlordnung bildet die Belastung geradezu ab: § 69 BWO verlangt zunä
 | Stress und Ermüdung    | Die anspruchsvollste Phase beginnt nach einem langen Einsatztag.                                | Routinefälle werden standardisiert; Aufmerksamkeit konzentriert sich auf Zweifelsfälle.                        |
 | Schwierige Nachprüfung | Eine spätere Prüfung erfordert das Öffnen versiegelter Pakete und erneutes manuelles Sortieren. | Ein signiertes digitales Abbild und ein Prüfprotokoll ermöglichen gezielte Kontrollen; Papier bleibt Referenz. |
 
-Wichtig ist eine nüchterne Erwartung: Ein serieller Scanvorgang kann selbst Zeit kosten. Bei acht Wahlhelfern stehen jedoch vier parallele Zweiergruppen mit je einem Smartphone zur Verfügung. Der Pilot muss messen, ob diese vier Erfassungsteams die entfallende Stapel- und Übertragungsarbeit tatsächlich überkompensieren und ob der nahezu vierfache theoretische Durchsatz praktisch erreicht wird. Der Nutzen darf nicht vorausgesetzt, sondern muss unter realistischen Bedingungen bewiesen werden.
+Ein Scanvorgang kann auch Zeit kosten. Bei acht Wahlhelfern stehen aber vier Zweiergruppen mit je einem Smartphone zur Verfügung. Der Pilot muss zeigen, ob die parallele Aufnahme die eingesparte Sortier- und Übertragungsarbeit tatsächlich aufwiegt. Der Nutzen ist zu messen, nicht vorauszusetzen.
 
 # 2. Zielbild und klare Nicht-Ziele
 
 ## 2.1 Zielbild
 
-Der digitale Wahlassistent ist ein optisches Markierungserkennungssystem (OMR), kein Internetwahlsystem zur Stimmabgabe, sondern eine hybride Auszählungsassistenz nach Öffnung der Urne. Eine Person legt jeden Stimmzettel gut sichtbar auf den Tisch. Die zweite Person öffnet über einen Link die Webanwendung, erlaubt einmalig den Kamerazugriff und fotografiert den Zettel aus der Hand. Der Browser prüft das Bild zunächst unmittelbar auf dem Smartphone: Lage, Schärfe, Stimmzetteltyp und Markierungsfelder. Bei einem klaren Zettel zeigt er beispielsweise "Erststimme: Partei X" und "Zweitstimme: Partei Y" an; bei einem unklaren Zettel zeigt er den Prüfhinweis. Erst danach werden Bild und Vorwertung verschlüsselt an die Cloud übertragen. Dort erfolgt eine unabhängige zweite Erkennung, bevor das Ergebnis aggregiert wird.
+Der digitale Wahlassistent soll Markierungen auf Stimmzetteln erkennen (OMR). Er ist kein System zur Stimmabgabe, sondern eine Hilfe bei der Auszählung nach dem Öffnen der Urne. Eine Person legt den Zettel auf den Tisch, die zweite öffnet die Webanwendung und fotografiert ihn aus der Hand. Der Browser prüft Lage, Schärfe, Stimmzetteltyp und Markierungsfelder. Bei einem eindeutigen Zettel zeigt er zum Beispiel „Erststimme: Partei X“ und „Zweitstimme: Partei Y“ an. Bei einem unklaren Zettel gibt er einen Prüfhinweis aus. Bild und Vorwertung werden erst danach verschlüsselt an die Cloud übertragen. Dort erfolgt eine zweite Erkennung, bevor die Stimme in die Summe eingeht.
 
 ## 2.2 Nicht-Ziele
 
@@ -80,49 +76,49 @@ Der digitale Wahlassistent ist ein optisches Markierungserkennungssystem (OMR), 
 
 ## 3.1 QR-Code: individuelle technische Kennung, keine Personenkennung
 
-Jeder Stimmzettel erhält einen eigenen QR-Code mit einer eindeutigen, zufällig erzeugten Kennung. Der Code enthält Wahl-ID, Gebietskörperschaft, Wahlbezirk beziehungsweise Wahllokal, Stimmzetteltyp, Layoutversion, die individuelle Stimmzettelkennung sowie eine Prüfsumme. Dieselben nicht geheimen Metadaten werden zusätzlich menschenlesbar gedruckt. Die Kennung dient dazu, das Bild technisch zu identifizieren, Doppelaufnahmen zu erkennen, fehlende Datensätze festzustellen und die Prüfkette zu schließen. Die Cloud prüft den Hash der Kennung gegen das autoritative Verzeichnis der ausgegebenen Stimmzettel; ein selbst erzeugter oder unbekannter Hash wird nicht akzeptiert. Die Kennung enthält keine personenbezogenen Daten und wird nicht mit dem Wählerverzeichnis verbunden.
+Jeder Stimmzettel erhält einen eigenen QR-Code mit einer zufällig erzeugten Kennung. Er enthält Wahl-ID, Gebietskörperschaft, Wahlbezirk beziehungsweise Wahllokal, Stimmzetteltyp, Layoutversion, die Kennung und eine Prüfsumme. Die Metadaten werden zusätzlich lesbar auf den Zettel gedruckt. Die Kennung hilft, Aufnahmen technisch zuzuordnen, Doppelaufnahmen zu erkennen und fehlende Datensätze zu finden. Die Cloud vergleicht den Hash der Kennung mit dem Verzeichnis der ausgegebenen Stimmzettel. Selbst erzeugte oder unbekannte Kennungen werden nicht akzeptiert. Die Kennung enthält keine personenbezogenen Daten und wird nicht mit dem Wählerverzeichnis verbunden.
 
-> **Nicht empfohlen:** Eine sprechende, fortlaufende oder bei der Ausgabe protokollierte Einzelnummer. Wird die Ausgabe-Reihenfolge beobachtet oder mit dem Wählerverzeichnis verbunden, kann daraus ein Rückverfolgungsverdacht entstehen. Empfohlen wird deshalb eine zufällige, nicht sprechende Kennung ohne Personenbezug.
+> **Nicht empfohlen:** Eine sprechende, fortlaufende oder bei der Ausgabe protokollierte Einzelnummer. Wer die Ausgabereihenfolge beobachtet und mit einer Nummer verbindet, könnte daraus einen Rückschluss auf die Stimmabgabe ziehen. Die Kennung sollte deshalb zufällig und ohne Personenbezug sein.
 
 ## 3.2 Lageerkennung
 
-Für die geometrische Justierung sollte nicht ein zweiter individueller QR-Code verwendet werden. Geeigneter erscheinen vier einfache, nicht codierte Passmarken in den Ecken. Sie erlauben Perspektivkorrektur, Drehung, Größenprüfung und die Erkennung abgeschnittener Bereiche. Die rechte obere Ecke muss zugleich mit der bestehenden Regelung für Stimmzettelschablonen vereinbar bleiben; § 45 BWO sieht dort eine Lochung oder einen Eckschnitt vor. \[3\]
+Für die Lagekorrektur sollte kein zweiter individueller QR-Code verwendet werden. Dafür reichen voraussichtlich vier einfache Passmarken in den Ecken. Sie helfen bei Perspektivkorrektur, Drehung, Größenprüfung und beim Erkennen abgeschnittener Bereiche. Die rechte obere Ecke muss mit der Regelung für Stimmzettelschablonen vereinbar bleiben; § 45 BWO sieht dort eine Lochung oder einen Eckschnitt vor. \[3\]
 
 ## 3.3 Digitaler Beleg erst nach Urnenöffnung
 
-Beim Scan erhält der Datensatz zusätzlich eine zufällige Sitzung-ID und eine laufende Erfassungsnummer. Die auf dem Stimmzettel gedruckte Kennung wird nicht mit Ausgabezeit, Wählerverzeichnis oder Personendaten verbunden. Ein kryptografischer Hash bindet QR-Kennung, Bild, Erkennungsergebnis und Prüfentscheidung zusammen. Dadurch lassen sich Doppelaufnahmen, nachträgliche Änderungen und fehlende Datensätze feststellen, ohne einen "Wahlbeleg" für die wählende Person zu erzeugen.
+Beim Scan erhält der Datensatz eine zufällige Sitzungs-ID und eine laufende Erfassungsnummer. Die gedruckte Kennung wird nicht mit Ausgabezeit, Wählerverzeichnis oder Personendaten verbunden. Ein kryptografischer Hash verknüpft QR-Kennung, Bild, Erkennung und Prüfentscheidung. So lassen sich Doppelaufnahmen, nachträgliche Änderungen und fehlende Datensätze erkennen, ohne einen „Wahlbeleg“ für die wählende Person zu erzeugen.
 
 # 4. Ablauf im Wahllokal
 
-1.  **Vorbereitung:** Für vier Zweiergruppen werden vier Smartphones bereitgestellt. Eine Softwareinstallation ist nicht erforderlich: Jede Gruppe öffnet denselben Web-Link beziehungsweise einen darauf verweisenden QR-Code und erhält eine eigene Sitzungskennung. Zusätzliche Halterungen, Scanmatten oder Sonderbeleuchtung sind nicht erforderlich. Die Webanwendung lädt die signierten Stimmzetteldefinitionen aus der Cloud; jede Gruppe führt mit Musterzetteln einen kurzen öffentlichen Selbsttest für Bildqualität und Markierungserkennung aus.
+1.  **Vorbereitung:** Für vier Zweiergruppen werden vier Smartphones bereitgestellt. Eine Installation ist nicht nötig. Jede Gruppe öffnet denselben Web-Link oder den zugehörigen QR-Code und erhält eine eigene Sitzungskennung. Halterungen, Scanmatten und Sonderbeleuchtung sind nicht vorgesehen. Mit Musterzetteln testet jede Gruppe kurz Bildqualität und Markierungserkennung.
 
 2.  **Zählabgleich:** Vor der inhaltlichen Auswertung werden Stimmzettel, Stimmabgabevermerke und Wahlscheine wie bisher zahlenmäßig abgeglichen. Abweichungen werden dokumentiert.
 
 3.  **Erfassung im Tandem:** Person A nimmt genau einen Zettel vom Eingangsstapel und breitet ihn plan auf dem Tisch aus. Person B fotografiert ihn aus der Hand und sagt Erst- und Zweitstimme laut an. Person A bestätigt die Ansage oder widerspricht unmittelbar.
 
-4.  **Automatische Gegenprüfung:** Das Smartphone führt zunächst lokal eine Vorprüfung durch und zeigt die erkannte Partei beziehungsweise einen Zweifelsfall an. Anschließend überträgt die Webanwendung Bild, Vorwertung und Qualitätsdaten verschlüsselt an die Cloud. Dort liest eine unabhängige Prüfkomponente erneut Layout, Markierungsfelder und Qualitätsmerkmale und vergleicht das Ergebnis mit der bestätigten menschlichen Ansage. Erst bei Übereinstimmung und grünem Qualitätssignal wandert der Zettel in den Ausgangsstapel.
+4.  **Automatische Gegenprüfung:** Das Smartphone führt zunächst eine lokale Vorprüfung durch und zeigt die erkannte Partei oder einen Zweifelsfall an. Danach überträgt die Webanwendung Bild, Vorwertung und Qualitätsdaten verschlüsselt an die Cloud. Eine zweite Prüfkomponente liest dort Layout, Markierungsfelder und Qualitätsmerkmale aus und vergleicht das Ergebnis mit der Ansage. Nur bei Übereinstimmung und ausreichender Bildqualität kommt der Zettel in den Ausgangsstapel.
 
 5.  **Zweifelsfall:** Bei menschlichem Widerspruch, technischer Abweichung oder unklarer Markierung wird der Zettel ausgesondert und dem gesamten Wahlvorstand vorgelegt; Entscheidung, Begründung und Abstimmung werden protokolliert.
 
-6.  **Reconciliation:** Erfasste Zettelzahl, Papierstapel, Wählerzahl und Ergebnisdatei werden abgeglichen. Fehlende oder doppelte Datensätze blockieren den Abschluss.
+6.  **Abgleich:** Erfasste Zettelzahl, Papierstapel, Wählerzahl und Ergebnisdatei werden verglichen. Fehlende oder doppelte Datensätze blockieren den Abschluss.
 
 7.  **Abschluss:** Der Wahlvorstand bestätigt die Summen, signiert die Niederschrift und versiegelt Papier sowie Datenträger. Erst anschließend werden signierte Ergebnisdaten über den amtlichen Meldeweg übertragen.
 
 ## 4.1 Zweiergruppe und Zeitmodell
 
-Die Zweiergruppe verbindet Geschwindigkeit mit dem bekannten Prinzip gegenseitiger Kontrolle. Bei acht Wahlhelfern werden vier Tandems gebildet. In jedem Tandem legt Person A den Stimmzettel auf; Person B löst die Aufnahme aus und sagt Erst- und Zweitstimme an. Person A bestätigt oder widerspricht. Die menschliche Ansage erfolgt vor der sichtbaren Maschinenwertung, damit die Software die Wahrnehmung nicht vorprägt. Bei einem klaren Zettel lautet der Rhythmus: auflegen - aufnehmen - Erst- und Zweitstimme ansagen - bestätigen - weiterschieben.
+Die Zweiergruppe verbindet zügiges Arbeiten mit gegenseitiger Kontrolle. Bei acht Wahlhelfern werden vier Tandems gebildet. Person A legt den Zettel auf. Person B fotografiert ihn und sagt Erst- und Zweitstimme an. Person A bestätigt oder widerspricht. Die Ansage kommt vor der Maschinenwertung, damit die Anzeige die Wahrnehmung nicht beeinflusst. Der Ablauf bei einem klaren Zettel lautet: auflegen - aufnehmen - ansagen - bestätigen - weiterschieben.
 
-Alle vier Teams arbeiten gleichzeitig auf getrennten Eingangsstapeln. Die Cloud führt die Datensätze fortlaufend zusammen und verhindert doppelte Erfassungsnummern. Abweichungen oder unklare Stimmzettel werden nicht im Tandem abschließend entschieden, sondern in einen gemeinsamen Zweifelsstapel gelegt und anschließend dem gesamten Wahlvorstand vorgelegt. Dadurch unterbrechen Sonderfälle den parallelen Routinefluss nicht unnötig.
+Alle vier Teams arbeiten gleichzeitig mit getrennten Eingangsstapeln. Die Cloud führt die Datensätze zusammen und verhindert doppelte Erfassungsnummern. Abweichende oder unklare Zettel kommen auf einen gemeinsamen Zweifelsstapel. Dort entscheidet der gesamte Wahlvorstand. So halten Sonderfälle den normalen Ablauf möglichst wenig auf.
 
 ## 4.2 Webanwendung und Cloud-Auswertung
 
-Die Bedienung erfolgt vollständig im mobilen Browser. Die Wahlhelfer benötigen keinen App-Download und keine lokale Installation, sondern nur einen bereitgestellten Link. Nach dem Öffnen wird die Kamera-Berechtigung erteilt; die Webanwendung zeigt einen einfachen Aufnahmeausschnitt und führt die erste Bild- und Ankreuzprüfung lokal im Browser aus. Das Smartphone zeigt die vorläufige Erkennung unmittelbar an. Erst danach werden Bild, Vorwertung und Prüfdaten über eine verschlüsselte Verbindung an den Cloud-Dienst übertragen.
+Die Bedienung erfolgt vollständig im mobilen Browser. Die Wahlhelfer brauchen weder App-Download noch lokale Installation, sondern nur einen bereitgestellten Link. Nach der Kamerafreigabe zeigt die Webanwendung einen einfachen Aufnahmeausschnitt und prüft Bild und Markierungen zunächst auf dem Smartphone. Die vorläufige Erkennung wird sofort angezeigt. Erst danach werden Bild, Vorwertung und Prüfdaten verschlüsselt an den Cloud-Dienst übertragen.
 
-Die Cloud-Architektur sollte pro Wahl, Wahlbezirk und Sitzung logisch getrennte Bereiche verwenden. Jede Aufnahme erhält eine zufällige Sitzungs-ID, einen Zeitstempel und einen kryptografischen Bild-Hash, aber keine Verbindung zu einem Wählerverzeichnis oder zu einer Person. Die Ergebnisansicht im Browser zeigt der Zweiergruppe die lokale Vorwertung, die unabhängige Cloud-Wertung, das Qualitätsniveau und gegebenenfalls das Originalbild zur gemeinsamen Prüfung.
+Die Cloud sollte Wahl, Wahlbezirk und Sitzung technisch voneinander trennen. Jede Aufnahme erhält eine zufällige Sitzungs-ID, einen Zeitstempel und einen Bild-Hash, aber keine Verbindung zu einem Wählerverzeichnis oder zu einer Person. Im Browser sehen beide Personen die lokale Vorwertung, die Cloud-Wertung, die Bildqualität und bei Bedarf das Originalbild.
 
-Nach Abschluss des Wahlbezirks erzeugt die Cloud zusätzlich ein signiertes Prüfpaket. Es enthält mindestens die anonymisierten Datensätze je Stimmzettel, die lokale Vorwertung, die unabhängige Cloud-Wertung, die menschliche Bestätigung oder Zurückweisung, die Entscheidung bei Zweifelsfällen, die Zuordnung von Erst- und Zweitstimme, die verwendeten Regelversionen und die kryptografischen Hashes. Ein unabhängiges Programm muss aus diesem Paket ohne Zugriff auf die Cloud und ohne Kenntnis der internen Implementierung dieselben Summen berechnen können.
+Nach Abschluss des Wahlbezirks erzeugt die Cloud ein signiertes Prüfpaket. Es enthält mindestens die anonymisierten Datensätze, lokale Vorwertung, Cloud-Wertung, menschliche Bestätigung oder Zurückweisung, Zweifelsfallentscheidungen, Erst- und Zweitstimmen, Regelversionen und Hashes. Ein unabhängiges Programm muss daraus ohne Cloud-Zugriff dieselben Summen berechnen können.
 
-Für einen amtlichen Pilot sind ein deutscher oder europäischer Betriebsstandort, Auftragsverarbeitungsvertrag, Ende-zu-Ende-Transportverschlüsselung, Verschlüsselung ruhender Daten, strenge Rollenrechte, unveränderbare Audit-Protokolle und eine kurze, gesetzlich geprüfte Aufbewahrungsfrist erforderlich. Rohbilder dürfen nicht automatisch öffentlich oder in privaten Smartphone-Fotogalerien landen. Bei einem Verbindungs- oder Cloud-Ausfall kann die lokale Vorprüfung weiterhin einen Hinweis anzeigen; eine amtlich verwertbare Entscheidung wird aber erst nach Cloud-Gegenprüfung freigegeben, andernfalls wird auf die manuelle Auszählung zurückgefallen.
+Für einen amtlichen Pilot wären ein deutscher oder europäischer Betriebsstandort, ein Auftragsverarbeitungsvertrag, Verschlüsselung während der Übertragung und im Speicher, strenge Rollenrechte, unveränderbare Protokolle und eine gesetzlich geprüfte Aufbewahrungsfrist nötig. Rohbilder dürfen nicht automatisch öffentlich oder in privaten Fotogalerien landen. Bei einem Ausfall kann die lokale Prüfung weiter einen Hinweis anzeigen. Amtlich verwertbar wäre eine Entscheidung aber erst nach der Cloud-Gegenprüfung; sonst gilt die manuelle Auszählung.
 
 Als Erfahrungsannahme werden 600 bis 700 abgegebene Stimmzettel je Urnenwahllokal betrachtet. Für `N` Stimmzettel, `s` Sekunden je Stimmzettel und `k` parallel arbeitende Smartphones beziehungsweise Teams gilt für den idealisierten Erfassungsdurchlauf:
 
@@ -135,13 +131,13 @@ Als Erfahrungsannahme werden 600 bis 700 abgegebene Stimmzettel je Urnenwahlloka
 | 700 Zettel | 1             | 35 Minuten            | 46 Minuten 40 Sekunden | ca. 50-70 Minuten                                   |
 | 700 Zettel | 4             | 8 Minuten 45 Sekunden | 11 Minuten 40 Sekunden | ca. 20-35 Minuten                                   |
 
-Die Rechnung beschreibt ausschließlich den idealisierten Durchlauf klarer Stimmzettel. Der Faktor vier gilt für diesen parallelisierbaren Arbeitsschritt, nicht automatisch für die gesamte Ergebnisermittlung. Aufbau, numerischer Eingangsabgleich, beschädigte oder zweifelhafte Zettel, technische Unterbrechungen, Zusammenführung der vier Datenströme und Abschlussprotokoll bleiben gemeinsame oder teilweise serielle Aufgaben.
+Die Rechnung gilt nur für den idealisierten Durchlauf klarer Stimmzettel. Der Faktor vier gilt für diesen parallelisierbaren Schritt, nicht automatisch für die gesamte Auszählung. Aufbau, Eingangsabgleich, beschädigte oder zweifelhafte Zettel, Störungen, Datenzusammenführung und Abschlussprotokoll bleiben gemeinsame oder teilweise serielle Aufgaben.
 
-> **Pilotannahme:** Drei bis vier Sekunden pro klarem Stimmzettel und eine nahezu lineare Skalierung auf vier handgehaltene Smartphones sind ambitionierte, aber testbare Ziele. Entscheidend ist die Gesamtzeit vom Öffnen der Urne bis zur unterschriebenen Niederschrift. Ein schneller Erfassungsdurchlauf allein wäre kein Erfolg, wenn Zweifelsfälle, Nachsortieren oder technische Unterbrechungen den Zeitgewinn wieder aufzehren.
+> **Pilotannahme:** Drei bis vier Sekunden pro klarem Stimmzettel und eine annähernd lineare Skalierung auf vier Smartphones sind testbare, aber anspruchsvolle Ziele. Maßgeblich ist die Zeit vom Öffnen der Urne bis zur unterschriebenen Niederschrift. Ein schneller Scan reicht nicht, wenn Zweifelsfälle, Nachsortieren oder Störungen den Zeitgewinn wieder aufbrauchen.
 
 # 5. Erkennungs- und Entscheidungslogik
 
-Die Erkennung soll regelbasiert und nachvollziehbar sein. Ein neuronales Netz kann höchstens ergänzend zur Qualitätskontrolle dienen; die eigentliche Stimmwertung muss aus öffentlich dokumentierten Schwellenwerten und Wahlregeln folgen. Das erleichtert Reproduzierbarkeit, Zertifizierung und die Erklärung gegenüber Beobachtern.
+Die Erkennung soll auf dokumentierten Regeln beruhen. Ein neuronales Netz könnte zusätzlich die Bildqualität bewerten; die Stimmwertung selbst muss aus veröffentlichten Schwellenwerten und Wahlregeln folgen. So lässt sich die Entscheidung prüfen und erklären.
 
 | **Prüfstufe** | **Automatische Aufgabe**                                                            | **Menschliche Rolle**                                          |
 |---------------|-------------------------------------------------------------------------------------|----------------------------------------------------------------|
@@ -151,11 +147,11 @@ Die Erkennung soll regelbasiert und nachvollziehbar sein. Ein neuronales Netz ka
 | Wahlregel     | Mehrfachmarkierung, fehlende Stimme und formale Konflikte als Prüfhinweis erkennen. | Nur der Wahlvorstand entscheidet strittige Gültigkeitsfragen.  |
 | Summe         | Freigegebene Erst- und Zweitstimmen getrennt summieren; Prüfsummen bilden.          | Summen und Differenzberichte bestätigen.                       |
 
-> **Grundsatz:** Das System darf lieber zu viele Stimmzettel als "unklar" vorlegen als einen zweifelhaften Zettel unbemerkt falsch zuzuordnen. Der Pilot optimiert daher nicht nur Trefferquote, sondern vor allem die Rate stiller Fehler.
+> **Grundsatz:** Im Zweifel soll das System einen Zettel als „unklar“ vorlegen. Ein offener Zweifelsfall ist besser als eine unbemerkte Fehlzuordnung. Im Pilot zählt deshalb nicht nur die Trefferquote, sondern vor allem die Zahl stiller Fehler.
 
 # 6. Transparenz und unabhängige Nachzählbarkeit
 
-Der Transparenzgedanke der Ausgangsidee ist wichtig: Dritte sollen Ergebnisse mit eigener Software nachvollziehen können und auf Antrag auch die zugrunde liegenden Stimmzettelbilder einsehen dürfen. Ein einzelner anonymisierter Stimmzettel ist inhaltlich grundsätzlich kein Geheimnis: Er zeigt nur, welche Markierung auf diesem Papier vorgenommen wurde, nicht wer ihn ausgefüllt hat. Die Bilder enthalten in der Regel keine Namen oder sonstigen direkten personenbezogenen Daten. Der Schutzbedarf entsteht erst durch eine mögliche Verknüpfung mit einer Person oder durch den Missbrauch als beweisbarer Wahlbeleg. Trotzdem muss geprüft werden, ob ungewöhnliche Handschriften, Markierungen, die Reihenfolge oder eine Kombination mit anderen Informationen in Einzelfällen Rückschlüsse ermöglichen. Der Zugang sollte deshalb einfach, zeitnah und grundsätzlich ohne besondere Begründung möglich sein; eine Ablehnung darf nur auf einer konkreten, dokumentierten Gefahr für Wahlgeheimnis, Sicherheit oder ein laufendes Verfahren beruhen. \[3\]
+Dritte sollen die Ergebnisse mit eigener Software prüfen können. Auf Antrag sollten sie auch die zugrunde liegenden Stimmzettelbilder einsehen dürfen. Ein einzelnes Bild zeigt in der Regel nur die Markierung auf dem Papier, nicht die Person, die den Zettel ausgefüllt hat. Trotzdem können Handschrift, ungewöhnliche Markierungen, Reihenfolge oder Zusatzinformationen Rückschlüsse ermöglichen. Der Zugang muss deshalb einfach und zeitnah sein; eine Ablehnung braucht einen konkreten, dokumentierten Grund zum Schutz des Wahlgeheimnisses, der Sicherheit oder eines laufenden Verfahrens. \[3\]
 
 ## 6.1 Drei Transparenzebenen
 
@@ -165,17 +161,17 @@ Der Transparenzgedanke der Ausgangsidee ist wichtig: Dritte sollen Ergebnisse mi
 | 2 - offene Ergebnisbelege | Signierte Wahlbezirksdateien, anonymisierte Einzeldatensätze, lokale Vorwertungen, Cloud-Gegenprüfungen, menschliche Entscheidungen und kryptografisches Manifest. | Jeder kann Vollständigkeit, Unverändertheit, Konfliktbehandlung und Aggregation unabhängig prüfen.                      |
 | 3 - Originalbilder auf Antrag | Originalbilder und Entscheidungsprotokolle in einem transparenten, gesetzlich geregelten Prüfportal; Zugang grundsätzlich für jeden Antragsteller. | Antragsteller können Markierung und Wertung zettelweise mit dem veröffentlichten Ergebnis vergleichen; begrenzte Ausnahmen müssen konkret begründet werden. |
 
-Ein automatischer Massendownload aller Rohbilder ist nicht zwingend erforderlich. Entscheidend ist ein echter, praktisch nutzbarer Antragszugang: einfache Antragstellung, klare Frist, unveränderte Originaldatei, sichtbare Zuordnung zum Wahlbezirk und ein Prüfprotokoll. Der Antragsteller sollte die Bilder lokal mit eigener Software auswerten können. Wird ein Bild ausnahmsweise zurückgehalten oder nur in normalisierter Form herausgegeben, müssen Grund, Umfang und Rechtsbehelf transparent dokumentiert werden. Der demokratische Prüfgedanke wird damit unterstützt, weil Software, Formate, Regeln, Hashes, anonymisierte Datensätze, Originalbilder und Aggregationslogik offen und unabhängig nachrechenbar sind.
+Ein Massendownload aller Rohbilder ist dafür nicht nötig. Nötig ist ein nutzbarer Zugang mit einfacher Antragstellung, klarer Frist, unveränderter Originaldatei, Zuordnung zum Wahlbezirk und Prüfprotokoll. Antragsteller sollten die Bilder mit eigener Software auswerten können. Wird ein Bild ausnahmsweise zurückgehalten oder nur normalisiert herausgegeben, müssen Grund, Umfang und Rechtsbehelf dokumentiert werden.
 
 ## 6.2 Was der BSW-Fall zeigt - und was nicht
 
-Bei der Bundestagswahl 2025 erhielt das BSW im endgültigen Ergebnis 4.277 Zweitstimmen mehr als im vorläufigen Ergebnis und verfehlte die Fünf-Prozent-Hürde nach amtlicher Feststellung um 9.529 Stimmen. Der Bundestag wies die auf Neuauszählung gerichteten Einsprüche im Dezember 2025 zurück. Ob und in welchem Umfang bei der ersten Auszählung einzelne Fehler aufgetreten sind, lässt sich ohne erneute Prüfung der Stimmzettel nicht zuverlässig beurteilen. Gerade bei einem derart knappen Abstand zeigt sich deshalb der Wert einer granularen, unveränderbaren und schnell prüfbaren Beleglage: Streitfälle könnten unmittelbar anhand der einzelnen Belege geprüft und entweder bestätigt oder im Keim erstickt werden. Der digitale Wahlassistent würde Fehler nicht unmöglich machen, aber ihre Feststellung, Eingrenzung und nachvollziehbare Bewertung erheblich erleichtern. \[5\]
+Bei der Bundestagswahl 2025 lag das endgültige BSW-Ergebnis um 4.277 Zweitstimmen über dem vorläufigen Ergebnis. Nach amtlicher Feststellung fehlten 9.529 Stimmen zur Fünf-Prozent-Hürde. Der Bundestag wies die Einsprüche auf Neuauszählung im Dezember 2025 zurück. Ob bei der ersten Auszählung Fehler auftraten, lässt sich ohne erneute Prüfung der Stimmzettel nicht zuverlässig sagen. Der Fall zeigt, wie hilfreich einzelne, unveränderbare und schnell zugängliche Belege bei einem knappen Ergebnis wären. Der digitale Wahlassistent würde Fehler nicht verhindern, aber ihre Prüfung erleichtern. \[5\]
 
 # 7. Verfassungs- und wahlrechtliche Einordnung
 
 ## 7.1 Öffentlichkeit der Wahl
 
-Das Bundesverfassungsgericht verlangt, dass die wesentlichen Schritte von Wahlhandlung und Ergebnisermittlung öffentlich überprüfbar bleiben und grundsätzlich ohne besondere Sachkenntnis verstanden werden können. Ein intransparentes automatisches Endergebnis wäre daher ungeeignet. Das vorgeschlagene System muss seine Erkennung sichtbar machen, jeden Zettel auf Wunsch anzeigen, öffentliche Testläufe erlauben und die menschliche Entscheidung dokumentieren. Beobachter müssen den Ablauf auch ohne Kenntnis von Programmcode plausibilisieren können. \[4\]
+Das Bundesverfassungsgericht verlangt, dass die wesentlichen Schritte von Wahlhandlung und Ergebnisermittlung öffentlich überprüfbar bleiben und grundsätzlich ohne besondere Sachkenntnis verstanden werden können. Ein automatisches Endergebnis ohne Einblick in den Ablauf wäre damit nicht vereinbar. Das System muss seine Erkennung anzeigen, Zettel auf Wunsch vorlegen, öffentliche Tests zulassen und menschliche Entscheidungen dokumentieren. Beobachter müssen den Ablauf auch ohne Programmierkenntnisse verstehen können. \[4\]
 
 § 54 BWO gewährleistet zudem den Zutritt zur Ermittlung und Feststellung des Wahlergebnisses. Der Scanplatz muss deshalb so gestaltet sein, dass Beobachter die Zahl der Zettel, den Qualitätsstatus, die vorgeschlagene Wertung und die Behandlung von Zweifelsfällen sehen können, ohne die Arbeit zu stören. \[3\]
 
@@ -201,7 +197,7 @@ Das Bundesverfassungsgericht verlangt, dass die wesentlichen Schritte von Wahlha
 
 # 8. IT-Sicherheit, Datenschutz und Wahlgeheimnis
 
-Die Smartphone-Hardware dürfte im Vergleich zu Entwicklung, Prüfung und Betrieb nur einen kleinen Teil der Gesamtkosten ausmachen; Vertrauen entsteht durch die Kombination aus lokaler Vorprüfung und Web- sowie Cloud-Sicherheitsarchitektur. Die lokale Erkennung läuft nur im Browser-Speicher und schreibt die Aufnahme nicht automatisch in die private Fotogalerie. Web-Code, Stimmzetteldefinitionen und Ergebnisdateien sind digital signiert. Die Cloud erhält Bild, Vorwertung und Prüfdaten nur innerhalb freigegebener Sitzungen, führt unveränderbare Audit-Protokolle und trennt Wahlbezirke technisch voneinander.
+Die Smartphones dürften im Vergleich zu Entwicklung, Prüfung und Betrieb nur einen kleinen Teil der Kosten ausmachen. Entscheidend sind die Sicherheit von Browser, Webanwendung und Cloud. Die lokale Erkennung läuft nur im Browser-Speicher und speichert die Aufnahme nicht automatisch in der privaten Fotogalerie. Web-Code, Stimmzetteldefinitionen und Ergebnisdateien werden signiert. Die Cloud nimmt Bild, Vorwertung und Prüfdaten nur in freigegebenen Sitzungen an, protokolliert Änderungen und trennt Wahlbezirke technisch voneinander.
 
 | **Risiko**                      | **Beispiel**                                                               | **Gegenmaßnahme**                                                                                                                        |
 |---------------------------------|----------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
@@ -220,7 +216,7 @@ Die Smartphone-Hardware dürfte im Vergleich zu Entwicklung, Prüfung und Betrie
 | Von der Wahlbehörde geprüfte Reservegeräte + geschützte Webanwendung | Gleiche Webanwendung, aber verlässlicher Ersatz bei ungeeigneten oder nicht verfügbaren Privatgeräten. | Kleine Reservebeschaffung und Geräteverwaltung erforderlich. | Ergänzung für den Pilot, keine Voraussetzung für jedes Tandem. |
 | Dedizierte Dokumentenscanner | Konstante Bildqualität und hoher Durchsatz. | Zusätzliche Beschaffung, Papierstau, geringere Flexibilität. | Nicht erforderlich; allenfalls Vergleichstest. |
 
-Die ursprüngliche Smartphone-Idee bleibt damit im Kern erhalten: Es geht um handelsübliche Smartphones, die aus der Hand fotografieren, und eine webbasierte Bedienoberfläche. Besondere Erfassungshardware ist nicht vorgesehen. Die Webanwendung führt vor Beginn einen kurzen Gerätetest durch; ungeeignete oder nicht verfügbare Geräte werden durch andere vorhandene Smartphones oder wenige Reservegeräte ersetzt. Die Webanwendung darf dem privaten Gerät nicht vertrauen: Bild und Vorwertung werden in der Cloud unabhängig geprüft, und Papieroriginal, Vier-Augen-Prinzip sowie manuelle Rückfallebene bleiben maßgeblich. Eine Softwareinstallation ist nicht erforderlich.
+Im Kern bleibt es bei handelsüblichen Smartphones und einer Weboberfläche. Besondere Erfassungshardware ist nicht vorgesehen. Vor Beginn gibt es einen kurzen Gerätetest. Ungeeignete Geräte werden durch andere Smartphones oder wenige Reservegeräte ersetzt. Bild und Vorwertung werden in der Cloud unabhängig geprüft; Papieroriginal, Vier-Augen-Prinzip und manuelle Rückfallebene bleiben maßgeblich. Eine Installation ist nicht erforderlich.
 
 Für einen vollständig besetzten Wahlvorstand genügen daher vier geeignete Smartphones und eine geschützte Cloud-Webanwendung. Die Software muss vier parallele Bildströme verarbeiten können, ohne dass die Teams aufeinander warten.
 
@@ -269,11 +265,11 @@ Die Technik kann schrittweise und in ausgewählten Wahlbezirken erprobt werden. 
 | C               | Ausgewählte Urnenwahllokale                  | Beteiligte Wahlbezirke vollständig                | Alltagstauglichkeit in unterschiedlichen Räumen und Teams testen.                       |
 | D               | Breiter Regelbetrieb mit manuellen Ausnahmen | Großer Anteil der Wahl; Rest weiterhin traditionell | Nutzen ausrollen, ohne ungeeignete Standorte oder Sonderfälle zu zwingen.               |
 
-Eine teilweise Einführung erlaubt keine digitale Einzelprüfung der gesamten Wahl. Sie schafft aber für jeden teilnehmenden Wahlbezirk eine zusätzliche, transparente Belegspur. Zugleich bleibt ein direkter Vergleich zwischen neuem und altem Verfahren möglich. Dieser Parallelvergleich liefert eine zusätzliche Grundlage für die Evaluation.
+Eine teilweise Einführung prüft nicht die gesamte Wahl digital. Für die teilnehmenden Wahlbezirke entsteht aber eine zusätzliche Belegspur. Außerdem lässt sich das neue Verfahren direkt mit der bisherigen Zählung vergleichen. Dieser Parallelvergleich ist für die Auswertung wichtig.
 
 # 11. Organisation, Aufwand und Beschaffung
 
-Die Hardwarekosten dürfen nicht mit den Gesamtkosten verwechselt werden. Der größte Aufwand liegt in rechtsfester Spezifikation, barrierearmer Bedienung, Testdatenerstellung, Sicherheitsprüfung, Geräteverwaltung, Schulung, Support und unabhängiger Evaluation. Eine belastbare Kostenschätzung ist erst nach Phase 0 möglich.
+Die Hardwarekosten sind nicht die Gesamtkosten. Der größere Aufwand liegt in rechtssicherer Spezifikation, barrierearmer Bedienung, Testdaten, Sicherheitsprüfung, Geräteverwaltung, Schulung, Support und unabhängiger Auswertung. Eine belastbare Kostenschätzung ist erst nach Phase 0 möglich.
 
 | **Arbeitspaket**  | **Federführung**                                 | **Ergebnis**                                                                    |
 |-------------------|--------------------------------------------------|---------------------------------------------------------------------------------|
@@ -286,7 +282,7 @@ Die Hardwarekosten dürfen nicht mit den Gesamtkosten verwechselt werden. Der gr
 
 # 12. Entscheidungsvorlage für die Landeswahlleitung
 
-Es wird nicht beantragt, die manuelle Auszählung kurzfristig abzuschaffen. Beantragt wird eine formale Machbarkeitsprüfung mit der Option eines transparenten Schattenpiloten. Damit bleibt das Risiko begrenzt, während Berlin belastbare Erkenntnisse für eine bundesweit relevante Modernisierungsfrage gewinnt.
+Beantragt wird nicht die kurzfristige Abschaffung der manuellen Auszählung, sondern eine formale Machbarkeitsprüfung mit der Option eines Schattenpiloten. So bleibt das Risiko begrenzt und Berlin kann belastbare Erfahrungen mit einer möglichen Modernisierung sammeln.
 
 ## Vorgeschlagener Beschluss
 
@@ -316,7 +312,7 @@ Es wird nicht beantragt, die manuelle Auszählung kurzfristig abzuschaffen. Bean
 
 - sichtbare, verantwortungsbewusste Digitalisierung, ohne die Papierwahl aufzugeben.
 
-> **Kernaussage an die Landeswahlleitung:** Der digitale Wahlassistent verbindet den demokratischen Vorteil des Papierstimmzettels mit der Rechen- und Dokumentationsstärke digitaler Systeme. Er ersetzt weder Öffentlichkeit noch menschliches Urteil. Er unterstützt beides durch nachvollziehbare Abläufe und dokumentierte Prüfschritte.
+> **Kernaussage:** Der digitale Wahlassistent soll die manuelle Auszählung bei Routinefällen entlasten. Papier, Öffentlichkeit und die Entscheidung des Wahlvorstands bleiben erhalten. Jede technische Prüfung muss dokumentiert und nachprüfbar sein.
 
 # Anlage A: Kurzanschreiben an den Landeswahlleiter
 
@@ -338,9 +334,9 @@ Sehr geehrter Herr Professor Bröchler,
 
 ich war mehrfach als Wahlhelfer tätig. Aus dieser praktischen Erfahrung kenne ich die besondere Belastung der Auszählung nach einem langen Wahltag: Mit wachsender Zahl von Parteien und unterschiedlichen Stimmen entstehen viele Stapel, wiederholte Sortiergänge und erheblicher Zeitdruck.
 
-Daraus ist die beigefügte Konzeptidee entstanden. Papierstimmzettel sollen nach Öffnung der Urne mit handelsüblichen, amtlich kontrollierten Smartphones aus der Hand fotografiert werden. Eine installierungsfreie, offene Webanwendung prüft die Aufnahme zunächst auf dem Smartphone und überträgt Bild und Vorwertung anschließend an eine geschützte Cloud. Dort erfolgt eine unabhängige Gegenprüfung; anschließend werden Erst- und Zweitstimmen aus demselben Bild aggregiert und als offenes Prüfpaket bereitgestellt. Unklare Fälle legt das System weiterhin dem Wahlvorstand vor. Der Papierstimmzettel bleibt dabei jederzeit die maßgebliche Grundlage.
+Daraus ist die beigefügte Konzeptidee entstanden. Nach Öffnung der Urne werden Papierstimmzettel mit handelsüblichen, kontrollierten Smartphones aus der Hand fotografiert. Eine offene Webanwendung prüft die Aufnahme zunächst auf dem Gerät und überträgt Bild und Vorwertung anschließend an eine geschützte Cloud. Dort folgt eine zweite Prüfung. Erst danach werden Erst- und Zweitstimmen aus dem Bild zusammengezählt und in einem Prüfpaket dokumentiert. Unklare Fälle gehen an den Wahlvorstand. Der Papierstimmzettel bleibt die maßgebliche Grundlage.
 
-Mir ist bewusst, dass Wahlgeheimnis, Öffentlichkeit, IT-Sicherheit und die Entscheidungshoheit des Wahlvorstands nicht verhandelbar sind. Deshalb schlägt die Studie ausdrücklich keine kurzfristige Ablösung des heutigen Verfahrens vor, sondern eine stufenweise Machbarkeitsprüfung: zunächst mit synthetischen Stimmzetteln, offener Software und unabhängiger Prüfung, später gegebenenfalls als rein zusätzlicher Schattenbetrieb ohne Einfluss auf das amtliche Ergebnis. Zum demokratischen Kern gehört dabei ein einfacher Zugang zu den Originalbildern auf Antrag, damit Bürger, Parteien, Medien und Wissenschaft die Auszählung auch bildweise mit eigener Software überprüfen können.
+Wahlgeheimnis, Öffentlichkeit, IT-Sicherheit und die Entscheidungshoheit des Wahlvorstands sind nicht verhandelbar. Deshalb schlägt die Studie keine kurzfristige Ablösung des heutigen Verfahrens vor. Zunächst sollen synthetische Stimmzettel, offene Software und eine unabhängige Prüfung genügen. Später könnte ein zusätzlicher Schattenbetrieb ohne Einfluss auf das amtliche Ergebnis folgen. Auf Antrag sollten Bürger, Parteien, Medien und Wissenschaft die Originalbilder mit eigener Software prüfen können.
 
 Ich würde mich freuen, wenn das Landeswahlamt prüfen könnte, ob diese Idee in die von Ihnen angestoßene Debatte über die Digitalisierung der Wahlorganisation aufgenommen werden kann. Besonders wertvoll wäre eine fachliche Rückmeldung dazu, welche rechtlichen und praktischen Anforderungen ein Berliner Laborpilot erfüllen müsste.
 
@@ -397,3 +393,6 @@ Mit freundlichen Grüßen
 
 Die Studie skizziert eine technische und organisatorische Entwicklungsrichtung. Vor einem Pilot mit echten Wahlunterlagen sind eine förmliche wahlrechtliche Prüfung, eine Datenschutz-Folgenabschätzung und ein unabhängiges IT-Sicherheitskonzept erforderlich.
 
+# Empfehlung
+
+> Berlin sollte einen ergebnisoffenen, öffentlich begleiteten Pilotversuch für eine scan-gestützte Auszählungsassistenz starten. Im Pilot bleibt die manuelle Auszählung allein verbindlich. Erst nach nachgewiesener Genauigkeit, Zeitersparnis, öffentlicher Verständlichkeit, IT-Sicherheit und einer ausdrücklichen gesetzlichen Grundlage darf über einen amtlichen Einsatz entschieden werden.
