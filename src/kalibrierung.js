@@ -2,7 +2,7 @@
  * Kalibrierung: aus einem leeren Musterzettel die Lage der Ankreuzfelder lernen.
  * Ergebnis sind rahmenrelative Koordinaten - unabhaengig von Aufloesung und Bildausschnitt.
  */
-import { toDarkness, ringDarkness, areaDarkness, darkRatio } from './image.js';
+import { toDarkness, downscale, ringDarkness, areaDarkness, darkRatio } from './image.js';
 import { findFrame, toRelative, frameWidth } from './frame.js';
 import { log, round } from './log.js';
 
@@ -29,7 +29,7 @@ export const adjustFeld = (map, x, y, radius, ratio = 0.5) => {
  * Ringsuche: bewertet jeden Punkt als "dunkler Ring um helle Flaeche".
  * Bewusst einfach gehalten (KISS) statt vollstaendiger Hough-Transformation.
  */
-export const findCircles = (map, { minRadius = 6, maxRadius = 14, minScore = 0.5 } = {}) => {
+export const findCircles = (map, { minRadius = 6, maxRadius = 20, minScore = 0.5 } = {}) => {
   const { width, height } = map, candidates = [];
   for (let r = minRadius; r <= maxRadius; r++)
     for (let y = r + 1; y < height - r - 1; y++)
@@ -66,22 +66,36 @@ const kuerzel = { erststimme: 'E', zweitstimme: 'Z' };
  * Erzeugt die Kalibrierung aus einem leeren Musterzettel.
  * @param {{width:number,height:number,data:Uint8ClampedArray}} image
  */
-export const kalibriere = (image, { minFelder = 3, columnTolerance = 12, ...options } = {}) => {
+export const kalibriere = (image, { minFelder = 3, columnTolerance = 12, workWidth = 640, maxLeerFuellgrad = 0.15, ...options } = {}) => {
   const map = toDarkness(image);
-  const frame = findFrame(map, options);
-  if (!frame) throw new Error('Kein Zettelrahmen erkannt - Aufnahme zeigt den Stimmzettel nicht vollstaendig.');
 
-  const all = findCircles(map, options);
+  // Die Ringsuche arbeitet mit festen Pixelradien und kostet O(Pixel x Radien x r^2).
+  // Deshalb wird auf eine einheitliche Arbeitsbreite verkleinert gesucht: ein Ankreuzkreis
+  // ist damit unabhaengig von der Aufnahmeaufloesung immer gleich gross. Gemessen wird
+  // anschliessend wieder im Originalbild.
+  const factor = Math.max(1, Math.round(map.width / workWidth));
+  const search = downscale(map, factor);
+  const toFull = ({ x, y, r, ...rest }) => ({ ...rest, x: x * factor + (factor - 1) / 2, y: y * factor + (factor - 1) / 2, r: r * factor });
+
+  const searchFrame = findFrame(search, options);
+  if (!searchFrame) throw new Error('Kein Zettelrahmen erkannt - Aufnahme zeigt den Stimmzettel nicht vollstaendig.');
+  const frame = Object.fromEntries(Object.entries(searchFrame).map(([k, v]) => [k, v * factor]));
+
+  const all = findCircles(search, options).map(toFull);
   if (!all.length) throw new Error('Keine Ankreuzfelder erkannt.');
 
   const radius = mostCommonRadius(all);
-  // Ankreuzfelder liegen in Tabellenzeilen, also unterhalb der obersten Tabellenlinie.
-  // Das trennt sie von gedruckten Symbolen der Kopfzeile (z. B. dem Hinweis-Kreuzkreis).
-  const inTable = all.filter(c => Math.abs(c.r - radius) <= 1 && c.y >= frame.top - radius);
+  // Ein Musterzettel ist per Definition leer: seine Ankreuzfelder sind unausgefuellt.
+  // Ein bereits gefuellter Kreis ist deshalb kein Feld, sondern ein gedrucktes Symbol -
+  // etwa der Hinweis-Kreuzkreis in der Kopfzeile. Das trennt zuverlaessiger als die Lage
+  // im Blatt, die vom Bildausschnitt abhaengt.
+  // Die Radiustoleranz ist in Suchpixeln gedacht und waechst mit dem Verkleinerungsfaktor mit.
+  const inTable = all.filter(c =>
+    Math.abs(c.r - radius) <= factor && darkRatio(map, c.x, c.y, innerRadius(radius)) < maxLeerFuellgrad);
   log(`Kalibrierung: Rahmen x ${round(frame.left)}..${round(frame.right)}, y ${round(frame.top)}..${round(frame.bottom)}`);
   log(`Kalibrierung: ${all.length} Kreise gefunden, Radius ${radius}, davon ${inTable.length} in der Tabelle`);
 
-  const columns = toColumns(inTable, columnTolerance, minFelder);
+  const columns = toColumns(inTable, columnTolerance * factor, minFelder);
   if (columns.length < 2) throw new Error(`Erwartet werden zwei Stimmenspalten, erkannt: ${columns.length}.`);
 
   const felder = columns.slice(0, 2).flatMap((column, s) =>

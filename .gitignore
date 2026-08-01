@@ -2,7 +2,7 @@ node_modules/
 *-tmp.*
 # von tesseract.js beim ersten Lauf heruntergeladen
 *.traineddata
-vendor/tesseract/
+vendor/
 
-# Ausgabe von scripts/registriereWahlzettel.js (enthaelt Zeitstempel)
+# Ausgabe von scripts/registerWahlzettel.js (enthaelt Zeitstempel)
 Testdaten/wahlzettelTyp.json

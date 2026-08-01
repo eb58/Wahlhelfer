@@ -7,11 +7,17 @@
     <title>Wahlassistent</title>
     <link rel="stylesheet" href="styles.css" />
     <!--
-      Die Anwendung laedt zur Laufzeit nichts aus dem Netz. tesseract.js kommt lokal aus
-      node_modules; ohne diese Zuordnung wuerde es still auf ein CDN ausweichen.
+      Die Anwendung laedt zur Laufzeit nichts aus dem Netz. tesseract.js und pdf.js kommen
+      lokal aus node_modules; ohne diese Zuordnung wuerden sie still auf ein CDN ausweichen.
+      Ihre Worker- und WASM-Dateien liegen unter vendor/ (`npm run vendor`).
     -->
     <script type="importmap">
-      { "imports": { "tesseract.js": "./node_modules/tesseract.js/dist/tesseract.esm.min.js" } }
+      {
+        "imports": {
+          "tesseract.js": "./node_modules/tesseract.js/dist/tesseract.esm.min.js",
+          "pdfjs-dist": "./node_modules/pdfjs-dist/build/pdf.min.mjs"
+        }
+      }
     </script>
   </head>
   <body>
@@ -85,15 +91,15 @@
           </label>
 
           <button class="knopf" id="adminKnopf" type="button">
-            <span id="adminKnopfText">Leeren Musterzettel wählen</span>
+            <span id="adminKnopfText">Leeren Musterzettel wählen (Bild oder PDF)</span>
           </button>
-          <input id="adminEingabe" class="visually-hidden" type="file" accept="image/*" aria-label="Leeren Musterzettel wählen" />
+          <input id="adminEingabe" class="visually-hidden" type="file" accept="image/*,application/pdf" aria-label="Leeren Musterzettel wählen" />
 
           <div class="knopf-reihe">
             <button class="knopf knopf--zweit" id="exportKnopf" type="button" disabled>Typ exportieren</button>
             <button class="knopf knopf--zweit" id="loeschKnopf" type="button" disabled>Typ verwerfen</button>
           </div>
-          <p class="status" id="adminStatus">Ein leerer Musterzettel genügt – einmal je Zettelart.</p>
+          <p class="status" id="adminStatus">Ein leerer Musterzettel als Bild oder PDF – einmal je Zettelart.</p>
         </div>
       </section>
     </main>

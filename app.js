@@ -8,6 +8,7 @@ import { recommendedScale } from './src/beschriftung.js';
 import { loadTyp, storeTyp, forgetTyp } from './src/storage.js';
 import { stimmZeilen, summary, istEindeutig, drawFelder, COLORS } from './src/wertungAnzeige.js';
 import { setLogging } from './src/log.js';
+import { istPdf, pdfSeiteAlsBild } from './src/pdf.js';
 
 // Der Ablauf ist in der Browser-Konsole mitzulesen (Praefix "[Wahl]").
 setLogging(true);
@@ -108,10 +109,17 @@ const showKalibrierung = (imageData, typ) => {
   showImage($('adminBild'), imageData, { ...ergebnis, felder: ergebnis.felder.map(f => ({ ...f, status: 'unklar' })) });
 };
 
+/** Musterzettel kommen als Bild oder als PDF; ausgefuellte Aufnahmen immer als Bild. */
+const musterAlsBild = async file => {
+  if (!istPdf(file)) return { imageData: await toImageData(file), hinweis: '' };
+  const { imageData, seiten } = await pdfSeiteAlsBild(file);
+  return { imageData, hinweis: seiten > 1 ? ` (Seite 1 von ${seiten})` : '' };
+};
+
 const register = async file => {
   const status = $('adminStatus');
   await whileBusy($('adminKnopf'), status, 'Musterzettel wird eingemessen…', async () => {
-    const imageData = await toImageData(file);
+    const { imageData, hinweis } = await musterAlsBild(file);
     const typ = await registerWahlzettel(imageData, {
       name: $('typName').value.trim() || file.name.replace(/\.[^.]+$/, ''),
       ...($('mitOcr').checked ? { ocr: ocrSource(imageData) } : {}),
@@ -123,7 +131,7 @@ const register = async file => {
     $('adminPlatzhalter').hidden = true;
     showKalibrierung(imageData, typ);
     $('adminKnopfText').textContent = 'Anderen Musterzettel wählen';
-    showStatus(status, `${typ.felder.length} Ankreuzfelder erkannt. Der Typ ist gespeichert.`);
+    showStatus(status, `${typ.felder.length} Ankreuzfelder erkannt${hinweis}. Der Typ ist gespeichert.`);
     prepareErfassen();
   });
 };

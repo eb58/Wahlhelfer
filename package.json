@@ -6,11 +6,13 @@
   "description": "Scan-gestuetzte Auszaehlung von Papierstimmzetteln",
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
-    "vendor": "node scripts/mirrorTesseract.js",
-    "postinstall": "node scripts/mirrorTesseract.js"
+    "server": "php -S 127.0.0.1:3000 server/index.php",
+    "vendor": "node scripts/mirrorVendor.js",
+    "postinstall": "node scripts/mirrorVendor.js"
   },
   "dependencies": {
     "@tesseract.js-data/deu": "^1.0.0",
+    "pdfjs-dist": "^6.2.108",
     "tesseract.js": "^7.0.0"
   }
 }

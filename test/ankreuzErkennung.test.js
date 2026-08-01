@@ -54,7 +54,11 @@ test('erkennt unabhaengig von der Aufloesung', () => {
 
 test('erkennt trotz beschnittenem Rand', () => {
   const gekreuzt = kreuzeAn(muster, typ, ['E5', 'Z3']);
-  const ergebnis = typ.recognize(crop(gekreuzt, 40, 20, 520, 570));
+  // Anteilig beschneiden statt in festen Pixeln - sonst haengt der Test an einer Aufloesung.
+  // Mehr als hier geht nicht: findFrame verwirft Linien innerhalb von `edgeRatio` (2 %) vom
+  // Bildrand, und die Rahmenlinie dieses Zettels liegt nur 4 % der Breite vom Rand entfernt.
+  const links = Math.round(gekreuzt.width * 0.02), oben = Math.round(gekreuzt.height * 0.005);
+  const ergebnis = typ.recognize(crop(gekreuzt, links, oben, gekreuzt.width - 2 * links, gekreuzt.height - 2 * oben));
   assert.deepEqual(ergebnis.erststimme.treffer, ['E5']);
   assert.deepEqual(ergebnis.zweitstimme.treffer, ['Z3']);
 });
