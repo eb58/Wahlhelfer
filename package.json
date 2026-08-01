@@ -1,0 +1,16 @@
+{
+  "name": "wahlassistent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Scan-gestuetzte Auszaehlung von Papierstimmzetteln",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "vendor": "node scripts/mirrorTesseract.js",
+    "postinstall": "node scripts/mirrorTesseract.js"
+  },
+  "dependencies": {
+    "@tesseract.js-data/deu": "^1.0.0",
+    "tesseract.js": "^7.0.0"
+  }
+}
