@@ -1,4 +1,7 @@
 node_modules/
+dist/
+public/Kalibrierungen/
+public/vendor/
 
 # Zwischenstaende, u. a. die Ausgabe von scripts/pruefeKalibrierung.py
 *-tmp.*

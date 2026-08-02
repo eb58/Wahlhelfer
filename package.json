@@ -5,10 +5,17 @@
   "type": "module",
   "description": "Scan-gestuetzte Auszaehlung von Papierstimmzetteln",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "watch": "vite build --watch",
+    "preview": "vite preview",
     "test": "node --test \"test/**/*.test.js\"",
     "pruefe": "python scripts/pruefeKalibrierung.py"
   },
   "dependencies": {
     "pdfjs-dist": "^6.2.108"
+  },
+  "devDependencies": {
+    "vite": "^8.0.16"
   }
 }

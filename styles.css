@@ -228,6 +228,12 @@ h1 {
   white-space: nowrap;
 }
 
+@media (hover: none) and (pointer: coarse) {
+  .datei-knopf {
+    display: none;
+  }
+}
+
 @media (min-width: 700px) {
   .app {
     padding-top: 64px;

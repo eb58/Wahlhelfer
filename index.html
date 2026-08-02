@@ -6,17 +6,6 @@
     <meta name="theme-color" content="#f4f0e8" />
     <title>Wahlassistent</title>
     <link rel="stylesheet" href="styles.css" />
-    <!--
-      Die Anwendung laedt zur Laufzeit nichts aus dem Netz. pdf.js kommt lokal aus
-      node_modules; ohne diese Zuordnung wuerde es still auf ein CDN ausweichen.
-    -->
-    <script type="importmap">
-      {
-        "imports": {
-          "pdfjs-dist": "./node_modules/pdfjs-dist/build/pdf.min.mjs"
-        }
-      }
-    </script>
   </head>
   <body>
     <main class="app">

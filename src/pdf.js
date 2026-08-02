@@ -4,14 +4,15 @@
  * Nur fuer den Browser - im Node-Pfad fehlt eine Canvas-Implementierung. Aufnahmen
  * ausgefuellter Zettel sind ohnehin Bilder; PDF betrifft allein die Registrierung.
  *
- * Worker und WASM-Decoder kommen aus vendor/pdfjs (`npm run vendor`), nicht aus dem Netz.
- * Muster uebernommen aus `gratulationsdienst/modules/sokoQuestionnairePdf.js`.
+ * Worker und WASM-Decoder kommen aus vendor/pdfjs, nicht aus dem Netz. Vite kopiert
+ * die benoetigten Dateien beim Start und beim Build aus node_modules.
  */
 
 /** PDF-Punkte sind 1/72 Zoll; 150 dpi ist ein guter Kompromiss aus Schaerfe und Rechenzeit. */
 export const RENDER_DPI = 150;
 
 const VENDOR = './vendor/pdfjs/';
+const WASM = `${VENDOR}wasm/`;
 
 const pdfjsModule = async () => {
   try {
@@ -34,7 +35,7 @@ export const istPdf = file => file?.type === 'application/pdf' || /\.pdf$/i.test
 export const pdfSeiteAlsBild = async (file, { seite = 1, dpi = RENDER_DPI } = {}) => {
   const pdfjs = await pdfjsModule();
   // Ohne wasmUrl scheitert das Decodieren eingebetteter Scans (JBIG2/JPX).
-  const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), wasmUrl: VENDOR });
+  const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), wasmUrl: WASM });
   const pdf = await task.promise;
 
   try {

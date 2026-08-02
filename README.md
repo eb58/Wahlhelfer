@@ -18,17 +18,28 @@ python scripts/pruefeKalibrierung.py Kalibrierungen/europawahl-sh-2024.json prue
 Welche Kalibrierung im Einsatz gilt, steht in `konfiguration.js` – pro Wahl einmal setzen.
 Im Wahllokal selbst gibt es nichts auszuwählen.
 
-## Starten
+## Entwicklung und Build
 
-Die Dateien mit einem beliebigen lokalen Webserver ausliefern:
+Entwicklungsserver starten:
 
 ```powershell
-python -m http.server 8000
+npm run dev
 ```
 
-Danach `http://localhost:8000` öffnen. Auf einem Smartphone sollte die Seite für den
-produktiven Einsatz über HTTPS bereitgestellt werden. Aufnahmen bleiben im Browser: nichts
-wird hochgeladen oder gespeichert.
+Produktions-Build erzeugen:
+
+```powershell
+npm run build
+```
+
+Der Build liegt anschließend unter `dist/`. Für eine lokale Prüfung des Produktions-Builds:
+
+```powershell
+npm run preview
+```
+
+Auf einem Smartphone sollte die Seite für den produktiven Einsatz über HTTPS bereitgestellt
+werden. Aufnahmen bleiben im Browser: nichts wird hochgeladen oder gespeichert.
 
 ## Tests
 
