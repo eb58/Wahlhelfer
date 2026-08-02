@@ -54,15 +54,21 @@ const erfasse = async file => {
   }
 };
 
-$('erfassenKnopf').addEventListener('click', () => {
-  $('erfassenEingabe').value = '';
-  $('erfassenEingabe').click();
-});
+const oeffneEingabe = eingabe => {
+  eingabe.value = '';
+  eingabe.click();
+};
 
-$('erfassenEingabe').addEventListener('change', event => {
+const uebernehmeDatei = event => {
   const [file] = event.target.files;
   if (file) erfasse(file);
-});
+};
+
+// `capture="environment"` uebergibt die Bedienung an die rueckseitige Kamera.
+$('erfassenKnopf').addEventListener('click', () => oeffneEingabe($('erfassenEingabe')));
+$('dateiKnopf').addEventListener('click', () => oeffneEingabe($('dateiEingabe')));
+$('erfassenEingabe').addEventListener('change', uebernehmeDatei);
+$('dateiEingabe').addEventListener('change', uebernehmeDatei);
 
 /* --- Start -------------------------------------------------------------- */
 

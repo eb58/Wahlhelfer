@@ -140,6 +140,26 @@ h1 {
   cursor: not-allowed;
 }
 
+.datei-knopf {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  border: 0;
+  background: transparent;
+  color: #496f58;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.datei-knopf:focus-visible {
+  outline: 3px solid rgb(31 77 53 / 28%);
+  outline-offset: 3px;
+}
+
 .knopf svg {
   width: 23px;
   fill: none;
