@@ -7,6 +7,9 @@ export const projectRoot = fileURLToPath(new URL('.', import.meta.url));
 const publicDir = resolve(projectRoot, 'public');
 const kalibrierungSource = resolve(projectRoot, 'Kalibrierungen');
 const pdfjsSource = resolve(projectRoot, 'node_modules/pdfjs-dist');
+const tesseractSource = resolve(projectRoot, 'node_modules/tesseract.js');
+const tesseractCoreSource = resolve(projectRoot, 'node_modules/tesseract.js-core');
+const tessdataSource = resolve(projectRoot, 'node_modules/@tesseract.js-data/deu/4.0.0_best_int');
 
 const copyFiles = (source, destination, files = readdirSync(source)) => {
   mkdirSync(destination, { recursive: true });
@@ -18,6 +21,10 @@ const syncAssets = () => {
     readdirSync(kalibrierungSource).filter(file => file.endsWith('.json')));
   copyFiles(resolve(pdfjsSource, 'build'), resolve(publicDir, 'vendor/pdfjs'), ['pdf.worker.min.mjs']);
   copyFiles(resolve(pdfjsSource, 'wasm'), resolve(publicDir, 'vendor/pdfjs/wasm'));
+  copyFiles(resolve(tesseractSource, 'dist'), resolve(publicDir, 'vendor/tesseract'), ['worker.min.js']);
+  copyFiles(tesseractCoreSource, resolve(publicDir, 'vendor/tesseract-core'),
+    readdirSync(tesseractCoreSource).filter(file => /-lstm\.wasm\.js$/.test(file)));
+  copyFiles(tessdataSource, resolve(publicDir, 'vendor/tessdata'), ['deu.traineddata.gz']);
 };
 
 syncAssets();

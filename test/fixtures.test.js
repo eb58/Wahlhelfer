@@ -23,14 +23,14 @@ test('Manifest und Fixture-Ordner enthalten dieselben 100 Fälle', () => {
 });
 
 for (const fall of manifest.faelle) {
-  test(`Fixture ${fall.datei} entspricht dem Manifest`, () => {
+  test(`Fixture ${fall.datei} entspricht dem Manifest`, async () => {
     const image = readPng(readFileSync(new URL(fall.datei, fixtureOrdner)));
     const erwartete = sortiert(fall.markierungen);
     const kategorie = fall.kategorie.split('-')[0];
     let ergebnis;
 
     try {
-      ergebnis = typ.recognize(image);
+      ergebnis = await typ.recognize(image, { textjustierung: false });
     } catch (fehler) {
       assert.ok(['beschnitten', 'gedreht'].includes(kategorie),
         `${fall.datei} darf nicht an der Rahmensuche scheitern: ${fehler.message}`);

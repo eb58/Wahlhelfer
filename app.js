@@ -44,7 +44,7 @@ const erfasse = async file => {
   delete status.dataset.art;
   try {
     const imageData = await alsBild(file);
-    const ergebnis = state.typ.recognize(imageData);
+    const ergebnis = await state.typ.recognize(imageData);
     showWertung(ergebnis);
     $('erfassenKnopfText').textContent = 'Nächsten Stimmzettel aufnehmen';
   } catch (error) {

@@ -5,15 +5,20 @@
   "type": "module",
   "description": "Scan-gestuetzte Auszaehlung von Papierstimmzetteln",
   "scripts": {
-    "dev": "vite",
+    "dev": "npm run build && vite preview --host localhost --port 5173 --strictPort",
+    "dev:lan": "npm run build && vite preview --host 0.0.0.0 --port 5173 --strictPort",
+    "dev:source": "vite",
     "build": "vite build",
     "watch": "vite build --watch",
     "preview": "vite preview",
     "test": "node --test \"test/**/*.test.js\"",
-    "pruefe": "python scripts/pruefeKalibrierung.py"
+    "pruefe": "python scripts/pruefeKalibrierung.py",
+    "pruefe:ocr": "node scripts/pruefeTextmarken.js"
   },
   "dependencies": {
-    "pdfjs-dist": "^6.2.108"
+    "@tesseract.js-data/deu": "^1.0.0",
+    "pdfjs-dist": "^6.2.108",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "vite": "^8.0.16"

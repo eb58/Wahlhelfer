@@ -10,7 +10,7 @@
 import { toRelative, frameWidth } from './frame.js';
 import { recognizeAnkreuzungen } from './ankreuzErkennung.js';
 
-export const FORMAT_VERSION = 3;
+export const FORMAT_VERSION = 4;
 
 /**
  * Musterzettel-Pixel -> rahmenrelative Lagen; die Stimme wandert dabei ins Feld.
@@ -18,16 +18,27 @@ export const FORMAT_VERSION = 3;
  */
 const aufbereiten = kalibrierung => ({
   name: kalibrierung.name,
+  referenz: kalibrierung.referenz,
+  frame: kalibrierung.frame,
+  textmarken: kalibrierung.textmarken,
   thresholds: kalibrierung.thresholds,
   radius: kalibrierung.radius / frameWidth(kalibrierung.frame),
   stimmen: kalibrierung.stimmen.map(({ id, name, auswahl = 1 }) => ({ id, name, auswahl })),
   felder: kalibrierung.stimmen.flatMap(stimme =>
-    stimme.felder.map(feld => ({ ...feld, stimme: stimme.id, ...toRelative(kalibrierung.frame, feld) }))),
+    stimme.felder.map(feld => ({
+      ...feld,
+      stimme: stimme.id,
+      referenz: { x: feld.x, y: feld.y },
+      ...toRelative(kalibrierung.frame, feld),
+    }))),
 });
 
 const pruefe = datei => {
   if (datei.version !== FORMAT_VERSION) throw new Error(`Unbekannte Kalibrierungs-Version: ${datei.version}`);
   if (!datei.frame || !datei.radius) throw new Error('Kalibrierung ohne Rahmen oder Radius');
+  if (!datei.referenz?.breite || !datei.referenz?.hoehe) throw new Error('Kalibrierung ohne Referenzgroesse');
+  if (datei.textmarken?.length < 3 || datei.textmarken.some(marke => !marke.text || !Number.isFinite(marke.x) || !Number.isFinite(marke.y)))
+    throw new Error('Kalibrierung braucht mindestens drei vollstaendige Textmarken');
   if (!datei.stimmen?.length) throw new Error('Kalibrierung ohne Stimmen');
   return datei;
 };

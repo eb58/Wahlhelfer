@@ -1,10 +1,19 @@
 {
-  "version": 3,
+  "version": 4,
   "name": "Europawahl Schleswig-Holstein 2024",
   "quelle": "Testdaten/Musterstimmzettel_Europawahl_SH_2024.png",
   "vermessenAm": "2026-08-01",
   "referenz": { "breite": 1241, "hoehe": 4819 },
   "frame": { "left": 31, "right": 1210.5, "top": 283.5, "bottom": 4699.5 },
+  "textmarken": [
+    { "text": "Europäischen", "x": 659.5, "y": 159 },
+    { "text": "GRÜNE", "x": 119.5, "y": 301 },
+    { "text": "Häusling", "x": 707, "y": 331.5 },
+    { "text": "MERA25", "x": 127, "y": 1990 },
+    { "text": "LETZTE", "x": 122, "y": 4198 },
+    { "text": "Arndt", "x": 717.5, "y": 4151.5 },
+    { "text": "Ehrhardt", "x": 702.5, "y": 4616.5 }
+  ],
   "radius": 31,
   "thresholds": { "angekreuzt": 0.18, "zweifel": 0.06 },
   "stimmen": [

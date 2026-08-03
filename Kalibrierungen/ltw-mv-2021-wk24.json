@@ -1,10 +1,19 @@
 {
-  "version": 3,
+  "version": 4,
   "name": "Landtagswahl Mecklenburg-Vorpommern 2021, Wahlkreis 24",
   "quelle": "Testdaten/Musterstimmzettel_LTW_MV_2021_Wahlkreis24.png",
   "vermessenAm": "2026-08-01",
   "referenz": { "breite": 1241, "hoehe": 4134 },
   "frame": { "left": 42.5, "right": 1186.5, "top": 631, "bottom": 4031.5 },
+  "textmarken": [
+    { "text": "Stimmzettel", "x": 622.5, "y": 74.5 },
+    { "text": "Bauch", "x": 120, "y": 691.5 },
+    { "text": "Schwesig", "x": 948, "y": 687.5 },
+    { "text": "Weber", "x": 119, "y": 2109 },
+    { "text": "Westarp", "x": 1007.5, "y": 2106.5 },
+    { "text": "Todenhöfer", "x": 994, "y": 3762 },
+    { "text": "UNABHÄNGIGE", "x": 959, "y": 3914.5 }
+  ],
   "radius": 27,
   "thresholds": { "angekreuzt": 0.18, "zweifel": 0.06 },
   "stimmen": [

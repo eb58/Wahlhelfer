@@ -50,19 +50,24 @@ for (const datei of dateien) {
     assert.ok(typ.felder.every(feld => feld.beschriftung), 'jedes Feld braucht eine Beschriftung');
   });
 
-  test(`${datei}: erkennt am eigenen Musterzettel keine Markierung`, () => {
-    const ergebnis = typ.recognize(image);
+  test(`${datei}: Textmarken sind ueber den Musterzettel verteilt`, () => {
+    assert.ok(typ.textmarken.length >= 3);
+    assert.ok(Math.max(...typ.textmarken.map(marke => marke.y)) - Math.min(...typ.textmarken.map(marke => marke.y)) > image.height * 0.4);
+  });
+
+  test(`${datei}: erkennt am eigenen Musterzettel keine Markierung`, async () => {
+    const ergebnis = await typ.recognize(image, { textjustierung: false });
     assert.ok(ergebnis.felder.every(feld => feld.status === 'leer'));
     assert.ok(ergebnis.stimmen.every(stimme => stimme.status === 'leer'));
   });
 
-  test(`${datei}: ein Kreuz trifft genau sein Feld`, () => {
+  test(`${datei}: ein Kreuz trifft genau sein Feld`, async () => {
     // Je Stimme das erste, ein mittleres und das letzte Feld - so ist auch das untere
     // Ende eines sehr langen Zettels abgedeckt, wo sich ein Lagefehler am staerksten zeigt.
     for (const stimme of typ.stimmen) {
       const eigene = typ.felder.filter(feld => feld.stimme === stimme.id);
       for (const feld of [eigene[0], eigene[Math.floor(eigene.length / 2)], eigene.at(-1)]) {
-        const ergebnis = typ.recognize(kreuzeAn(image, typ, [feld.id]));
+        const ergebnis = await typ.recognize(kreuzeAn(image, typ, [feld.id]), { textjustierung: false });
         assert.deepEqual(ergebnis.felder.filter(f => f.status !== 'leer').map(f => f.id), [feld.id],
           `${feld.id} (${feld.beschriftung}) wurde nicht sauber getroffen`);
       }

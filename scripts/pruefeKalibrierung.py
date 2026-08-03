@@ -30,7 +30,13 @@ for i, stimme in enumerate(kal['stimmen']):
         d.line([(x, y - 6), (x, y + 6)], fill=farbe, width=1)
         d.text((x + r + 6, y - 7), feld['id'], fill=farbe)
 
+for marke in kal['textmarken']:
+    x, y = marke['x'], marke['y']
+    d.line([(x - 10, y), (x + 10, y)], fill=(0, 150, 70), width=2)
+    d.line([(x, y - 10), (x, y + 10)], fill=(0, 150, 70), width=2)
+    d.text((x + 13, y - 7), marke['text'], fill=(0, 150, 70))
+
 ziel = sys.argv[2] if len(sys.argv) > 2 else 'pruefung-tmp.png'
 im.save(ziel)
 felder = sum(len(s['felder']) for s in kal['stimmen'])
-print(f"{kal['name']}: {len(kal['stimmen'])} Stimmen, {felder} Felder -> {ziel}")
+print(f"{kal['name']}: {len(kal['stimmen'])} Stimmen, {felder} Felder, {len(kal['textmarken'])} Textmarken -> {ziel}")

@@ -16,6 +16,12 @@ const createCanvas = (width, height) =>
     ? new OffscreenCanvas(width, height)
     : Object.assign(document.createElement('canvas'), { width, height });
 
+const toBlobUrl = async canvas => {
+  const blob = await (canvas.convertToBlob?.({ type: 'image/png' })
+    ?? new Promise(done => canvas.toBlob(done, 'image/png')));
+  return globalThis.URL.createObjectURL(blob);
+};
+
 /**
  * @param {Blob|File} file Aufnahme aus Kamera oder Dateiauswahl
  * @returns {Promise<{width:number,height:number,data:Uint8ClampedArray}>}
@@ -41,7 +47,29 @@ export const toImageData = async file => {
 export const toImageUrl = async imageData => {
   const canvas = createCanvas(imageData.width, imageData.height);
   canvas.getContext('2d').putImageData(imageData, 0, 0);
-  const blob = await (canvas.convertToBlob?.({ type: 'image/png' })
-    ?? new Promise(done => canvas.toBlob(done, 'image/png')));
-  return URL.createObjectURL(blob);
+  return toBlobUrl(canvas);
+};
+
+/**
+ * Setzt kleine, unverkleinerte Ausschnitte zu einem kompakten OCR-Bild zusammen.
+ * `offsets` beschreibt, wo jeder Streifen im Ausgangsbild lag.
+ */
+export const toTextstreifenUrl = async (imageData, bereiche) => {
+  const source = createCanvas(imageData.width, imageData.height);
+  source.getContext('2d').putImageData(imageData, 0, 0);
+  const abstand = 20;
+  const breite = Math.max(...bereiche.map(bereich => bereich.width));
+  const hoehe = bereiche.reduce((summe, bereich) => summe + bereich.height, 0) + abstand * Math.max(0, bereiche.length - 1);
+  const canvas = createCanvas(breite, hoehe);
+  const context = canvas.getContext('2d');
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, breite, hoehe);
+  const offsets = [];
+  let top = 0;
+  for (const bereich of bereiche) {
+    context.drawImage(source, bereich.left, bereich.top, bereich.width, bereich.height, 0, top, bereich.width, bereich.height);
+    offsets.push({ ...bereich, sourceTop: bereich.top, top });
+    top += bereich.height + abstand;
+  }
+  return { imageUrl: await toBlobUrl(canvas), offsets };
 };
