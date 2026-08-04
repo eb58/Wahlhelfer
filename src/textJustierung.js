@@ -3,6 +3,7 @@
  * und bestimmt daraus eine affine Abbildung von Muster- auf Aufnahmepixel.
  */
 import { perspectivePoint } from './frame.js';
+import { regressPlane } from './leastSquares.js';
 
 const normalisiere = text => text
   .normalize('NFD')
@@ -65,40 +66,10 @@ const ordneZu = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt
   });
 };
 
-const loese3x3 = (matrix, werte) => {
-  const zeilen = matrix.map((zeile, i) => [...zeile, werte[i]]);
-  for (let spalte = 0; spalte < 3; spalte++) {
-    const pivot = [...Array(3 - spalte).keys()]
-      .map(offset => spalte + offset)
-      .sort((a, b) => Math.abs(zeilen[b][spalte]) - Math.abs(zeilen[a][spalte]))[0];
-    if (Math.abs(zeilen[pivot][spalte]) < 1e-8) throw new Error('Textmarken liegen nicht ausreichend verteilt.');
-    [zeilen[spalte], zeilen[pivot]] = [zeilen[pivot], zeilen[spalte]];
-    const teiler = zeilen[spalte][spalte];
-    zeilen[spalte] = zeilen[spalte].map(wert => wert / teiler);
-    for (let zeile = 0; zeile < 3; zeile++) {
-      if (zeile === spalte) continue;
-      const faktor = zeilen[zeile][spalte];
-      zeilen[zeile] = zeilen[zeile].map((wert, i) => wert - faktor * zeilen[spalte][i]);
-    }
-  }
-  return zeilen.map(zeile => zeile[3]);
-};
-
 const regressiere = (treffer, achse) => {
-  const summen = treffer.reduce((summe, { muster, basis = muster, aufnahme }) => ({
-    xx: summe.xx + basis.x * basis.x,
-    xy: summe.xy + basis.x * basis.y,
-    yy: summe.yy + basis.y * basis.y,
-    x: summe.x + basis.x,
-    y: summe.y + basis.y,
-    zx: summe.zx + aufnahme[achse] * basis.x,
-    zy: summe.zy + aufnahme[achse] * basis.y,
-    z: summe.z + aufnahme[achse],
-  }), { xx: 0, xy: 0, yy: 0, x: 0, y: 0, zx: 0, zy: 0, z: 0 });
-  return loese3x3(
-    [[summen.xx, summen.xy, summen.x], [summen.xy, summen.yy, summen.y], [summen.x, summen.y, treffer.length]],
-    [summen.zx, summen.zy, summen.z],
-  );
+  const ergebnis = regressPlane(treffer, ({ muster, basis = muster }) => basis, ({ aufnahme }) => aufnahme, achse);
+  if (!ergebnis) throw new Error('Textmarken liegen nicht ausreichend verteilt.');
+  return ergebnis;
 };
 
 export const transformiere = (transformation, punkt) => {

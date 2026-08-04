@@ -1,45 +1,11 @@
 /** Perspektivisch normalisierte kleine Ausschnitte rund um die erwarteten Ankreuzringe. */
 import { perspectivePoint } from './frame.js';
 import { darknessAt, darkRatio, ringDarkness } from './image.js';
-
-const loese3x3 = (matrix, werte) => {
-  const zeilen = matrix.map((zeile, i) => [...zeile, werte[i]]);
-  for (let spalte = 0; spalte < 3; spalte++) {
-    const pivot = [...Array(3 - spalte).keys()]
-      .map(offset => spalte + offset)
-      .sort((a, b) => Math.abs(zeilen[b][spalte]) - Math.abs(zeilen[a][spalte]))[0];
-    if (Math.abs(zeilen[pivot][spalte]) < 1e-8) return undefined;
-    [zeilen[spalte], zeilen[pivot]] = [zeilen[pivot], zeilen[spalte]];
-    const teiler = zeilen[spalte][spalte];
-    zeilen[spalte] = zeilen[spalte].map(wert => wert / teiler);
-    for (let zeile = 0; zeile < 3; zeile++) {
-      if (zeile === spalte) continue;
-      const faktor = zeilen[zeile][spalte];
-      zeilen[zeile] = zeilen[zeile].map((wert, i) => wert - faktor * zeilen[spalte][i]);
-    }
-  }
-  return zeilen.map(zeile => zeile[3]);
-};
-
-const regressiere = (treffer, achse) => {
-  const summen = treffer.reduce((summe, { quelle, ziel }) => ({
-    xx: summe.xx + quelle.x ** 2,
-    xy: summe.xy + quelle.x * quelle.y,
-    yy: summe.yy + quelle.y ** 2,
-    x: summe.x + quelle.x,
-    y: summe.y + quelle.y,
-    zx: summe.zx + ziel[achse] * quelle.x,
-    zy: summe.zy + ziel[achse] * quelle.y,
-    z: summe.z + ziel[achse],
-  }), { xx: 0, xy: 0, yy: 0, x: 0, y: 0, zx: 0, zy: 0, z: 0 });
-  return loese3x3(
-    [[summen.xx, summen.xy, summen.x], [summen.xy, summen.yy, summen.y], [summen.x, summen.y, treffer.length]],
-    [summen.zx, summen.zy, summen.z],
-  );
-};
+import { regressPlane } from './leastSquares.js';
 
 const regressiereTransformation = treffer => {
-  const x = regressiere(treffer, 'x'), y = regressiere(treffer, 'y');
+  const x = regressPlane(treffer, t => t.quelle, t => t.ziel, 'x');
+  const y = regressPlane(treffer, t => t.quelle, t => t.ziel, 'y');
   return x && y ? { a: x[0], c: x[1], e: x[2], b: y[0], d: y[1], f: y[2] } : undefined;
 };
 
