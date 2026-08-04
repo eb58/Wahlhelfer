@@ -6,7 +6,7 @@ import { readPng } from '../src/png.js';
 
 const fixtureFolder = new URL('../Testdaten/fixtures/wahlzettel1/', import.meta.url);
 const manifest = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder), 'utf8'));
-const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017-muster.json', import.meta.url), 'utf8'));
+const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
 const pngFiles = readdirSync(fixtureFolder).filter(datei => datei.endsWith('.png')).sort();
 const sorted = values => [...values].sort();
 

@@ -10,7 +10,7 @@ const fixtureFolder = new URL('../Testdaten/fixtures/wahlzettel1_fotos/', import
 const manifest = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder), 'utf8'));
 const fixtureFolder2 = new URL('../Testdaten/fixtures/wahlzettel2_fotos/', import.meta.url);
 const manifest2 = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder2), 'utf8'));
-const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017-muster.json', import.meta.url), 'utf8'));
+const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
 const sorted = values => [...values].sort();
 
 const checkManifest = (fixtureFolder, manifest, anzahl) => {

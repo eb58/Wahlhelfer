@@ -213,7 +213,7 @@ npm test
 Die Kalibrierung kann zusätzlich sichtbar geprüft werden:
 
 ```powershell
-python scripts/pruefeKalibrierung.py Kalibrierungen/bundestagswahl-2017-muster.json pruefung-tmp.png
+python scripts/pruefeKalibrierung.py Kalibrierungen/bundestagswahl-2017.json pruefung-tmp.png
 ```
 
 Die OCR-Textmarken der Musterzettel lassen sich separat prüfen:
