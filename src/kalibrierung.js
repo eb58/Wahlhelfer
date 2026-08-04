@@ -23,6 +23,7 @@ const aufbereiten = kalibrierung => ({
   textmarken: kalibrierung.textmarken,
   thresholds: kalibrierung.thresholds,
   radius: kalibrierung.radius / frameWidth(kalibrierung.frame),
+  referenzRadius: kalibrierung.radius,
   stimmen: kalibrierung.stimmen.map(({ id, name, auswahl = 1 }) => ({ id, name, auswahl })),
   felder: kalibrierung.stimmen.flatMap(stimme =>
     stimme.felder.map(feld => ({

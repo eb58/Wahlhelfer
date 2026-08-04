@@ -1,0 +1,296 @@
+{
+  "vorlage": "../../../Testdaten/Wahlzettel1.png",
+  "bildgroesse_vorlage": [
+    1248,
+    1748
+  ],
+  "anzahl": 33,
+  "faelle": [
+    {
+      "datei": "PXL_20260804_050053865.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050057388.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050059828.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050104223.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050106424.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050108474.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050111930.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050114711.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050117380.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050119862.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050121908.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050125408.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050130117.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050132176.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050134160.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050136423.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050138222.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050140393.MP.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050144180.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050153587.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050155714.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050200484.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050203731.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050206329.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050211887.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050214673.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050218256.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050222919.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050225299.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050227180.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050403565.MP.jpg",
+      "markierungen": [
+        "E1",
+        "Z4"
+      ],
+      "kategorie": "foto-e1-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050408298.MP.jpg",
+      "markierungen": [
+        "E1",
+        "Z1"
+      ],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20260804_050413550.MP.jpg",
+      "markierungen": [
+        "E1"
+      ],
+      "kategorie": "foto-e1",
+      "verarbeitung": "robust"
+    }
+  ]
+}
