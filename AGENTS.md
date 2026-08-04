@@ -29,7 +29,7 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
   je Stimme (`erststimme`, `zweitstimme`, bei nur einer Stimme schlicht `stimme`) die Felder mit
   `x`/`y` in Musterzettel-Pixeln, `nummer` (Listenplatz wie gedruckt) und `beschriftung`.
   `auswahl` sagt, wie viele Markierungen je Stimme gueltig sind.
-- `ladeKalibrierung(json)` liefert den asynchronen Erkenner `await typ.recognize(aufnahme)`.
+- `loadKalibrierung(json)` liefert den asynchronen Erkenner `await typ.recognize(aufnahme)`.
   Bei Smartphone-Fotos liefern Papierkante und perspektivische Druckrahmen (`frame.js`) die
   grobe Lage. Danach werden mehrere gedruckte Ankreuzringe gemeinsam gesucht und eine robuste
   affine Ring-Transformation bestimmt. Das ist der normale Erkennungspfad.
@@ -54,7 +54,7 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 
 - `python scripts/pruefeKalibrierung.py <datei.json> [ausgabe.png]` zeichnet Feld- und Textmarken in
   den Musterzettel - die Sichtkontrolle nach jeder Aenderung an einer Kalibrierung.
-- `konfiguration.js` legt fest, welche Kalibrierung im Einsatz gilt. Pro Wahl einmal setzen;
+- `configuration.js` legt fest, welche Kalibrierung im Einsatz gilt. Pro Wahl einmal setzen;
   die Oberflaeche bietet keine Auswahl an.
 
 ## Externe Ressourcen

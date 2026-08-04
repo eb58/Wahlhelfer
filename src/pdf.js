@@ -24,22 +24,22 @@ const pdfjsModule = async () => {
   }
 };
 
-export const istPdf = file => file?.type === 'application/pdf' || /\.pdf$/i.test(file?.name ?? '');
+export const isPdf = file => file?.type === 'application/pdf' || /\.pdf$/i.test(file?.name ?? '');
 
 /**
  * Rendert eine Seite und liefert ImageData wie `toImageData()`.
  * @param {Blob|File} file
- * @param {{seite?:number, dpi?:number}} optionen 1-basierte Seitennummer
- * @returns {Promise<{imageData:ImageData, seiten:number}>}
+ * @param {{pageNumber?:number, dpi?:number}} options 1-basierte Seitennummer
+ * @returns {Promise<{imageData:ImageData, pages:number}>}
  */
-export const pdfSeiteAlsBild = async (file, { seite = 1, dpi = RENDER_DPI } = {}) => {
+export const pdfPageAsImage = async (file, { pageNumber = 1, dpi = RENDER_DPI } = {}) => {
   const pdfjs = await pdfjsModule();
   // Ohne wasmUrl scheitert das Decodieren eingebetteter Scans (JBIG2/JPX).
   const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), wasmUrl: WASM });
   const pdf = await task.promise;
 
   try {
-    const page = await pdf.getPage(Math.min(seite, pdf.numPages));
+    const page = await pdf.getPage(Math.min(pageNumber, pdf.numPages));
     const viewport = page.getViewport({ scale: dpi / 72 });
     const canvas = Object.assign(document.createElement('canvas'), {
       width: Math.ceil(viewport.width),
@@ -51,7 +51,7 @@ export const pdfSeiteAlsBild = async (file, { seite = 1, dpi = RENDER_DPI } = {}
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     await page.render({ canvasContext: context, viewport }).promise;
-    return { imageData: context.getImageData(0, 0, canvas.width, canvas.height), seiten: pdf.numPages };
+    return { imageData: context.getImageData(0, 0, canvas.width, canvas.height), pages: pdf.numPages };
   } finally {
     await task.destroy();
   }

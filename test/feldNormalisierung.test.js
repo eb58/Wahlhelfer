@@ -8,9 +8,9 @@ import {
 // so lassen sich Ring-Suche und -Normalisierung unabhaengig von der perspektivischen Projektion testen.
 const identitaetsRahmen = { left: 0, right: 200, top: 0, bottom: 600 };
 const identitaetsEcken = {
-  ecken: {
-    obenLinks: { x: 0, y: 0 }, obenRechts: { x: 200, y: 0 },
-    untenLinks: { x: 0, y: 600 }, untenRechts: { x: 200, y: 600 },
+  corners: {
+    topLeft: { x: 0, y: 0 }, topRight: { x: 200, y: 0 },
+    bottomLeft: { x: 0, y: 600 }, bottomRight: { x: 200, y: 600 },
   },
 };
 
@@ -24,8 +24,8 @@ const zeichneRing = (map, cx, cy, radius, dicke = 1.5, wert = 1) => {
 
 test('determineRingTransformation lehnt zu wenige Kandidaten ab', () => {
   const treffer = [
-    { quelle: { x: 0, y: 0 }, ziel: { x: 0, y: 0 }, ringScore: 0.5 },
-    { quelle: { x: 100, y: 0 }, ziel: { x: 100, y: 0 }, ringScore: 0.5 },
+    { source: { x: 0, y: 0 }, target: { x: 0, y: 0 }, ringScore: 0.5 },
+    { source: { x: 100, y: 0 }, target: { x: 100, y: 0 }, ringScore: 0.5 },
   ];
   assert.throws(() => determineRingTransformation(treffer), /zu wenige/i);
 });
@@ -33,8 +33,8 @@ test('determineRingTransformation lehnt zu wenige Kandidaten ab', () => {
 test('determineRingTransformation lehnt zu wenige Inlier ab (unter sechs uebereinstimmenden Ringen)', () => {
   // Nicht kollinear (x alterniert), sonst wird schon die Regression selbst singulaer.
   const treffer = [0, 1, 2, 3].map(i => {
-    const quelle = { x: (i % 2) * 30, y: i * 90 };
-    return { quelle, ziel: quelle, ringScore: 0.5 };
+    const source = { x: (i % 2) * 30, y: i * 90 };
+    return { source, target: source, ringScore: 0.5 };
   });
   assert.throws(() => determineRingTransformation(treffer), /zu wenige/i);
 });
@@ -42,8 +42,8 @@ test('determineRingTransformation lehnt zu wenige Inlier ab (unter sechs ueberei
 // x-Spanne 90px, y-Spanne 300px - erfuellt knapp beide Mindestabstaende der Ring-Ausrichtung.
 const punktRaster = (n, transform = ({ x, y }) => ({ x, y }), ringScore = 0.5) =>
   Array.from({ length: n }, (_, i) => {
-    const quelle = { x: (i % 4) * 30, y: Math.floor(i / 4) * 300 };
-    return { quelle, ziel: transform(quelle), ringScore };
+    const source = { x: (i % 4) * 30, y: Math.floor(i / 4) * 300 };
+    return { source, target: transform(source), ringScore };
   });
 
 test('determineRingTransformation lehnt zu geringen Kontrast ab', () => {
@@ -54,8 +54,8 @@ test('determineRingTransformation lehnt zu geringen Kontrast ab', () => {
 test('determineRingTransformation lehnt zu wenig verteilte Ringe ab', () => {
   // x-Spanne bleibt unter 80px, obwohl genug Punkte mit gutem Score vorliegen.
   const treffer = Array.from({ length: 8 }, (_, i) => {
-    const quelle = { x: (i % 2) * 30, y: i * 90 };
-    return { quelle, ziel: quelle, ringScore: 0.5 };
+    const source = { x: (i % 2) * 30, y: i * 90 };
+    return { source, target: source, ringScore: 0.5 };
   });
   assert.throws(() => determineRingTransformation(treffer), /verteilt/i);
 });
@@ -69,8 +69,8 @@ test('determineRingTransformation findet aus gut verteilten, konsistenten Ringen
   const treffer = punktRaster(8, p => p, 0.5);
   const { transformation, treffer: inlier } = determineRingTransformation(treffer);
   assert.equal(inlier.length, 8);
-  for (const { quelle, ziel } of treffer)
-    assert.deepEqual(transformRing(transformation, quelle), ziel);
+  for (const { source, target } of treffer)
+    assert.deepEqual(transformRing(transformation, source), target);
 });
 
 test('normalizeField rastet auf einen leicht versetzten gedruckten Ring ein', () => {

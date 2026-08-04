@@ -16,7 +16,7 @@ Eine Kalibrierung unter `Kalibrierungen/` enthält insbesondere:
 - `stimmen`: Stimmen, Auswahlzahl und die vermessenen Felder mit Nummer und Beschriftung
 - `thresholds`: die Grundschwellen für leer, unklar und angekreuzt
 
-`ladeKalibrierung()` prüft die Datei und wandelt die Feldkoordinaten zusätzlich in
+`loadKalibrierung()` prüft die Datei und wandelt die Feldkoordinaten zusätzlich in
 rahmenrelative Koordinaten um. Dadurch kann dieselbe Kalibrierung bei einer anderen
 Auflösung oder einem anderen Bildausschnitt verwendet werden.
 

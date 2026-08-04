@@ -23,7 +23,7 @@ Ob die lokale OCR alle Textmarken der Musterzettel findet:
 npm run pruefe:ocr
 ```
 
-Welche Kalibrierung im Einsatz gilt, steht in `konfiguration.js` – pro Wahl einmal setzen.
+Welche Kalibrierung im Einsatz gilt, steht in `configuration.js` – pro Wahl einmal setzen.
 Im Wahllokal selbst gibt es nichts auszuwählen.
 
 ## Entwicklung und Build

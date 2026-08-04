@@ -40,164 +40,164 @@ export const findFrame = ({ width, height, values }, { darkThreshold = 0.4, vert
     : undefined;
 };
 
-const maxDarkness = ({ width, height, values }, x, y, senkrecht) => {
+const maxDarkness = ({ width, height, values }, x, y, vertical) => {
   let maximum = 0;
   for (let offset = -2; offset <= 2; offset++) {
-    const px = Math.round(x + (senkrecht ? offset : 0)), py = Math.round(y + (senkrecht ? 0 : offset));
+    const px = Math.round(x + (vertical ? offset : 0)), py = Math.round(y + (vertical ? 0 : offset));
     if (px >= 0 && py >= 0 && px < width && py < height) maximum = Math.max(maximum, values[py * width + px]);
   }
   return maximum;
 };
 
-const findHorizontalLine = (map, papier, von, bis, slopeVon, slopeBis, richtung = 'beste') => {
-  const mitteX = (papier.left + papier.right) / 2;
-  const startX = Math.round(papier.left + (papier.right - papier.left) * 0.06);
-  const endeX = Math.round(papier.right - (papier.right - papier.left) * 0.06);
-  let beste;
-  const kandidaten = [];
-  for (let slope = slopeVon; slope <= slopeBis + 1e-8; slope += 0.01)
-    for (let mitteY = Math.round(von); mitteY <= bis; mitteY += 2) {
-      let summe = 0, anzahl = 0;
-      for (let x = startX; x <= endeX; x += 4) {
-        summe += maxDarkness(map, x, mitteY + slope * (x - mitteX), false);
-        anzahl++;
+const findHorizontalLine = (map, paper, from, to, slopeFrom, slopeTo, direction = 'best') => {
+  const centerX = (paper.left + paper.right) / 2;
+  const startX = Math.round(paper.left + (paper.right - paper.left) * 0.06);
+  const endX = Math.round(paper.right - (paper.right - paper.left) * 0.06);
+  let best;
+  const candidates = [];
+  for (let slope = slopeFrom; slope <= slopeTo + 1e-8; slope += 0.01)
+    for (let centerY = Math.round(from); centerY <= to; centerY += 2) {
+      let sum = 0, count = 0;
+      for (let x = startX; x <= endX; x += 4) {
+        sum += maxDarkness(map, x, centerY + slope * (x - centerX), false);
+        count++;
       }
-      const score = summe / anzahl;
-      if (!beste || score > beste.score) beste = { a: slope, b: mitteY - slope * mitteX, mitte: mitteY, score };
-      if (score >= 0.25) kandidaten.push({ a: slope, b: mitteY - slope * mitteX, mitte: mitteY, score });
+      const score = sum / count;
+      if (!best || score > best.score) best = { a: slope, b: centerY - slope * centerX, center: centerY, score };
+      if (score >= 0.25) candidates.push({ a: slope, b: centerY - slope * centerX, center: centerY, score });
     }
-  if (richtung === 'beste' || !beste) return beste;
-  const grenze = Math.max(0.28, beste.score * 0.65);
-  return kandidaten
-    .filter(kandidat => kandidat.score >= grenze)
-    .sort((a, b) => richtung === 'unten' ? b.mitte - a.mitte : a.mitte - b.mitte)[0] ?? beste;
+  if (direction === 'best' || !best) return best;
+  const threshold = Math.max(0.28, best.score * 0.65);
+  return candidates
+    .filter(candidate => candidate.score >= threshold)
+    .sort((a, b) => direction === 'bottom' ? b.center - a.center : a.center - b.center)[0] ?? best;
 };
 
-const findVerticalLine = (map, papier, oben, unten, von, bis) => {
-  const mitteY = (oben.mitte + unten.mitte) / 2;
-  const startY = Math.round(oben.mitte + (unten.mitte - oben.mitte) * 0.03);
-  const endeY = Math.round(unten.mitte - (unten.mitte - oben.mitte) * 0.03);
-  let beste;
+const findVerticalLine = (map, paper, top, bottom, from, to) => {
+  const centerY = (top.center + bottom.center) / 2;
+  const startY = Math.round(top.center + (bottom.center - top.center) * 0.03);
+  const endY = Math.round(bottom.center - (bottom.center - top.center) * 0.03);
+  let best;
   for (let slope = -0.2; slope <= 0.2 + 1e-8; slope += 0.01)
-    for (let mitteX = Math.round(von); mitteX <= bis; mitteX += 2) {
-      let summe = 0, anzahl = 0;
-      for (let y = startY; y <= endeY; y += 4) {
-        summe += maxDarkness(map, mitteX + slope * (y - mitteY), y, true);
-        anzahl++;
+    for (let centerX = Math.round(from); centerX <= to; centerX += 2) {
+      let sum = 0, count = 0;
+      for (let y = startY; y <= endY; y += 4) {
+        sum += maxDarkness(map, centerX + slope * (y - centerY), y, true);
+        count++;
       }
-      const score = summe / anzahl;
-      if (!beste || score > beste.score) beste = { a: slope, b: mitteX - slope * mitteY, mitte: mitteX, score };
+      const score = sum / count;
+      if (!best || score > best.score) best = { a: slope, b: centerX - slope * centerY, center: centerX, score };
     }
-  return beste;
+  return best;
 };
 
-const intersectLines = (waagerecht, senkrecht) => {
-  const y = (waagerecht.a * senkrecht.b + waagerecht.b) / (1 - waagerecht.a * senkrecht.a);
-  return { x: senkrecht.a * y + senkrecht.b, y };
+const intersectLines = (horizontal, vertical) => {
+  const y = (horizontal.a * vertical.b + horizontal.b) / (1 - horizontal.a * vertical.a);
+  return { x: vertical.a * y + vertical.b, y };
 };
 
-const median = werte => {
-  const sortiert = [...werte].sort((a, b) => a - b), mitte = Math.floor(sortiert.length / 2);
-  return sortiert.length % 2 ? sortiert[mitte] : (sortiert[mitte - 1] + sortiert[mitte]) / 2;
+const median = values => {
+  const sorted = [...values].sort((a, b) => a - b), center = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[center] : (sorted[center - 1] + sorted[center]) / 2;
 };
 
-const regressLine = (punkte, unabhaengig, abhaengig, slopeVon, slopeBis, bevorzugt = 0) => {
-  if (punkte.length < 20) return undefined;
-  let beste;
-  for (let a = slopeVon; a <= slopeBis + 1e-8; a += 0.005) {
-    const b = median(punkte.map(punkt => punkt[abhaengig] - a * punkt[unabhaengig]));
-    const treffer = punkte.filter(punkt => Math.abs(punkt[abhaengig] - a * punkt[unabhaengig] - b) <= 4);
-    const score = treffer.length - Math.abs(a - bevorzugt) * 0.01;
-    if (!beste || score > beste.score) beste = { a, b, treffer, score };
+const regressLine = (points, independent, dependent, slopeFrom, slopeTo, preferred = 0) => {
+  if (points.length < 20) return undefined;
+  let best;
+  for (let a = slopeFrom; a <= slopeTo + 1e-8; a += 0.005) {
+    const b = median(points.map(point => point[dependent] - a * point[independent]));
+    const treffer = points.filter(point => Math.abs(point[dependent] - a * point[independent] - b) <= 4);
+    const score = treffer.length - Math.abs(a - preferred) * 0.01;
+    if (!best || score > best.score) best = { a, b, treffer, score };
   }
-  if (beste.treffer.length < punkte.length * 0.45) return undefined;
-  const n = beste.treffer.length;
-  const summen = beste.treffer.reduce((summe, punkt) => ({
-    x: summe.x + punkt[unabhaengig],
-    y: summe.y + punkt[abhaengig],
-    xx: summe.xx + punkt[unabhaengig] ** 2,
-    xy: summe.xy + punkt[unabhaengig] * punkt[abhaengig],
+  if (best.treffer.length < points.length * 0.45) return undefined;
+  const n = best.treffer.length;
+  const sums = best.treffer.reduce((sum, point) => ({
+    x: sum.x + point[independent],
+    y: sum.y + point[dependent],
+    xx: sum.xx + point[independent] ** 2,
+    xy: sum.xy + point[independent] * point[dependent],
   }), { x: 0, y: 0, xx: 0, xy: 0 });
-  const nenner = n * summen.xx - summen.x ** 2;
-  const a = Math.abs(nenner) > 1e-8 ? (n * summen.xy - summen.x * summen.y) / nenner : beste.a;
-  return { a, b: (summen.y - a * summen.x) / n, score: beste.treffer.length / punkte.length };
+  const denominator = n * sums.xx - sums.x ** 2;
+  const a = Math.abs(denominator) > 1e-8 ? (n * sums.xy - sums.x * sums.y) / denominator : best.a;
+  return { a, b: (sums.y - a * sums.x) / n, score: best.treffer.length / points.length };
 };
 
-const edgePoints = (map, papier, art, richtung) => {
-  const breite = papier.right - papier.left, hoehe = papier.bottom - papier.top;
-  const waagerecht = art === 'waagerecht';
-  const von = waagerecht ? papier.left + breite * 0.08 : papier.top + hoehe * 0.08;
-  const bis = waagerecht ? papier.right - breite * 0.08 : papier.bottom - hoehe * 0.08;
-  const sucheVon = waagerecht
-    ? papier.top + hoehe * (richtung === 'vorwaerts' ? 0.015 : 0.985)
-    : papier.left + breite * (richtung === 'vorwaerts' ? 0.015 : 0.985);
-  const sucheBis = waagerecht
-    ? papier.top + hoehe * (richtung === 'vorwaerts' ? 0.14 : 0.68)
-    : papier.left + breite * (richtung === 'vorwaerts' ? 0.18 : 0.82);
-  const schritt = richtung === 'vorwaerts' ? 1 : -1;
-  const punkte = [];
-  for (let fest = Math.round(von); fest <= bis; fest += 4)
-    for (let variabel = Math.round(sucheVon); schritt > 0 ? variabel <= sucheBis : variabel >= sucheBis; variabel += schritt) {
-      const x = waagerecht ? fest : variabel, y = waagerecht ? variabel : fest;
-      if (maxDarkness(map, x, y, !waagerecht) < 0.35) continue;
-      punkte.push({ x, y });
+const edgePoints = (map, paper, orientation, direction) => {
+  const paperWidth = paper.right - paper.left, paperHeight = paper.bottom - paper.top;
+  const horizontal = orientation === 'horizontal';
+  const from = horizontal ? paper.left + paperWidth * 0.08 : paper.top + paperHeight * 0.08;
+  const to = horizontal ? paper.right - paperWidth * 0.08 : paper.bottom - paperHeight * 0.08;
+  const searchFrom = horizontal
+    ? paper.top + paperHeight * (direction === 'forward' ? 0.015 : 0.985)
+    : paper.left + paperWidth * (direction === 'forward' ? 0.015 : 0.985);
+  const searchTo = horizontal
+    ? paper.top + paperHeight * (direction === 'forward' ? 0.14 : 0.68)
+    : paper.left + paperWidth * (direction === 'forward' ? 0.18 : 0.82);
+  const step = direction === 'forward' ? 1 : -1;
+  const points = [];
+  for (let fixed = Math.round(from); fixed <= to; fixed += 4)
+    for (let scanning = Math.round(searchFrom); step > 0 ? scanning <= searchTo : scanning >= searchTo; scanning += step) {
+      const x = horizontal ? fixed : scanning, y = horizontal ? scanning : fixed;
+      if (maxDarkness(map, x, y, !horizontal) < 0.35) continue;
+      points.push({ x, y });
       break;
     }
-  return punkte;
+  return points;
 };
 
 /** Sucht die vier perspektivischen Druckrahmenlinien innerhalb der groben Papierlage. */
-export const findPerspectiveFrame = (map, papier) => {
-  if (!papier) return undefined;
-  const breite = papier.right - papier.left, hoehe = papier.bottom - papier.top;
-  const oben = findHorizontalLine(
-    map, papier, papier.top + hoehe * 0.025, papier.top + hoehe * 0.12,
-    papier.horizontalSlope - 0.06, papier.horizontalSlope + 0.06, 'oben',
+export const findPerspectiveFrame = (map, paper) => {
+  if (!paper) return undefined;
+  const paperWidth = paper.right - paper.left, paperHeight = paper.bottom - paper.top;
+  const top = findHorizontalLine(
+    map, paper, paper.top + paperHeight * 0.025, paper.top + paperHeight * 0.12,
+    paper.horizontalSlope - 0.06, paper.horizontalSlope + 0.06, 'top',
   );
-  const untereRandpunkte = edgePoints(map, papier, 'waagerecht', 'rueckwaerts');
-  const untereAussenlinie = regressLine(untereRandpunkte, 'x', 'y', -0.2, 0.2, papier.horizontalSlope);
-  const unten = untereAussenlinie ? {
-    ...untereAussenlinie,
-    mitte: untereAussenlinie.a * (papier.left + papier.right) / 2 + untereAussenlinie.b,
+  const bottomEdgePoints = edgePoints(map, paper, 'horizontal', 'backward');
+  const bottomOuterLine = regressLine(bottomEdgePoints, 'x', 'y', -0.2, 0.2, paper.horizontalSlope);
+  const bottom = bottomOuterLine ? {
+    ...bottomOuterLine,
+    center: bottomOuterLine.a * (paper.left + paper.right) / 2 + bottomOuterLine.b,
   } : findHorizontalLine(
-    map, papier, papier.top + hoehe * 0.72, papier.bottom - hoehe * 0.02,
-    oben.a - 0.08, oben.a + 0.08, 'unten',
+    map, paper, paper.top + paperHeight * 0.72, paper.bottom - paperHeight * 0.02,
+    top.a - 0.08, top.a + 0.08, 'bottom',
   );
-  if (!oben || !unten || oben.score < 0.3 || unten.score < 0.3 || unten.mitte <= oben.mitte) return undefined;
-  const links = findVerticalLine(map, papier, oben, unten, papier.left, papier.left + breite * 0.3);
-  const rechts = findVerticalLine(map, papier, oben, unten, papier.right - breite * 0.3, papier.right);
-  if (!links || !rechts || links.score < 0.3 || rechts.score < 0.3 || rechts.mitte <= links.mitte) return undefined;
-  const ecken = {
-    obenLinks: intersectLines(oben, links),
-    obenRechts: intersectLines(oben, rechts),
-    untenLinks: intersectLines(unten, links),
-    untenRechts: intersectLines(unten, rechts),
+  if (!top || !bottom || top.score < 0.3 || bottom.score < 0.3 || bottom.center <= top.center) return undefined;
+  const left = findVerticalLine(map, paper, top, bottom, paper.left, paper.left + paperWidth * 0.3);
+  const right = findVerticalLine(map, paper, top, bottom, paper.right - paperWidth * 0.3, paper.right);
+  if (!left || !right || left.score < 0.3 || right.score < 0.3 || right.center <= left.center) return undefined;
+  const corners = {
+    topLeft: intersectLines(top, left),
+    topRight: intersectLines(top, right),
+    bottomLeft: intersectLines(bottom, left),
+    bottomRight: intersectLines(bottom, right),
   };
-  const xs = Object.values(ecken).map(ecke => ecke.x), ys = Object.values(ecken).map(ecke => ecke.y);
+  const xs = Object.values(corners).map(corner => corner.x), ys = Object.values(corners).map(corner => corner.y);
   return {
     left: Math.min(...xs), right: Math.max(...xs), top: Math.min(...ys), bottom: Math.max(...ys),
-    horizontalSlope: oben.a, ecken,
+    horizontalSlope: top.a, corners,
   };
 };
 
 /** Projiziert einen Punkt aus dem Kalibrierungsrahmen in den perspektivischen Fotorahmen. */
-export const perspectivePoint = ({ ecken }, kalibrierungsFrame, { x, y }) => {
-  const { obenLinks, obenRechts, untenLinks, untenRechts } = ecken;
-  const dx1 = obenRechts.x - untenRechts.x, dx2 = untenLinks.x - untenRechts.x;
-  const dx3 = obenLinks.x - obenRechts.x + untenRechts.x - untenLinks.x;
-  const dy1 = obenRechts.y - untenRechts.y, dy2 = untenLinks.y - untenRechts.y;
-  const dy3 = obenLinks.y - obenRechts.y + untenRechts.y - untenLinks.y;
-  const nenner = dx1 * dy2 - dx2 * dy1;
-  const g = Math.abs(nenner) > 1e-8 ? (dx3 * dy2 - dx2 * dy3) / nenner : 0;
-  const h = Math.abs(nenner) > 1e-8 ? (dx1 * dy3 - dx3 * dy1) / nenner : 0;
-  const a = obenRechts.x - obenLinks.x + g * obenRechts.x;
-  const b = untenLinks.x - obenLinks.x + h * untenLinks.x;
-  const d = obenRechts.y - obenLinks.y + g * obenRechts.y;
-  const e = untenLinks.y - obenLinks.y + h * untenLinks.y;
+export const perspectivePoint = ({ corners }, kalibrierungsFrame, { x, y }) => {
+  const { topLeft, topRight, bottomLeft, bottomRight } = corners;
+  const dx1 = topRight.x - bottomRight.x, dx2 = bottomLeft.x - bottomRight.x;
+  const dx3 = topLeft.x - topRight.x + bottomRight.x - bottomLeft.x;
+  const dy1 = topRight.y - bottomRight.y, dy2 = bottomLeft.y - bottomRight.y;
+  const dy3 = topLeft.y - topRight.y + bottomRight.y - bottomLeft.y;
+  const denominator = dx1 * dy2 - dx2 * dy1;
+  const g = Math.abs(denominator) > 1e-8 ? (dx3 * dy2 - dx2 * dy3) / denominator : 0;
+  const h = Math.abs(denominator) > 1e-8 ? (dx1 * dy3 - dx3 * dy1) / denominator : 0;
+  const a = topRight.x - topLeft.x + g * topRight.x;
+  const b = bottomLeft.x - topLeft.x + h * bottomLeft.x;
+  const d = topRight.y - topLeft.y + g * topRight.y;
+  const e = bottomLeft.y - topLeft.y + h * bottomLeft.y;
   const u = (x - kalibrierungsFrame.left) / (kalibrierungsFrame.right - kalibrierungsFrame.left);
   const v = (y - kalibrierungsFrame.top) / (kalibrierungsFrame.bottom - kalibrierungsFrame.top);
   const z = g * u + h * v + 1;
-  return { x: (a * u + b * v + obenLinks.x) / z, y: (d * u + e * v + obenLinks.y) / z };
+  return { x: (a * u + b * v + topLeft.x) / z, y: (d * u + e * v + topLeft.y) / z };
 };
 
 export const toRelative = (frame, { x, y }) => ({

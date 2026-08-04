@@ -23,27 +23,27 @@ const toBlobUrl = async canvas => {
 };
 
 /** Entfernt den gedruckten Aussenrahmen aus dem Bild, bevor Tesseract es sieht. */
-const removeFrame = (context, { width, height }, rahmen) => {
-  if (!rahmen) return;
+const removeFrame = (context, { width, height }, frame) => {
+  if (!frame) return;
   const band = Math.max(3, Math.round(Math.min(width, height) * 0.004));
-  if (rahmen.ecken) {
-    const { obenLinks, obenRechts, untenRechts, untenLinks } = rahmen.ecken;
+  if (frame.corners) {
+    const { topLeft, topRight, bottomRight, bottomLeft } = frame.corners;
     context.strokeStyle = '#fff';
     context.lineWidth = band * 2;
     context.beginPath();
-    context.moveTo(obenLinks.x, obenLinks.y);
-    context.lineTo(obenRechts.x, obenRechts.y);
-    context.lineTo(untenRechts.x, untenRechts.y);
-    context.lineTo(untenLinks.x, untenLinks.y);
+    context.moveTo(topLeft.x, topLeft.y);
+    context.lineTo(topRight.x, topRight.y);
+    context.lineTo(bottomRight.x, bottomRight.y);
+    context.lineTo(bottomLeft.x, bottomLeft.y);
     context.closePath();
     context.stroke();
     return;
   }
   context.fillStyle = '#fff';
-  context.fillRect(Math.max(0, rahmen.left - band), 0, band * 2, height);
-  context.fillRect(Math.max(0, rahmen.right - band), 0, band * 2, height);
-  context.fillRect(0, Math.max(0, rahmen.top - band), width, band * 2);
-  context.fillRect(0, Math.max(0, rahmen.bottom - band), width, band * 2);
+  context.fillRect(Math.max(0, frame.left - band), 0, band * 2, height);
+  context.fillRect(Math.max(0, frame.right - band), 0, band * 2, height);
+  context.fillRect(0, Math.max(0, frame.top - band), width, band * 2);
+  context.fillRect(0, Math.max(0, frame.bottom - band), width, band * 2);
 };
 
 /**
@@ -68,11 +68,11 @@ export const toImageData = async file => {
 };
 
 /** Bilddaten als anzeigbare Bildquelle - fuer die Vorschau samt Markierungen. */
-export const toImageUrl = async (imageData, rahmen) => {
+export const toImageUrl = async (imageData, frame) => {
   const canvas = createCanvas(imageData.width, imageData.height);
   const context = canvas.getContext('2d');
   context.putImageData(imageData, 0, 0);
-  removeFrame(context, imageData, rahmen);
+  removeFrame(context, imageData, frame);
   return toBlobUrl(canvas);
 };
 
@@ -80,24 +80,24 @@ export const toImageUrl = async (imageData, rahmen) => {
  * Setzt kleine, unverkleinerte Ausschnitte zu einem kompakten OCR-Bild zusammen.
  * `offsets` beschreibt, wo jeder Streifen im Ausgangsbild lag.
  */
-export const toTextstreifenUrl = async (imageData, bereiche, rahmen) => {
+export const toTextStripUrl = async (imageData, regions, frame) => {
   const source = createCanvas(imageData.width, imageData.height);
   const sourceContext = source.getContext('2d');
   sourceContext.putImageData(imageData, 0, 0);
-  removeFrame(sourceContext, imageData, rahmen);
-  const abstand = 20;
-  const breite = Math.max(...bereiche.map(bereich => bereich.width));
-  const hoehe = bereiche.reduce((summe, bereich) => summe + bereich.height, 0) + abstand * Math.max(0, bereiche.length - 1);
-  const canvas = createCanvas(breite, hoehe);
+  removeFrame(sourceContext, imageData, frame);
+  const gap = 20;
+  const canvasWidth = Math.max(...regions.map(region => region.width));
+  const canvasHeight = regions.reduce((sum, region) => sum + region.height, 0) + gap * Math.max(0, regions.length - 1);
+  const canvas = createCanvas(canvasWidth, canvasHeight);
   const context = canvas.getContext('2d');
   context.fillStyle = '#fff';
-  context.fillRect(0, 0, breite, hoehe);
+  context.fillRect(0, 0, canvasWidth, canvasHeight);
   const offsets = [];
   let top = 0;
-  for (const bereich of bereiche) {
-    context.drawImage(source, bereich.left, bereich.top, bereich.width, bereich.height, 0, top, bereich.width, bereich.height);
-    offsets.push({ ...bereich, sourceTop: bereich.top, top });
-    top += bereich.height + abstand;
+  for (const region of regions) {
+    context.drawImage(source, region.left, region.top, region.width, region.height, 0, top, region.width, region.height);
+    offsets.push({ ...region, sourceTop: region.top, top });
+    top += region.height + gap;
   }
   return { imageUrl: await toBlobUrl(canvas), offsets };
 };

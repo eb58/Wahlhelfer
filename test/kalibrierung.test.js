@@ -6,69 +6,69 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { ladeKalibrierung, FORMAT_VERSION } from '../src/kalibrierung.js';
+import { loadKalibrierung, FORMAT_VERSION } from '../src/kalibrierung.js';
 import { readPng } from '../src/png.js';
 import { toDarkness, ringDarkness, darkRatio } from '../src/image.js';
 import { innerRadius } from '../src/ankreuzErkennung.js';
 import { kreuzeAn } from './zettelWerkstatt.js';
 
-const ordner = new URL('../Kalibrierungen/', import.meta.url);
-const lies = datei => JSON.parse(readFileSync(new URL(datei, ordner), 'utf8'));
-const dateien = readdirSync(ordner).filter(datei => datei.endsWith('.json'));
+const folder = new URL('../Kalibrierungen/', import.meta.url);
+const read = file => JSON.parse(readFileSync(new URL(file, folder), 'utf8'));
+const files = readdirSync(folder).filter(file => file.endsWith('.json'));
 
 test('die eingestellte Kalibrierung ist vorhanden', async () => {
-  const { KALIBRIERUNG } = await import('../konfiguration.js');
-  assert.ok(dateien.includes(KALIBRIERUNG.split('/').pop()), `${KALIBRIERUNG} fehlt in Kalibrierungen/`);
+  const { KALIBRIERUNG } = await import('../configuration.js');
+  assert.ok(files.includes(KALIBRIERUNG.split('/').pop()), `${KALIBRIERUNG} fehlt in Kalibrierungen/`);
 });
 
-for (const datei of dateien) {
-  const inhalt = lies(datei);
-  const typ = ladeKalibrierung(inhalt);
-  const image = readPng(readFileSync(new URL(`../${inhalt.quelle}`, ordner)));
+for (const file of files) {
+  const content = read(file);
+  const typ = loadKalibrierung(content);
+  const image = readPng(readFileSync(new URL(`../${content.quelle}`, folder)));
   const map = toDarkness(image);
 
-  test(`${datei}: passt zum hinterlegten Musterzettel`, () => {
-    assert.deepEqual({ breite: image.width, hoehe: image.height }, inhalt.referenz);
+  test(`${file}: passt zum hinterlegten Musterzettel`, () => {
+    assert.deepEqual({ breite: image.width, hoehe: image.height }, content.referenz);
   });
 
-  test(`${datei}: jedes Feld sitzt auf einem gedruckten Ring`, () => {
-    for (const stimme of inhalt.stimmen)
+  test(`${file}: jedes Feld sitzt auf einem gedruckten Ring`, () => {
+    for (const stimme of content.stimmen)
       for (const feld of stimme.felder)
-        assert.ok(ringDarkness(map, feld.x, feld.y, inhalt.radius) > 0.5,
+        assert.ok(ringDarkness(map, feld.x, feld.y, content.radius) > 0.5,
           `${feld.id} bei ${feld.x}/${feld.y} liegt nicht auf einem Ring`);
   });
 
-  test(`${datei}: der Musterzettel ist leer`, () => {
-    for (const stimme of inhalt.stimmen)
+  test(`${file}: der Musterzettel ist leer`, () => {
+    for (const stimme of content.stimmen)
       for (const feld of stimme.felder)
-        assert.ok(darkRatio(map, feld.x, feld.y, innerRadius(inhalt.radius)) < 0.02, `${feld.id} ist nicht leer`);
+        assert.ok(darkRatio(map, feld.x, feld.y, innerRadius(content.radius)) < 0.02, `${feld.id} ist nicht leer`);
   });
 
-  test(`${datei}: Feld-IDs sind eindeutig und beschriftet`, () => {
+  test(`${file}: Feld-IDs sind eindeutig und beschriftet`, () => {
     const ids = typ.felder.map(feld => feld.id);
     assert.equal(new Set(ids).size, ids.length);
     assert.ok(typ.felder.every(feld => feld.beschriftung), 'jedes Feld braucht eine Beschriftung');
   });
 
-  test(`${datei}: Textmarken sind ueber den Musterzettel verteilt`, () => {
+  test(`${file}: Textmarken sind ueber den Musterzettel verteilt`, () => {
     assert.ok(typ.textmarken.length >= 3);
-    assert.ok(Math.max(...typ.textmarken.map(marke => marke.y)) - Math.min(...typ.textmarken.map(marke => marke.y)) > image.height * 0.4);
+    assert.ok(Math.max(...typ.textmarken.map(mark => mark.y)) - Math.min(...typ.textmarken.map(mark => mark.y)) > image.height * 0.4);
   });
 
-  test(`${datei}: erkennt am eigenen Musterzettel keine Markierung`, async () => {
-    const ergebnis = await typ.recognize(image, { textjustierung: false });
-    assert.ok(ergebnis.felder.every(feld => feld.status === 'leer'));
-    assert.ok(ergebnis.stimmen.every(stimme => stimme.status === 'leer'));
+  test(`${file}: erkennt am eigenen Musterzettel keine Markierung`, async () => {
+    const result = await typ.recognize(image, { textjustierung: false });
+    assert.ok(result.felder.every(feld => feld.status === 'leer'));
+    assert.ok(result.stimmen.every(stimme => stimme.status === 'leer'));
   });
 
-  test(`${datei}: ein Kreuz trifft genau sein Feld`, async () => {
+  test(`${file}: ein Kreuz trifft genau sein Feld`, async () => {
     // Je Stimme das erste, ein mittleres und das letzte Feld - so ist auch das untere
     // Ende eines sehr langen Zettels abgedeckt, wo sich ein Lagefehler am staerksten zeigt.
     for (const stimme of typ.stimmen) {
-      const eigene = typ.felder.filter(feld => feld.stimme === stimme.id);
-      for (const feld of [eigene[0], eigene[Math.floor(eigene.length / 2)], eigene.at(-1)]) {
-        const ergebnis = await typ.recognize(kreuzeAn(image, typ, [feld.id]), { textjustierung: false });
-        assert.deepEqual(ergebnis.felder.filter(f => f.status !== 'leer').map(f => f.id), [feld.id],
+      const own = typ.felder.filter(feld => feld.stimme === stimme.id);
+      for (const feld of [own[0], own[Math.floor(own.length / 2)], own.at(-1)]) {
+        const result = await typ.recognize(kreuzeAn(image, typ, [feld.id]), { textjustierung: false });
+        assert.deepEqual(result.felder.filter(f => f.status !== 'leer').map(f => f.id), [feld.id],
           `${feld.id} (${feld.beschriftung}) wurde nicht sauber getroffen`);
       }
     }
@@ -76,6 +76,6 @@ for (const datei of dateien) {
 }
 
 test('fremde Versionen und unvollstaendige Dateien werden abgewiesen', () => {
-  assert.throws(() => ladeKalibrierung(JSON.stringify({ version: 99 })), /Version/);
-  assert.throws(() => ladeKalibrierung({ version: FORMAT_VERSION, radius: 10, stimmen: [] }), /Rahmen/);
+  assert.throws(() => loadKalibrierung(JSON.stringify({ version: 99 })), /Version/);
+  assert.throws(() => loadKalibrierung({ version: FORMAT_VERSION, radius: 10, stimmen: [] }), /Rahmen/);
 });

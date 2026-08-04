@@ -12,4 +12,4 @@ export const setLogging = on => { enabled = on; };
 export const log = (...args) => { if (enabled) console.log('[Wahl]', ...args); };
 
 /** Zahlen im Protokoll kurz halten - drei Nachkommastellen sagen hier nichts mehr. */
-export const round = wert => Math.round(wert * 100) / 100;
+export const round = value => Math.round(value * 100) / 100;

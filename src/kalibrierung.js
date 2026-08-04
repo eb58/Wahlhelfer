@@ -16,7 +16,7 @@ export const FORMAT_VERSION = 4;
  * Musterzettel-Pixel -> rahmenrelative Lagen; die Stimme wandert dabei ins Feld.
  * Danach kennt die Erkennung nur noch eine flache Feldliste.
  */
-const aufbereiten = kalibrierung => ({
+const prepare = kalibrierung => ({
   name: kalibrierung.name,
   referenz: kalibrierung.referenz,
   frame: kalibrierung.frame,
@@ -34,27 +34,27 @@ const aufbereiten = kalibrierung => ({
     }))),
 });
 
-const pruefe = datei => {
-  if (datei.version !== FORMAT_VERSION) throw new Error(`Unbekannte Kalibrierungs-Version: ${datei.version}`);
-  if (!datei.frame || !datei.radius) throw new Error('Kalibrierung ohne Rahmen oder Radius');
-  if (!datei.referenz?.breite || !datei.referenz?.hoehe) throw new Error('Kalibrierung ohne Referenzgroesse');
-  if (datei.textmarken?.length < 3 || datei.textmarken.some(marke => !marke.text || !Number.isFinite(marke.x) || !Number.isFinite(marke.y)))
+const validate = file => {
+  if (file.version !== FORMAT_VERSION) throw new Error(`Unbekannte Kalibrierungs-Version: ${file.version}`);
+  if (!file.frame || !file.radius) throw new Error('Kalibrierung ohne Rahmen oder Radius');
+  if (!file.referenz?.breite || !file.referenz?.hoehe) throw new Error('Kalibrierung ohne Referenzgroesse');
+  if (file.textmarken?.length < 3 || file.textmarken.some(mark => !mark.text || !Number.isFinite(mark.x) || !Number.isFinite(mark.y)))
     throw new Error('Kalibrierung braucht mindestens drei vollstaendige Textmarken');
-  if (!datei.stimmen?.length) throw new Error('Kalibrierung ohne Stimmen');
-  return datei;
+  if (!file.stimmen?.length) throw new Error('Kalibrierung ohne Stimmen');
+  return file;
 };
 
 /**
  * Macht aus einer Kalibrierungsdatei den Erkenner fuer genau diese Zettelart.
  * @param {string|object} json Inhalt einer Datei aus `Kalibrierungen/`
  */
-export const ladeKalibrierung = json => {
-  const datei = pruefe(typeof json === 'string' ? JSON.parse(json) : json);
-  const kalibrierung = aufbereiten(datei);
+export const loadKalibrierung = json => {
+  const file = validate(typeof json === 'string' ? JSON.parse(json) : json);
+  const kalibrierung = prepare(file);
   return {
     ...kalibrierung,
     /** @param {{width:number,height:number,data:Uint8ClampedArray}} image Aufnahme des Zettels */
     recognize: (image, options) => recognizeAnkreuzungen(image, kalibrierung, options),
-    toJson: () => JSON.stringify(datei),
+    toJson: () => JSON.stringify(file),
   };
 };

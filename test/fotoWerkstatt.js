@@ -7,7 +7,7 @@ export const readJpeg = buffer => {
 };
 
 /** Entspricht der Breitenbegrenzung des Browsers fuer Smartphone-Aufnahmen. */
-export const begrenzeBreite = (image, maxWidth = 1600) => {
+export const limitWidth = (image, maxWidth = 1600) => {
   if (image.width <= maxWidth) return image;
   const factor = maxWidth / image.width;
   const width = maxWidth, height = Math.round(image.height * factor);

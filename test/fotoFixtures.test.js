@@ -2,37 +2,37 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { ladeKalibrierung } from '../src/kalibrierung.js';
-import { readJpeg, begrenzeBreite } from './fotoWerkstatt.js';
+import { loadKalibrierung } from '../src/kalibrierung.js';
+import { readJpeg, limitWidth } from './fotoWerkstatt.js';
 import { createFotoOcr } from './fotoOcr.js';
 
-const fixtureOrdner = new URL('../Testdaten/fixtures/wahlzettel1_fotos/', import.meta.url);
-const manifest = JSON.parse(readFileSync(new URL('manifest.json', fixtureOrdner), 'utf8'));
-const fixtureOrdner2 = new URL('../Testdaten/fixtures/wahlzettel2_fotos/', import.meta.url);
-const manifest2 = JSON.parse(readFileSync(new URL('manifest.json', fixtureOrdner2), 'utf8'));
-const typ = ladeKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017-muster.json', import.meta.url), 'utf8'));
-const sortiert = werte => [...werte].sort();
+const fixtureFolder = new URL('../Testdaten/fixtures/wahlzettel1_fotos/', import.meta.url);
+const manifest = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder), 'utf8'));
+const fixtureFolder2 = new URL('../Testdaten/fixtures/wahlzettel2_fotos/', import.meta.url);
+const manifest2 = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder2), 'utf8'));
+const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017-muster.json', import.meta.url), 'utf8'));
+const sorted = values => [...values].sort();
 
-const pruefeManifest = (fixtureOrdner, manifest, anzahl) => {
-  const dateien = readdirSync(fixtureOrdner).filter(datei => datei.endsWith('.jpg')).sort();
+const checkManifest = (fixtureFolder, manifest, anzahl) => {
+  const files = readdirSync(fixtureFolder).filter(datei => datei.endsWith('.jpg')).sort();
   assert.equal(manifest.anzahl, anzahl);
   assert.equal(manifest.faelle.length, manifest.anzahl);
-  assert.deepEqual(dateien, sortiert(manifest.faelle.map(fall => fall.datei)));
+  assert.deepEqual(files, sorted(manifest.faelle.map(testCase => testCase.datei)));
 };
 
-test('Foto-Manifest 1 enthaelt alle 20 JPEG-Aufnahmen', () => pruefeManifest(fixtureOrdner, manifest, 20));
-test('Foto-Manifest 2 enthaelt alle 33 JPEG-Aufnahmen', () => pruefeManifest(fixtureOrdner2, manifest2, 33));
+test('Foto-Manifest 1 enthaelt alle 20 JPEG-Aufnahmen', () => checkManifest(fixtureFolder, manifest, 20));
+test('Foto-Manifest 2 enthaelt alle 33 JPEG-Aufnahmen', () => checkManifest(fixtureFolder2, manifest2, 33));
 
-const pruefeFotos = async (t, fixtureOrdner, manifest) => {
+const checkPhotos = async (t, fixtureFolder, manifest) => {
   const ocr = await createFotoOcr(fileURLToPath(new URL('../', import.meta.url)));
   try {
-    for (const fall of manifest.faelle) {
-      await t.test(fall.datei, async () => {
-        const image = begrenzeBreite(readJpeg(readFileSync(new URL(fall.datei, fixtureOrdner))));
-        const ergebnis = await typ.recognize(image, { ocr: ocr.recognizeWords });
-        const erkannt = sortiert(ergebnis.felder.filter(feld => feld.status !== 'leer').map(feld => feld.id));
-        assert.deepEqual(erkannt, sortiert(fall.markierungen));
-        assert.ok(ergebnis.felder.filter(feld => feld.status !== 'leer').every(feld => feld.status === 'angekreuzt'));
+    for (const testCase of manifest.faelle) {
+      await t.test(testCase.datei, async () => {
+        const image = limitWidth(readJpeg(readFileSync(new URL(testCase.datei, fixtureFolder))));
+        const result = await typ.recognize(image, { ocr: ocr.recognizeWords });
+        const found = sorted(result.felder.filter(feld => feld.status !== 'leer').map(feld => feld.id));
+        assert.deepEqual(found, sorted(testCase.markierungen));
+        assert.ok(result.felder.filter(feld => feld.status !== 'leer').every(feld => feld.status === 'angekreuzt'));
       });
     }
   } finally {
@@ -40,6 +40,6 @@ const pruefeFotos = async (t, fixtureOrdner, manifest) => {
   }
 };
 
-test('alle Smartphone-Fotos aus Serie 1 werden wie im Manifest gewertet', t => pruefeFotos(t, fixtureOrdner, manifest));
+test('alle Smartphone-Fotos aus Serie 1 werden wie im Manifest gewertet', t => checkPhotos(t, fixtureFolder, manifest));
 
-test('alle Smartphone-Fotos aus Serie 2 werden wie im Manifest gewertet', t => pruefeFotos(t, fixtureOrdner2, manifest2));
+test('alle Smartphone-Fotos aus Serie 2 werden wie im Manifest gewertet', t => checkPhotos(t, fixtureFolder2, manifest2));

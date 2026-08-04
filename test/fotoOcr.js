@@ -2,22 +2,22 @@ import { resolve } from 'node:path';
 import { createWorker } from 'tesseract.js';
 import { writePng } from '../src/png.js';
 
-const abstand = 20;
+const gap = 20;
 
-const packeBereiche = (image, bereiche) => {
-  const width = Math.max(...bereiche.map(bereich => bereich.width));
-  const height = bereiche.reduce((summe, bereich) => summe + bereich.height, 0) + abstand * (bereiche.length - 1);
+const packRegions = (image, regions) => {
+  const width = Math.max(...regions.map(region => region.width));
+  const height = regions.reduce((sum, region) => sum + region.height, 0) + gap * (regions.length - 1);
   const data = new Uint8ClampedArray(width * height * 4).fill(255);
   const offsets = [];
   let top = 0;
-  for (const bereich of bereiche) {
-    for (let y = 0; y < bereich.height; y++) {
-      const source = ((bereich.top + y) * image.width + bereich.left) * 4;
+  for (const region of regions) {
+    for (let y = 0; y < region.height; y++) {
+      const source = ((region.top + y) * image.width + region.left) * 4;
       const target = ((top + y) * width) * 4;
-      data.set(image.data.subarray(source, source + bereich.width * 4), target);
+      data.set(image.data.subarray(source, source + region.width * 4), target);
     }
-    offsets.push({ ...bereich, sourceTop: bereich.top, top });
-    top += bereich.height + abstand;
+    offsets.push({ ...region, sourceTop: region.top, top });
+    top += region.height + gap;
   }
   return { image: { width, height, data }, offsets };
 };
@@ -28,17 +28,17 @@ const readWords = blocks => (blocks ?? [])
   .flatMap(line => line.words)
   .map(({ text, confidence, bbox }) => ({ text, confidence, bbox }));
 
-const moveBbox = (wort, offsets) => {
-  const y = (wort.bbox.y0 + wort.bbox.y1) / 2;
-  const offset = offsets.find(bereich => y >= bereich.top && y < bereich.top + bereich.height);
+const moveBbox = (word, offsets) => {
+  const y = (word.bbox.y0 + word.bbox.y1) / 2;
+  const offset = offsets.find(region => y >= region.top && y < region.top + region.height);
   return offset && {
-    ...wort,
+    ...word,
     textmarke: offset.textmarke,
     bbox: {
-      x0: wort.bbox.x0 + offset.left,
-      x1: wort.bbox.x1 + offset.left,
-      y0: wort.bbox.y0 - offset.top + offset.sourceTop,
-      y1: wort.bbox.y1 - offset.top + offset.sourceTop,
+      x0: word.bbox.x0 + offset.left,
+      x1: word.bbox.x1 + offset.left,
+      y0: word.bbox.y0 - offset.top + offset.sourceTop,
+      y1: word.bbox.y1 - offset.top + offset.sourceTop,
     },
   };
 };
@@ -49,17 +49,17 @@ export const createFotoOcr = async root => {
     cacheMethod: 'none',
   });
   return {
-    recognizeWords: async (image, bereiche) => {
-      const { image: streifen, offsets } = bereiche
-        ? packeBereiche(image, bereiche)
+    recognizeWords: async (image, regions) => {
+      const { image: strip, offsets } = regions
+        ? packRegions(image, regions)
         : { image };
       const { data } = await worker.recognize(
-        writePng(streifen),
+        writePng(strip),
         { tessedit_pageseg_mode: '11' },
         { text: false, blocks: true },
       );
-      const woerter = readWords(data.blocks).filter(wort => wort.confidence >= 20);
-      return offsets ? woerter.map(wort => moveBbox(wort, offsets)).filter(Boolean) : woerter;
+      const words = readWords(data.blocks).filter(word => word.confidence >= 20);
+      return offsets ? words.map(word => moveBbox(word, offsets)).filter(Boolean) : words;
     },
     terminate: () => worker.terminate(),
   };
