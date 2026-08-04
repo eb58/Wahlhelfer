@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { findPaper, paperToFrame } from '../src/paper.js';
+import { readJpeg, limitWidth } from './fotoWerkstatt.js';
 
 const background = [30, 30, 80];
 const paperColor = [245, 245, 245];
@@ -49,6 +51,24 @@ test('findPaper erkennt eine geneigte obere Papierkante', () => {
   assert.ok(Math.abs(paper.right - right) <= 2, `right ${paper.right}`);
   assert.ok(Math.abs(paper.bottom - bottom) <= 2, `bottom ${paper.bottom}`);
   assert.ok(paper.horizontalSlope > 0.02 && paper.horizontalSlope < 0.08, `horizontalSlope ${paper.horizontalSlope}`);
+});
+
+test('findPaper ignoriert ein getrenntes helles Blatt neben dem Wahlzettel', () => {
+  const width = 400, height = 500;
+  const image = makeImage(width, height, (x, y) =>
+    (x >= 30 && x <= 300 && y >= 40 && y <= 460) || (x >= 340 && y >= 180 && y <= 350));
+  const paper = findPaper(image);
+  assert.ok(paper);
+  assert.ok(paper.right <= 304, `right ${paper.right}`);
+});
+
+test('findPaper trennt das zweite Blatt im problematischen Foto ab', () => {
+  const image = limitWidth(readJpeg(readFileSync(new URL(
+    '../Testdaten/fixtures/wahlzettel1_fotos/PXL_20260803_201232140.jpg', import.meta.url),
+  )));
+  const paper = findPaper(image);
+  assert.ok(paper);
+  assert.ok(paper.right < 1300, `right ${paper.right}`);
 });
 
 test('paperToFrame skaliert die Kalibrierungs-Rahmenlage auf die gefundene Papierlage', () => {
