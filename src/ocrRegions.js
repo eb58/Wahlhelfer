@@ -16,7 +16,7 @@ const markerPoint = (kalibrierung, mark, image, frame, perspectiveFrame) => pers
 
 export const computeOcrRegions = (kalibrierung, image, frame, { perspectiveFrame } = {}) => {
   const boxWidth = Math.min(image.width, Math.max(180, Math.round((frame ? frameWidth(frame) : image.width) * 0.18)));
-  const boxHeight = Math.min(image.height, Math.max(80, Math.round(boxWidth * 0.3)));
+  const boxHeight = Math.min(image.height, Math.max(160, Math.round(boxWidth * 0.3)));
   return kalibrierung.textmarken.map((mark, textmarke) => {
     const point = markerPoint(kalibrierung, mark, image, frame, perspectiveFrame);
     return {
