@@ -24,6 +24,7 @@ const verschiebeBbox = (wort, offsets) => {
   if (!offset) return undefined;
   return {
     ...wort,
+    textmarke: offset.textmarke,
     bbox: {
       x0: wort.bbox.x0 + offset.left,
       x1: wort.bbox.x1 + offset.left,
@@ -38,8 +39,12 @@ export const erkenneWoerter = async (image, bereiche) => {
   const quelle = bereiche ? await toTextstreifenUrl(image, bereiche) : { imageUrl: await toImageUrl(image) };
   try {
     const worker = await ladeWorker();
-    const { data } = await worker.recognize(quelle.imageUrl, {}, { text: false, blocks: true });
-    const woerter = liesWoerter(data.blocks).filter(wort => wort.confidence >= 35);
+    const { data } = await worker.recognize(
+      quelle.imageUrl,
+      { tessedit_pageseg_mode: '11' },
+      { text: false, blocks: true },
+    );
+    const woerter = liesWoerter(data.blocks).filter(wort => wort.confidence >= 20);
     return quelle.offsets ? woerter.map(wort => verschiebeBbox(wort, quelle.offsets)).filter(Boolean) : woerter;
   } finally {
     globalThis.URL.revokeObjectURL(quelle.imageUrl);

@@ -36,17 +36,20 @@ const grobeLage = (textmarke, kalibrierungsFrame, aufnahmeFrame) => ({
     / (kalibrierungsFrame.bottom - kalibrierungsFrame.top) * (aufnahmeFrame.bottom - aufnahmeFrame.top),
 });
 
-const ordneZu = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame) => {
-  const genutzt = new Set();
+const ordneZu = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt = new Set(), transformation) => {
   const diagonale = aufnahmeFrame
     ? Math.hypot(aufnahmeFrame.right - aufnahmeFrame.left, aufnahmeFrame.bottom - aufnahmeFrame.top)
     : 1;
 
-  return textmarken.flatMap(textmarke => {
-    const erwartet = aufnahmeFrame ? grobeLage(textmarke, kalibrierungsFrame, aufnahmeFrame) : undefined;
+  return textmarken.flatMap(({ marke: textmarke, index: textmarkeIndex }) => {
+    const erwartet = transformation
+      ? transformiere(transformation, textmarke)
+      : aufnahmeFrame ? grobeLage(textmarke, kalibrierungsFrame, aufnahmeFrame) : undefined;
     const kandidaten = woerter
       .map((wort, index) => ({ wort, index, punkt: mittelpunkt(wort), aehnlichkeit: aehnlichkeit(textmarke.text, wort.text) }))
-      .filter(kandidat => !genutzt.has(kandidat.index) && kandidat.aehnlichkeit >= 0.75)
+      .filter(kandidat => !genutzt.has(kandidat.index) && kandidat.aehnlichkeit >= 0.75
+        && (kandidat.wort.textmarke === undefined || kandidat.wort.textmarke === textmarkeIndex))
+      .filter(kandidat => !transformation || Math.hypot(kandidat.punkt.x - erwartet.x, kandidat.punkt.y - erwartet.y) <= diagonale * 0.06)
       .map(kandidat => ({
         ...kandidat,
         score: kandidat.aehnlichkeit - (erwartet ? Math.hypot(kandidat.punkt.x - erwartet.x, kandidat.punkt.y - erwartet.y) / diagonale * 0.2 : 0),
@@ -102,11 +105,47 @@ export const transformiere = ({ a, b, c, d, e, f }, { x, y }) => ({
 
 export const transformationsScale = ({ a, b, c, d }) => Math.sqrt(Math.abs(a * d - b * c));
 
-export const bestimmeTextTransformation = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame) => {
-  const treffer = ordneZu(textmarken, woerter, kalibrierungsFrame, aufnahmeFrame);
+const regressiereLinie = (treffer, wert) => {
+  const summen = treffer.reduce((summe, treffer) => ({
+    y: summe.y + treffer.muster.y,
+    yy: summe.yy + treffer.muster.y ** 2,
+    z: summe.z + wert(treffer),
+    zy: summe.zy + wert(treffer) * treffer.muster.y,
+  }), { y: 0, yy: 0, z: 0, zy: 0 });
+  const nenner = treffer.length * summen.yy - summen.y ** 2;
+  if (Math.abs(nenner) < 1e-8) throw new Error('Textmarken liegen nicht ausreichend verteilt.');
+  const d = (treffer.length * summen.zy - summen.y * summen.z) / nenner;
+  return [d, (summen.z - d * summen.y) / treffer.length];
+};
+
+const regressiereTransformation = (treffer, horizontalSlope, yTreffer = treffer) => {
+  const [a, c, e] = regressiere(treffer, 'x');
+  const [b, d, f] = Number.isFinite(horizontalSlope)
+    ? (() => {
+      const b = horizontalSlope * a;
+      const [d, f] = regressiereLinie(yTreffer, treffer => treffer.aufnahme.y - b * treffer.muster.x);
+      return [b, d, f];
+    })()
+    : regressiere(yTreffer, 'y');
+  return { a, b, c, d, e, f };
+};
+
+export const bestimmeTextTransformation = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame, { horizontalSlope } = {}) => {
+  const eintraege = textmarken.map((marke, index) => ({ marke, index }));
+  const haeufigkeit = textmarken.reduce((werte, marke) => ({ ...werte, [normalisiere(marke.text)]: (werte[normalisiere(marke.text)] ?? 0) + 1 }), {});
+  const eindeutig = eintraege.filter(({ marke }) => haeufigkeit[normalisiere(marke.text)] === 1);
+  const mehrfach = eintraege.filter(({ marke }) => haeufigkeit[normalisiere(marke.text)] > 1);
+  const genutzt = new Set();
+  const ersteTreffer = ordneZu(eindeutig, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt);
+  const vorlaeufig = ersteTreffer.length >= 3 ? regressiereTransformation(ersteTreffer, horizontalSlope) : undefined;
+  const treffer = [
+    ...ersteTreffer,
+    ...ordneZu(mehrfach, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt, vorlaeufig),
+  ];
   if (treffer.length < 3)
     throw new Error(`Zu wenige Textmarken erkannt (${treffer.length}/${textmarken.length}) - Aufnahme bitte gerade und scharf wiederholen.`);
-  const [a, c, e] = regressiere(treffer, 'x');
-  const [b, d, f] = regressiere(treffer, 'y');
-  return { transformation: { a, b, c, d, e, f }, treffer };
+  const feldGrenze = kalibrierungsFrame.top + (kalibrierungsFrame.bottom - kalibrierungsFrame.top) * 0.3;
+  const feldTreffer = ersteTreffer.filter(treffer => treffer.muster.y >= feldGrenze);
+  const yTreffer = feldTreffer.length >= 2 ? feldTreffer : ersteTreffer;
+  return { transformation: regressiereTransformation(treffer, horizontalSlope, yTreffer), treffer };
 };

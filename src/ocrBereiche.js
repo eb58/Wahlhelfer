@@ -15,14 +15,15 @@ const markerPunkt = (kalibrierung, marke, image, frame) => frame
 
 export const berechneOcrBereiche = (kalibrierung, image, frame) => {
   const breite = Math.min(image.width, Math.max(240, Math.round((frame ? frameWidth(frame) : image.width) * 0.42)));
-  const hoehe = Math.min(image.height, Math.max(96, Math.round(breite * 0.24)));
-  return kalibrierung.textmarken.map(marke => {
+  const hoehe = Math.min(image.height, Math.max(120, Math.round(breite * 0.3)));
+  return kalibrierung.textmarken.map((marke, textmarke) => {
     const punkt = markerPunkt(kalibrierung, marke, image, frame);
     return {
       left: begrenze(Math.round(punkt.x - breite / 2), 0, image.width - breite),
       top: begrenze(Math.round(punkt.y - hoehe / 2), 0, image.height - hoehe),
       width: breite,
       height: hoehe,
+      textmarke,
     };
   });
 };
