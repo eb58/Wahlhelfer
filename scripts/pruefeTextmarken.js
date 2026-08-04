@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createWorker } from 'tesseract.js';
-import { bestimmeTextTransformation, transformiere } from '../src/textJustierung.js';
+import { determineTextTransformation, transform } from '../src/textJustierung.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const kalibrierungsOrdner = resolve(root, 'Kalibrierungen');
@@ -24,11 +24,11 @@ try {
       .flatMap(block => block.paragraphs)
       .flatMap(paragraph => paragraph.lines)
       .flatMap(line => line.words);
-    const { transformation, treffer } = bestimmeTextTransformation(kalibrierung.textmarken, woerter, kalibrierung.frame, kalibrierung.frame);
+    const { transformation, treffer } = determineTextTransformation(kalibrierung.textmarken, woerter, kalibrierung.frame, kalibrierung.frame);
     if (treffer.length !== kalibrierung.textmarken.length)
       throw new Error(`${kalibrierung.name}: nur ${treffer.length}/${kalibrierung.textmarken.length} Textmarken erkannt`);
     const fehler = Math.sqrt(treffer.reduce((summe, treffer) => {
-      const erwartet = transformiere(transformation, treffer.muster);
+      const erwartet = transform(transformation, treffer.muster);
       return summe + (erwartet.x - treffer.aufnahme.x) ** 2 + (erwartet.y - treffer.aufnahme.y) ** 2;
     }, 0) / treffer.length);
     if (fehler > 5) throw new Error(`${kalibrierung.name}: Textmarken haben ${fehler.toFixed(2)} px Lagefehler`);

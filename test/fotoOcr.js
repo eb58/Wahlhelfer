@@ -22,13 +22,13 @@ const packeBereiche = (image, bereiche) => {
   return { image: { width, height, data }, offsets };
 };
 
-const liesWoerter = blocks => (blocks ?? [])
+const readWords = blocks => (blocks ?? [])
   .flatMap(block => block.paragraphs)
   .flatMap(paragraph => paragraph.lines)
   .flatMap(line => line.words)
   .map(({ text, confidence, bbox }) => ({ text, confidence, bbox }));
 
-const verschiebeBbox = (wort, offsets) => {
+const moveBbox = (wort, offsets) => {
   const y = (wort.bbox.y0 + wort.bbox.y1) / 2;
   const offset = offsets.find(bereich => y >= bereich.top && y < bereich.top + bereich.height);
   return offset && {
@@ -49,7 +49,7 @@ export const createFotoOcr = async root => {
     cacheMethod: 'none',
   });
   return {
-    erkenneWoerter: async (image, bereiche) => {
+    recognizeWords: async (image, bereiche) => {
       const { image: streifen, offsets } = bereiche
         ? packeBereiche(image, bereiche)
         : { image };
@@ -58,8 +58,8 @@ export const createFotoOcr = async root => {
         { tessedit_pageseg_mode: '11' },
         { text: false, blocks: true },
       );
-      const woerter = liesWoerter(data.blocks).filter(wort => wort.confidence >= 20);
-      return offsets ? woerter.map(wort => verschiebeBbox(wort, offsets)).filter(Boolean) : woerter;
+      const woerter = readWords(data.blocks).filter(wort => wort.confidence >= 20);
+      return offsets ? woerter.map(wort => moveBbox(wort, offsets)).filter(Boolean) : woerter;
     },
     terminate: () => worker.terminate(),
   };

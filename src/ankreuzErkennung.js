@@ -7,16 +7,16 @@
  */
 import { toDarkness, darkRatio, ringDarkness } from './image.js';
 import { findFrame, findPerspectiveFrame, toAbsolute, frameWidth } from './frame.js';
-import { bestimmeTextTransformation, transformiere, transformationsScale } from './textJustierung.js';
-import { berechneOcrBereiche } from './ocrBereiche.js';
-import { findPapier, papierZuFrame } from './papier.js';
+import { determineTextTransformation, transform, transformScale } from './textJustierung.js';
+import { computeOcrRegions } from './ocrRegions.js';
+import { findPaper, paperToFrame } from './paper.js';
 import {
-  bestimmeRingTransformation, findeGrobeRingVerschiebung, normalisiereFeld, transformiereRing,
+  determineRingTransformation, findRoughRingShift, normalizeField, transformRing,
 } from './feldNormalisierung.js';
 import { log, round } from './log.js';
 
-const zeit = () => globalThis.performance?.now?.() ?? Date.now();
-const protokolliereDauer = (text, start) => log(`${text}: ${round(zeit() - start)} ms`);
+const now = () => globalThis.performance?.now?.() ?? Date.now();
+const logDuration = (text, start) => log(`${text}: ${round(now() - start)} ms`);
 
 /** Innenradius, auf dem der Fuellgrad gemessen wird - haelt Abstand zum gedruckten Ring. */
 export const innerRadius = radius => Math.max(2, Math.round(radius * 0.68));
@@ -42,7 +42,25 @@ export const adjustFeld = (map, x, y, radius, ratio = 0.5) => {
 const bewerte = (fuellgrad, thresholds) =>
   fuellgrad >= thresholds.angekreuzt ? 'angekreuzt' : fuellgrad >= thresholds.zweifel ? 'unklar' : 'leer';
 
-const beschreibeTextmarken = (textmarken, treffer = []) => [
+/**
+ * Hebt die konfigurierten Schwellen an, wenn das Bild (Papierschatten, JPEG-Rauschen) einen
+ * hoeheren Fuellgrad-Sockel hat als der Musterzettel. `angekreuzt` und `zweifel` behalten dabei
+ * denselben Mindestabstand wie in den konfigurierten Schwellen - sonst faellt die Zweifelsfall-
+ * Zone weg und blasse Markierungen werden ohne Vorlage fuer den Wahlvorstand durchgewinkt.
+ */
+export const computeImageThresholds = (gemesseneFelder, thresholds, { ringLage, textLage } = {}) => {
+  if (!ringLage && !textLage) return thresholds;
+  const fuellgrade = gemesseneFelder.map(feld => feld.fuellgrad).sort((a, b) => a - b);
+  const [perzentil, angekreuztAbstand, zweifelAbstand] = ringLage ? [0.65, 0.06, 0.045] : [0.8, 0.04, 0.025];
+  const baseline = fuellgrade[Math.floor(fuellgrade.length * perzentil)];
+  return {
+    ...thresholds,
+    angekreuzt: Math.max(thresholds.angekreuzt, baseline + angekreuztAbstand),
+    zweifel: Math.max(thresholds.zweifel, baseline + zweifelAbstand),
+  };
+};
+
+const describeTextMarks = (textmarken, treffer = []) => [
   'Erwartete Textmarken:',
   ...textmarken.map((marke, index) => {
     const erkannt = treffer.some(treffer => treffer.muster.x === marke.x && treffer.muster.y === marke.y);
@@ -50,7 +68,7 @@ const beschreibeTextmarken = (textmarken, treffer = []) => [
   }),
 ].join('\n');
 
-const plausiblePerspectiveKorrektur = ({ korrektur }, image) => korrektur
+const plausiblePerspectiveCorrection = ({ korrektur }, image) => korrektur
   && Math.abs(korrektur.a - 1) <= 0.25
   && Math.abs(korrektur.d - 1) <= 0.25
   && Math.abs(korrektur.b) <= 0.08
@@ -61,7 +79,7 @@ const plausiblePerspectiveKorrektur = ({ korrektur }, image) => korrektur
 // Bei Aufnahmen mit viel Umgebung kann die Rahmensuche eine innere Linie als
 // Unterkante waehlen. Fuer OCR und die affine Feinjustierung ist dann die
 // bildgroessenbasierte Lagevermutung verlaesslicher.
-const brauchbarerFrame = (frame, kalibrierung, image) => {
+const usableFrame = (frame, kalibrierung, image) => {
   if (!frame) return undefined;
   const breite = (frame.right - frame.left) / image.width;
   const hoehe = (frame.bottom - frame.top) / image.height;
@@ -72,7 +90,7 @@ const brauchbarerFrame = (frame, kalibrierung, image) => {
     ? frame : undefined;
 };
 
-const rahmenFürBild = (kalibrierung, image) => ({
+const frameForImage = (kalibrierung, image) => ({
   left: image.width * kalibrierung.frame.left / kalibrierung.referenz.breite,
   right: image.width * kalibrierung.frame.right / kalibrierung.referenz.breite,
   top: image.height * kalibrierung.frame.top / kalibrierung.referenz.hoehe,
@@ -105,34 +123,34 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   ocr,
   ...options
 } = {}) => {
-  const gestartet = zeit();
+  const gestartet = now();
   log(`Bildverarbeitung gestartet: ${image.width}x${image.height} Pixel`);
-  const dunkelheitsStart = zeit();
+  const dunkelheitsStart = now();
   const map = toDarkness(image);
-  protokolliereDauer('Dunkelheitskarte', dunkelheitsStart);
-  const rahmenStart = zeit();
+  logDuration('Dunkelheitskarte', dunkelheitsStart);
+  const rahmenStart = now();
   const frame = findFrame(map, options);
-  protokolliereDauer('Rahmensuche', rahmenStart);
+  logDuration('Rahmensuche', rahmenStart);
   if (frame) log(`Grobe Ausrichtung ueber Rahmen: x ${round(frame.left)}..${round(frame.right)}, y ${round(frame.top)}..${round(frame.bottom)}`);
-  const papierStart = zeit();
-  const papier = findPapier(image);
-  protokolliereDauer('Papierlage', papierStart);
+  const papierStart = now();
+  const papier = findPaper(image);
+  logDuration('Papierlage', papierStart);
   const istFoto = papier && (papier.right - papier.left < image.width * 0.96
     || papier.bottom - papier.top < image.height * 0.96);
-  const perspektivStart = zeit();
+  const perspektivStart = now();
   const perspectiveFrame = istFoto ? findPerspectiveFrame(map, papier) : undefined;
-  protokolliereDauer('Perspektivischer Druckrahmen', perspektivStart);
+  logDuration('Perspektivischer Druckrahmen', perspektivStart);
   const textFrame = perspectiveFrame ?? (papier
-    ? papierZuFrame(papier, kalibrierung)
-    : brauchbarerFrame(frame, kalibrierung, image) ?? rahmenFürBild(kalibrierung, image));
+    ? paperToFrame(papier, kalibrierung)
+    : usableFrame(frame, kalibrierung, image) ?? frameForImage(kalibrierung, image));
   if (papier) log(`Grobe Papierlage: x ${round(papier.left)}..${round(papier.right)}, y ${round(papier.top)}..${round(papier.bottom)}`);
   if (perspectiveFrame) log('Perspektivischer Druckrahmen erkannt');
   else if (frame && textFrame !== frame) log('Rahmen fuer OCR verworfen: unplausible Ausdehnung');
 
   const ringLage = perspectiveFrame ? (() => {
     try {
-      const ringStart = zeit();
-      const verschiebung = findeGrobeRingVerschiebung(
+      const ringStart = now();
+      const verschiebung = findRoughRingShift(
         map, perspectiveFrame, kalibrierung.frame,
         kalibrierung.felder.map(feld => feld.referenz), kalibrierung.referenzRadius,
       );
@@ -141,14 +159,14 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
           x: feld.referenz.x + verschiebung.dx,
           y: feld.referenz.y + verschiebung.dy,
         };
-        const messung = normalisiereFeld(
+        const messung = normalizeField(
           map, perspectiveFrame, kalibrierung.frame, basis, kalibrierung.referenzRadius,
           { suche: Math.round(kalibrierung.referenzRadius * 1.2) },
         );
         return { quelle: feld.referenz, ziel: messung.referenz, ringScore: messung.ringScore };
       });
-      const lage = bestimmeRingTransformation(anker);
-      protokolliereDauer(`Ausrichtung ueber ${lage.treffer.length} Ankreuzringe`, ringStart);
+      const lage = determineRingTransformation(anker);
+      logDuration(`Ausrichtung ueber ${lage.treffer.length} Ankreuzringe`, ringStart);
       return lage;
     } catch (fehler) {
       log(`Ringbasierte Ausrichtung nicht ausreichend: ${fehler.message}`);
@@ -158,26 +176,26 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
 
   const textLage = textjustierung && !ringLage ? await (async () => {
     log('OCR-Rueckfall: Aussenrahmen wird maskiert');
-    const erkenne = ocr ?? (await import('./ocr.js')).erkenneWoerter;
+    const erkenne = ocr ?? (await import('./ocr.js')).recognizeWords;
     const bestimme = woerter => {
-      const lage = bestimmeTextTransformation(
+      const lage = determineTextTransformation(
         kalibrierung.textmarken, woerter, kalibrierung.frame, textFrame,
         { horizontalSlope: perspectiveFrame?.horizontalSlope ?? papier?.horizontalSlope, perspectiveFrame },
       );
-      if (!perspectiveFrame || plausiblePerspectiveKorrektur(lage.transformation, image)) return lage;
+      if (!perspectiveFrame || plausiblePerspectiveCorrection(lage.transformation, image)) return lage;
       log('Perspektivischer Druckrahmen unplausibel: affine OCR-Transformation wird verwendet');
-      return bestimmeTextTransformation(
+      return determineTextTransformation(
         kalibrierung.textmarken, woerter, kalibrierung.frame, textFrame,
         { horizontalSlope: papier?.horizontalSlope },
       );
     };
-    const protokolliereTextmarken = treffer => log(`OCR-Textmarken:\n${beschreibeTextmarken(kalibrierung.textmarken, treffer)}`);
-    const bereiche = berechneOcrBereiche(kalibrierung, image, textFrame, { perspectiveFrame });
+    const protokolliereTextmarken = treffer => log(`OCR-Textmarken:\n${describeTextMarks(kalibrierung.textmarken, treffer)}`);
+    const bereiche = computeOcrRegions(kalibrierung, image, textFrame, { perspectiveFrame });
     const bereichsLage = await (async () => {
       try {
-        const ocrStart = zeit();
+        const ocrStart = now();
         const woerter = await erkenne(image, bereiche, textFrame);
-        protokolliereDauer(`OCR in ${bereiche.length} Bereichen`, ocrStart);
+        logDuration(`OCR in ${bereiche.length} Bereichen`, ocrStart);
         try {
           const lage = bestimme(woerter);
           protokolliereTextmarken(lage.treffer);
@@ -193,7 +211,7 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
       }
     })();
     const lagefehler = bereichsLage && Math.max(...bereichsLage.treffer.map(treffer => {
-      const erwartet = transformiere(bereichsLage.transformation, treffer.muster);
+      const erwartet = transform(bereichsLage.transformation, treffer.muster);
       return Math.hypot(erwartet.x - treffer.aufnahme.x, erwartet.y - treffer.aufnahme.y);
     }));
     const verteilt = bereichsLage && (() => {
@@ -204,9 +222,9 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
     })();
     if (bereichsLage && verteilt && lagefehler <= Math.hypot(image.width, image.height) * 0.06) return bereichsLage;
     log(`OCR-Fallback auf Gesamtbild${lagefehler ? `: Lagefehler ${round(lagefehler)} px` : ''}`);
-    const ocrStart = zeit();
+    const ocrStart = now();
     const woerter = await erkenne(image, undefined, textFrame);
-    protokolliereDauer('OCR im Gesamtbild', ocrStart);
+    logDuration('OCR im Gesamtbild', ocrStart);
     try {
       const lage = bestimme(woerter);
       protokolliereTextmarken(lage.treffer);
@@ -224,45 +242,27 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   ));
   const radius = Math.max(3, Math.round(ringLage
     ? kalibrierung.referenzRadius * ringScale * frameWidth(perspectiveFrame) / frameWidth(kalibrierung.frame)
-    : textLage ? kalibrierung.radius * frameWidth(kalibrierung.frame) * transformationsScale(textLage.transformation)
+    : textLage ? kalibrierung.radius * frameWidth(kalibrierung.frame) * transformScale(textLage.transformation)
     : kalibrierung.radius * frameWidth(frame)));
   const messRadius = innerRadius(radius);
 
-  const felderStart = zeit();
+  const felderStart = now();
   const gemesseneFelder = ringLage ? kalibrierung.felder.map(feld => {
-    const punkt = transformiereRing(ringLage.transformation, feld.referenz);
-    const { referenz: ringReferenz, ...messung } = normalisiereFeld(
+    const punkt = transformRing(ringLage.transformation, feld.referenz);
+    const { referenz: ringReferenz, ...messung } = normalizeField(
       map, perspectiveFrame, kalibrierung.frame, punkt, kalibrierung.referenzRadius * ringScale,
     );
     return { ...feld, ...messung, ringReferenz };
   }) : kalibrierung.felder.map(feld => {
-    const grob = textLage ? transformiere(textLage.transformation, feld.referenz) : toAbsolute(frame, feld);
+    const grob = textLage ? transform(textLage.transformation, feld.referenz) : toAbsolute(frame, feld);
     const { x, y } = adjust
       ? adjustFeld(map, Math.round(grob.x), Math.round(grob.y), radius, istFoto ? { x: 2, y: 2.5 } : 0.5)
       : grob;
     const fuellgrad = darkRatio(map, x, y, messRadius);
     return { ...feld, x, y, fuellgrad };
   });
-  protokolliereDauer(`Ankreuzfelder (${gemesseneFelder.length})`, felderStart);
-  const bildThresholds = ringLage ? (() => {
-    const sortiert = gemesseneFelder.map(feld => feld.fuellgrad).sort((a, b) => a - b);
-    const baseline = sortiert[Math.floor(sortiert.length * 0.65)];
-    return {
-      ...thresholds,
-      angekreuzt: Math.max(thresholds.angekreuzt, baseline + 0.06),
-      zweifel: Math.max(thresholds.zweifel, baseline + 0.045),
-    };
-  })() : textLage
-    ? (() => {
-      const adaptiveGrenze = gemesseneFelder.map(feld => feld.fuellgrad)
-        .sort((a, b) => a - b)[Math.floor(gemesseneFelder.length * 0.8)] + 0.04;
-      return {
-        ...thresholds,
-        angekreuzt: Math.max(thresholds.angekreuzt, adaptiveGrenze),
-        zweifel: Math.max(thresholds.zweifel, adaptiveGrenze),
-      };
-    })()
-    : thresholds;
+  logDuration(`Ankreuzfelder (${gemesseneFelder.length})`, felderStart);
+  const bildThresholds = computeImageThresholds(gemesseneFelder, thresholds, { ringLage, textLage });
   const felder = gemesseneFelder.map(feld => ({ ...feld, status: bewerte(feld.fuellgrad, bildThresholds) }));
 
   // Nur auffaellige Felder protokollieren - eine Zeile je Feld waere nicht mehr lesbar.
@@ -272,7 +272,7 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   const stimmen = kalibrierung.stimmen.map(stimme => ({ ...stimme, ...werteStimme(felder, stimme) }));
   const wertung = stimmen.map(stimme => [stimme.name, stimme.status, stimme.treffer.join('+') || '-'].join(' '));
   log(`Wertung: ${wertung.join(', ')}`);
-  protokolliereDauer('Bildverarbeitung gesamt', gestartet);
+  logDuration('Bildverarbeitung gesamt', gestartet);
 
   return {
     felder, frame, radius, stimmen,

@@ -23,7 +23,7 @@ const toBlobUrl = async canvas => {
 };
 
 /** Entfernt den gedruckten Aussenrahmen aus dem Bild, bevor Tesseract es sieht. */
-const entferneRahmen = (context, { width, height }, rahmen) => {
+const removeFrame = (context, { width, height }, rahmen) => {
   if (!rahmen) return;
   const band = Math.max(3, Math.round(Math.min(width, height) * 0.004));
   if (rahmen.ecken) {
@@ -72,7 +72,7 @@ export const toImageUrl = async (imageData, rahmen) => {
   const canvas = createCanvas(imageData.width, imageData.height);
   const context = canvas.getContext('2d');
   context.putImageData(imageData, 0, 0);
-  entferneRahmen(context, imageData, rahmen);
+  removeFrame(context, imageData, rahmen);
   return toBlobUrl(canvas);
 };
 
@@ -84,7 +84,7 @@ export const toTextstreifenUrl = async (imageData, bereiche, rahmen) => {
   const source = createCanvas(imageData.width, imageData.height);
   const sourceContext = source.getContext('2d');
   sourceContext.putImageData(imageData, 0, 0);
-  entferneRahmen(sourceContext, imageData, rahmen);
+  removeFrame(sourceContext, imageData, rahmen);
   const abstand = 20;
   const breite = Math.max(...bereiche.map(bereich => bereich.width));
   const hoehe = bereiche.reduce((summe, bereich) => summe + bereich.height, 0) + abstand * Math.max(0, bereiche.length - 1);

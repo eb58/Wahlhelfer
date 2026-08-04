@@ -17,19 +17,19 @@ const speichereDebugBild = (imageUrl, bereiche) => {
   log(`OCR-Bild gespeichert: ${link.download}`);
 };
 
-const ladeWorker = () => state.worker ??= createWorker('deu', 1, {
+const loadWorker = () => state.worker ??= createWorker('deu', 1, {
   workerPath: assetPath('tesseract/worker.min.js'),
   corePath: assetPath('tesseract-core'),
   langPath: assetPath('tessdata'),
 });
 
-const liesWoerter = blocks => (blocks ?? [])
+const readWords = blocks => (blocks ?? [])
   .flatMap(block => block.paragraphs)
   .flatMap(paragraph => paragraph.lines)
   .flatMap(line => line.words)
   .map(({ text, confidence, bbox }) => ({ text, confidence, bbox }));
 
-const verschiebeBbox = (wort, offsets) => {
+const moveBbox = (wort, offsets) => {
   const x = (wort.bbox.x0 + wort.bbox.x1) / 2;
   const y = (wort.bbox.y0 + wort.bbox.y1) / 2;
   const offset = offsets.find(bereich => y >= bereich.top && y < bereich.top + bereich.height);
@@ -47,25 +47,25 @@ const verschiebeBbox = (wort, offsets) => {
 };
 
 /** @returns {Promise<Array<{text:string,confidence:number,bbox:object}>>} */
-export const erkenneWoerter = async (image, bereiche, rahmen) => {
+export const recognizeWords = async (image, bereiche, rahmen) => {
   const quelle = bereiche
     ? await toTextstreifenUrl(image, bereiche, rahmen)
     : { imageUrl: await toImageUrl(image, rahmen) };
   speichereDebugBild(quelle.imageUrl, bereiche);
   try {
-    const worker = await ladeWorker();
+    const worker = await loadWorker();
     const { data } = await worker.recognize(
       quelle.imageUrl,
       { tessedit_pageseg_mode: '11' },
       { text: false, blocks: true },
     );
-    const woerter = liesWoerter(data.blocks).filter(wort => wort.confidence >= 20);
+    const woerter = readWords(data.blocks).filter(wort => wort.confidence >= 20);
     const ausgabe = woerter.slice(0, 20)
       .map(wort => `${wort.text.trim()} (${round(wort.confidence)}%)`)
       .filter(wort => wort.startsWith('(') === false)
       .join(', ');
     log(`OCR erkannte ${woerter.length} Woerter${ausgabe ? `: ${ausgabe}${woerter.length > 20 ? ', ...' : ''}` : ''}`);
-    return quelle.offsets ? woerter.map(wort => verschiebeBbox(wort, quelle.offsets)).filter(Boolean) : woerter;
+    return quelle.offsets ? woerter.map(wort => moveBbox(wort, quelle.offsets)).filter(Boolean) : woerter;
   } finally {
     globalThis.URL.revokeObjectURL(quelle.imageUrl);
   }

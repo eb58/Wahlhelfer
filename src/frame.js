@@ -49,7 +49,7 @@ const maxDarkness = ({ width, height, values }, x, y, senkrecht) => {
   return maximum;
 };
 
-const findWaagerechte = (map, papier, von, bis, slopeVon, slopeBis, richtung = 'beste') => {
+const findHorizontalLine = (map, papier, von, bis, slopeVon, slopeBis, richtung = 'beste') => {
   const mitteX = (papier.left + papier.right) / 2;
   const startX = Math.round(papier.left + (papier.right - papier.left) * 0.06);
   const endeX = Math.round(papier.right - (papier.right - papier.left) * 0.06);
@@ -73,7 +73,7 @@ const findWaagerechte = (map, papier, von, bis, slopeVon, slopeBis, richtung = '
     .sort((a, b) => richtung === 'unten' ? b.mitte - a.mitte : a.mitte - b.mitte)[0] ?? beste;
 };
 
-const findSenkrechte = (map, papier, oben, unten, von, bis) => {
+const findVerticalLine = (map, papier, oben, unten, von, bis) => {
   const mitteY = (oben.mitte + unten.mitte) / 2;
   const startY = Math.round(oben.mitte + (unten.mitte - oben.mitte) * 0.03);
   const endeY = Math.round(unten.mitte - (unten.mitte - oben.mitte) * 0.03);
@@ -91,7 +91,7 @@ const findSenkrechte = (map, papier, oben, unten, von, bis) => {
   return beste;
 };
 
-const schneide = (waagerecht, senkrecht) => {
+const intersectLines = (waagerecht, senkrecht) => {
   const y = (waagerecht.a * senkrecht.b + waagerecht.b) / (1 - waagerecht.a * senkrecht.a);
   return { x: senkrecht.a * y + senkrecht.b, y };
 };
@@ -101,7 +101,7 @@ const median = werte => {
   return sortiert.length % 2 ? sortiert[mitte] : (sortiert[mitte - 1] + sortiert[mitte]) / 2;
 };
 
-const regressiereLinie = (punkte, unabhaengig, abhaengig, slopeVon, slopeBis, bevorzugt = 0) => {
+const regressLine = (punkte, unabhaengig, abhaengig, slopeVon, slopeBis, bevorzugt = 0) => {
   if (punkte.length < 20) return undefined;
   let beste;
   for (let a = slopeVon; a <= slopeBis + 1e-8; a += 0.005) {
@@ -123,7 +123,7 @@ const regressiereLinie = (punkte, unabhaengig, abhaengig, slopeVon, slopeBis, be
   return { a, b: (summen.y - a * summen.x) / n, score: beste.treffer.length / punkte.length };
 };
 
-const randPunkte = (map, papier, art, richtung) => {
+const edgePoints = (map, papier, art, richtung) => {
   const breite = papier.right - papier.left, hoehe = papier.bottom - papier.top;
   const waagerecht = art === 'waagerecht';
   const von = waagerecht ? papier.left + breite * 0.08 : papier.top + hoehe * 0.08;
@@ -150,28 +150,28 @@ const randPunkte = (map, papier, art, richtung) => {
 export const findPerspectiveFrame = (map, papier) => {
   if (!papier) return undefined;
   const breite = papier.right - papier.left, hoehe = papier.bottom - papier.top;
-  const oben = findWaagerechte(
+  const oben = findHorizontalLine(
     map, papier, papier.top + hoehe * 0.025, papier.top + hoehe * 0.12,
     papier.horizontalSlope - 0.06, papier.horizontalSlope + 0.06, 'oben',
   );
-  const untereRandpunkte = randPunkte(map, papier, 'waagerecht', 'rueckwaerts');
-  const untereAussenlinie = regressiereLinie(untereRandpunkte, 'x', 'y', -0.2, 0.2, papier.horizontalSlope);
+  const untereRandpunkte = edgePoints(map, papier, 'waagerecht', 'rueckwaerts');
+  const untereAussenlinie = regressLine(untereRandpunkte, 'x', 'y', -0.2, 0.2, papier.horizontalSlope);
   const unten = untereAussenlinie ? {
     ...untereAussenlinie,
     mitte: untereAussenlinie.a * (papier.left + papier.right) / 2 + untereAussenlinie.b,
-  } : findWaagerechte(
+  } : findHorizontalLine(
     map, papier, papier.top + hoehe * 0.72, papier.bottom - hoehe * 0.02,
     oben.a - 0.08, oben.a + 0.08, 'unten',
   );
   if (!oben || !unten || oben.score < 0.3 || unten.score < 0.3 || unten.mitte <= oben.mitte) return undefined;
-  const links = findSenkrechte(map, papier, oben, unten, papier.left, papier.left + breite * 0.3);
-  const rechts = findSenkrechte(map, papier, oben, unten, papier.right - breite * 0.3, papier.right);
+  const links = findVerticalLine(map, papier, oben, unten, papier.left, papier.left + breite * 0.3);
+  const rechts = findVerticalLine(map, papier, oben, unten, papier.right - breite * 0.3, papier.right);
   if (!links || !rechts || links.score < 0.3 || rechts.score < 0.3 || rechts.mitte <= links.mitte) return undefined;
   const ecken = {
-    obenLinks: schneide(oben, links),
-    obenRechts: schneide(oben, rechts),
-    untenLinks: schneide(unten, links),
-    untenRechts: schneide(unten, rechts),
+    obenLinks: intersectLines(oben, links),
+    obenRechts: intersectLines(oben, rechts),
+    untenLinks: intersectLines(unten, links),
+    untenRechts: intersectLines(unten, rechts),
   };
   const xs = Object.values(ecken).map(ecke => ecke.x), ys = Object.values(ecken).map(ecke => ecke.y);
   return {

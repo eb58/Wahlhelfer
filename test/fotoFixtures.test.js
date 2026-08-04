@@ -29,7 +29,7 @@ const pruefeFotos = async (t, fixtureOrdner, manifest) => {
     for (const fall of manifest.faelle) {
       await t.test(fall.datei, async () => {
         const image = begrenzeBreite(readJpeg(readFileSync(new URL(fall.datei, fixtureOrdner))));
-        const ergebnis = await typ.recognize(image, { ocr: ocr.erkenneWoerter });
+        const ergebnis = await typ.recognize(image, { ocr: ocr.recognizeWords });
         const erkannt = sortiert(ergebnis.felder.filter(feld => feld.status !== 'leer').map(feld => feld.id));
         assert.deepEqual(erkannt, sortiert(fall.markierungen));
         assert.ok(ergebnis.felder.filter(feld => feld.status !== 'leer').every(feld => feld.status === 'angekreuzt'));

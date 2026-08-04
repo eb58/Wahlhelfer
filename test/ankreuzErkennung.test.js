@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { ladeKalibrierung } from '../src/kalibrierung.js';
+import { computeImageThresholds } from '../src/ankreuzErkennung.js';
 import { musterZettel, kreuzeAn, scale, crop } from './zettelWerkstatt.js';
 
 const muster = musterZettel();
@@ -71,4 +72,34 @@ test('erkennt trotz beschnittenem Rand', async () => {
 test('meldet einen unbrauchbaren Bildausschnitt statt zu raten', async () => {
   const weiss = { width: 60, height: 60, data: new Uint8ClampedArray(60 * 60 * 4).fill(255) };
   await assert.rejects(() => erkenne(weiss), /rahmen/i);
+});
+
+const felderMit = fuellgrade => fuellgrade.map(fuellgrad => ({ fuellgrad }));
+
+test('computeImageThresholds laesst die Schwellen unveraendert ohne Ring- oder Textlage', () => {
+  const thresholds = { angekreuzt: 0.18, zweifel: 0.06 };
+  assert.deepEqual(computeImageThresholds(felderMit([0.9, 0.01]), thresholds, {}), thresholds);
+});
+
+test('computeImageThresholds hebt beide Schwellen an, behaelt aber den Mindestabstand', () => {
+  const thresholds = { angekreuzt: 0.18, zweifel: 0.06 };
+  // Hoher Rauschsockel: alle Felder liegen weit ueber den konfigurierten Schwellen.
+  const fuellgrade = Array.from({ length: 20 }, (_, i) => 0.3 + i * 0.01);
+
+  for (const lage of [{ ringLage: true }, { textLage: true }]) {
+    const ergebnis = computeImageThresholds(felderMit(fuellgrade), thresholds, lage);
+    assert.ok(ergebnis.angekreuzt > thresholds.angekreuzt, `${JSON.stringify(lage)}: angekreuzt haette steigen muessen`);
+    assert.ok(ergebnis.zweifel > thresholds.zweifel, `${JSON.stringify(lage)}: zweifel haette steigen muessen`);
+    // Regression: fruehere Fassung liess im Text-Fallback zweifel === angekreuzt werden und
+    // damit keinen Bereich mehr uebrig, in dem ein Feld als "unklar" statt "angekreuzt" gilt.
+    assert.ok(ergebnis.zweifel < ergebnis.angekreuzt,
+      `${JSON.stringify(lage)}: zweifel (${ergebnis.zweifel}) muss unter angekreuzt (${ergebnis.angekreuzt}) bleiben`);
+  }
+});
+
+test('computeImageThresholds greift nicht ein, wenn der Rauschsockel unter den Schwellen bleibt', () => {
+  const thresholds = { angekreuzt: 0.18, zweifel: 0.06 };
+  const fuellgrade = Array.from({ length: 20 }, () => 0.01);
+  for (const lage of [{ ringLage: true }, { textLage: true }])
+    assert.deepEqual(computeImageThresholds(felderMit(fuellgrade), thresholds, lage), thresholds);
 });

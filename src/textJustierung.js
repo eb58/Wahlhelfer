@@ -22,23 +22,23 @@ const levenshtein = (links, rechts) => {
   return vorher.at(-1);
 };
 
-const aehnlichkeit = (links, rechts) => {
+const similarity = (links, rechts) => {
   const a = normalisiere(links), b = normalisiere(rechts);
   return a && b ? 1 - levenshtein(a, b) / Math.max(a.length, b.length) : 0;
 };
 
-const mittelpunkt = ({ bbox, x, y }) => bbox
+const midpoint = ({ bbox, x, y }) => bbox
   ? { x: (bbox.x0 + bbox.x1) / 2, y: (bbox.y0 + bbox.y1) / 2 }
   : { x, y };
 
-const grobeLage = (textmarke, kalibrierungsFrame, aufnahmeFrame) => ({
+const roughPosition = (textmarke, kalibrierungsFrame, aufnahmeFrame) => ({
   x: aufnahmeFrame.left + (textmarke.x - kalibrierungsFrame.left)
     / (kalibrierungsFrame.right - kalibrierungsFrame.left) * (aufnahmeFrame.right - aufnahmeFrame.left),
   y: aufnahmeFrame.top + (textmarke.y - kalibrierungsFrame.top)
     / (kalibrierungsFrame.bottom - kalibrierungsFrame.top) * (aufnahmeFrame.bottom - aufnahmeFrame.top),
 });
 
-const ordneZu = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt = new Set(), transformation, project) => {
+const matchTextMarks = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt = new Set(), transformation, project) => {
   const diagonale = aufnahmeFrame
     ? Math.hypot(aufnahmeFrame.right - aufnahmeFrame.left, aufnahmeFrame.bottom - aufnahmeFrame.top)
     : 1;
@@ -46,17 +46,17 @@ const ordneZu = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt
   return textmarken.flatMap(({ marke: textmarke, index: textmarkeIndex }) => {
     const basis = project?.(textmarke) ?? textmarke;
     const erwartet = transformation
-      ? transformiere(transformation, basis)
+      ? transform(transformation, basis)
       : project ? basis
-      : aufnahmeFrame ? grobeLage(textmarke, kalibrierungsFrame, aufnahmeFrame) : undefined;
+      : aufnahmeFrame ? roughPosition(textmarke, kalibrierungsFrame, aufnahmeFrame) : undefined;
     const kandidaten = woerter
-      .map((wort, index) => ({ wort, index, punkt: mittelpunkt(wort), aehnlichkeit: aehnlichkeit(textmarke.text, wort.text) }))
-      .filter(kandidat => !genutzt.has(kandidat.index) && kandidat.aehnlichkeit >= 0.75
+      .map((wort, index) => ({ wort, index, punkt: midpoint(wort), similarity: similarity(textmarke.text, wort.text) }))
+      .filter(kandidat => !genutzt.has(kandidat.index) && kandidat.similarity >= 0.75
         && (kandidat.wort.textmarke === undefined || kandidat.wort.textmarke === textmarkeIndex))
       .filter(kandidat => !transformation || Math.hypot(kandidat.punkt.x - erwartet.x, kandidat.punkt.y - erwartet.y) <= diagonale * 0.06)
       .map(kandidat => ({
         ...kandidat,
-        score: kandidat.aehnlichkeit - (erwartet ? Math.hypot(kandidat.punkt.x - erwartet.x, kandidat.punkt.y - erwartet.y) / diagonale * 0.2 : 0),
+        score: kandidat.similarity - (erwartet ? Math.hypot(kandidat.punkt.x - erwartet.x, kandidat.punkt.y - erwartet.y) / diagonale * 0.2 : 0),
       }))
       .sort((a, b) => b.score - a.score);
     const [bester] = kandidaten;
@@ -66,35 +66,35 @@ const ordneZu = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt
   });
 };
 
-const regressiere = (treffer, achse) => {
+const regress = (treffer, achse) => {
   const ergebnis = regressPlane(treffer, ({ muster, basis = muster }) => basis, ({ aufnahme }) => aufnahme, achse);
   if (!ergebnis) throw new Error('Textmarken liegen nicht ausreichend verteilt.');
   return ergebnis;
 };
 
-export const transformiere = (transformation, punkt) => {
+export const transform = (transformation, punkt) => {
   if (transformation.perspectiveFrame) {
     const basis = perspectivePoint(transformation.perspectiveFrame, transformation.kalibrierungsFrame, punkt);
-    return transformiere(transformation.korrektur, basis);
+    return transform(transformation.korrektur, basis);
   }
   const { a, b, c, d, e, f } = transformation;
   return { x: a * punkt.x + c * punkt.y + e, y: b * punkt.x + d * punkt.y + f };
 };
 
-export const transformationsScale = transformation => {
+export const transformScale = transformation => {
   if (!transformation.perspectiveFrame) {
     const { a, b, c, d } = transformation;
     return Math.sqrt(Math.abs(a * d - b * c));
   }
   const { kalibrierungsFrame: frame } = transformation;
   const mitte = { x: (frame.left + frame.right) / 2, y: (frame.top + frame.bottom) / 2 };
-  const punkt = transformiere(transformation, mitte);
-  const x = transformiere(transformation, { ...mitte, x: mitte.x + 1 });
-  const y = transformiere(transformation, { ...mitte, y: mitte.y + 1 });
+  const punkt = transform(transformation, mitte);
+  const x = transform(transformation, { ...mitte, x: mitte.x + 1 });
+  const y = transform(transformation, { ...mitte, y: mitte.y + 1 });
   return Math.sqrt(Math.abs((x.x - punkt.x) * (y.y - punkt.y) - (x.y - punkt.y) * (y.x - punkt.x)));
 };
 
-const regressiereLinie = (treffer, wert) => {
+const regressLine = (treffer, wert) => {
   const summen = treffer.reduce((summe, treffer) => ({
     y: summe.y + (treffer.basis ?? treffer.muster).y,
     yy: summe.yy + (treffer.basis ?? treffer.muster).y ** 2,
@@ -107,19 +107,19 @@ const regressiereLinie = (treffer, wert) => {
   return [d, (summen.z - d * summen.y) / treffer.length];
 };
 
-const regressiereTransformation = (treffer, horizontalSlope, yTreffer = treffer) => {
-  const [a, c, e] = regressiere(treffer, 'x');
+const regressTransformation = (treffer, horizontalSlope, yTreffer = treffer) => {
+  const [a, c, e] = regress(treffer, 'x');
   const [b, d, f] = Number.isFinite(horizontalSlope)
     ? (() => {
       const b = horizontalSlope * a;
-      const [d, f] = regressiereLinie(yTreffer, treffer => treffer.aufnahme.y - b * (treffer.basis ?? treffer.muster).x);
+      const [d, f] = regressLine(yTreffer, treffer => treffer.aufnahme.y - b * (treffer.basis ?? treffer.muster).x);
       return [b, d, f];
     })()
-    : regressiere(yTreffer, 'y');
+    : regress(yTreffer, 'y');
   return { a, b, c, d, e, f };
 };
 
-export const bestimmeTextTransformation = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame, { horizontalSlope, perspectiveFrame } = {}) => {
+export const determineTextTransformation = (textmarken, woerter, kalibrierungsFrame, aufnahmeFrame, { horizontalSlope, perspectiveFrame } = {}) => {
   const eintraege = textmarken.map((marke, index) => ({ marke, index }));
   const haeufigkeit = textmarken.reduce((werte, marke) => ({ ...werte, [normalisiere(marke.text)]: (werte[normalisiere(marke.text)] ?? 0) + 1 }), {});
   const eindeutig = eintraege.filter(({ marke }) => haeufigkeit[normalisiere(marke.text)] === 1);
@@ -127,11 +127,11 @@ export const bestimmeTextTransformation = (textmarken, woerter, kalibrierungsFra
   const genutzt = new Set();
   const project = perspectiveFrame ? punkt => perspectivePoint(perspectiveFrame, kalibrierungsFrame, punkt) : undefined;
   const slope = perspectiveFrame ? undefined : horizontalSlope;
-  const ersteTreffer = ordneZu(eindeutig, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt, undefined, project);
-  const vorlaeufig = ersteTreffer.length >= 3 ? regressiereTransformation(ersteTreffer, slope) : undefined;
+  const ersteTreffer = matchTextMarks(eindeutig, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt, undefined, project);
+  const vorlaeufig = ersteTreffer.length >= 3 ? regressTransformation(ersteTreffer, slope) : undefined;
   const treffer = [
     ...ersteTreffer,
-    ...ordneZu(mehrfach, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt, vorlaeufig, project),
+    ...matchTextMarks(mehrfach, woerter, kalibrierungsFrame, aufnahmeFrame, genutzt, vorlaeufig, project),
   ];
   if (treffer.length < 3) {
     const fehler = new Error(`Zu wenige Textmarken erkannt (${treffer.length}/${textmarken.length}) - Aufnahme bitte gerade und scharf wiederholen.`);
@@ -141,7 +141,7 @@ export const bestimmeTextTransformation = (textmarken, woerter, kalibrierungsFra
   const feldGrenze = kalibrierungsFrame.top + (kalibrierungsFrame.bottom - kalibrierungsFrame.top) * 0.3;
   const feldTreffer = ersteTreffer.filter(treffer => treffer.muster.y >= feldGrenze);
   const yTreffer = feldTreffer.length >= 2 ? feldTreffer : ersteTreffer;
-  const korrektur = regressiereTransformation(treffer, slope, yTreffer);
+  const korrektur = regressTransformation(treffer, slope, yTreffer);
   const transformation = perspectiveFrame
     ? { perspectiveFrame, kalibrierungsFrame, korrektur }
     : korrektur;
