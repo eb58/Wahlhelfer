@@ -34,6 +34,16 @@ const showWertung = result => {
   field.hidden = false;
 };
 
+/** Loescht die vorherige Wertung, sobald eine neue Aufnahme angestossen wird - sonst
+ *  bliebe bei einem abgebrochenen Kamerabild das alte Ergebnis fehlerhaft stehen. */
+const clearWertung = () => {
+  $('wertungBereich').hidden = true;
+  const field = $('wertung');
+  field.hidden = true;
+  field.innerHTML = '';
+  delete field.dataset.eindeutig;
+};
+
 /** Aufnahmen kommen als Bild von der Kamera, koennen aber auch ein PDF-Scan sein. */
 const toImage = async file => (isPdf(file) ? (await pdfPageAsImage(file)).imageData : toImageData(file));
 
@@ -65,8 +75,8 @@ const handleFileSelection = event => {
 };
 
 // `capture="environment"` uebergibt die Bedienung an die rueckseitige Kamera.
-$('erfassenKnopf').addEventListener('click', () => openInput($('erfassenEingabe')));
-$('dateiKnopf').addEventListener('click', () => openInput($('dateiEingabe')));
+$('erfassenKnopf').addEventListener('click', () => { clearWertung(); openInput($('erfassenEingabe')); });
+$('dateiKnopf').addEventListener('click', () => { clearWertung(); openInput($('dateiEingabe')); });
 $('erfassenEingabe').addEventListener('change', handleFileSelection);
 $('dateiEingabe').addEventListener('change', handleFileSelection);
 
