@@ -38,6 +38,17 @@ for (const file of files) {
           `${feld.id} bei ${feld.x}/${feld.y} liegt nicht auf einem Ring`);
   });
 
+  if (content.huelle) test(`${file}: die Huelle liegt auf den aeusseren Tabellenlinien`, () => {
+    // An jeder Seite muss eine gedruckte Linie entlanglaufen - sonst passt die Huelle nicht zum Muster.
+    const { left, right, top, bottom } = content.huelle;
+    const along = (from, to, point) => [...Array(21).keys()].map(i => point(from + (to - from) * (0.05 + 0.9 * i / 20)));
+    const darkest = ({ x, y }) => Math.max(...[-1, 0, 1].flatMap(dy => [-1, 0, 1].map(dx => map.values[Math.round(y + dy) * map.width + Math.round(x + dx)])));
+    for (const [seite, points] of Object.entries({
+      oben: along(left, right, x => ({ x, y: top })), unten: along(left, right, x => ({ x, y: bottom })),
+      links: along(top, bottom, y => ({ x: left, y })), rechts: along(top, bottom, y => ({ x: right, y })),
+    })) assert.ok(points.filter(point => darkest(point) > 0.5).length >= 18, `Huelle ${seite} liegt nicht auf einer Linie`);
+  });
+
   test(`${file}: der Musterzettel ist leer`, () => {
     for (const stimme of content.stimmen)
       for (const feld of stimme.felder)
@@ -78,4 +89,6 @@ for (const file of files) {
 test('fremde Versionen und unvollstaendige Dateien werden abgewiesen', () => {
   assert.throws(() => loadKalibrierung(JSON.stringify({ version: 99 })), /Version/);
   assert.throws(() => loadKalibrierung({ version: FORMAT_VERSION, radius: 10, stimmen: [] }), /Rahmen/);
+  const mv = JSON.parse(readFileSync(new URL('ltw-mv-2021-wk24.json', folder), 'utf8'));
+  assert.throws(() => loadKalibrierung({ ...mv, huelle: { left: 1, right: 2 } }), /Huelle/);
 });

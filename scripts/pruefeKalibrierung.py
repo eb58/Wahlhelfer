@@ -36,6 +36,11 @@ for mark in calibration['textmarken']:
     draw.line([(x, y - 10), (x, y + 10)], fill=(0, 150, 70), width=2)
     draw.text((x + 13, y - 7), mark['text'], fill=(0, 150, 70))
 
+huelle = calibration.get('huelle')
+if huelle:
+    draw.rectangle([huelle['left'], huelle['top'], huelle['right'], huelle['bottom']], outline=(230, 0, 160), width=2)
+    draw.text((huelle['left'] + 6, huelle['top'] - 16), 'huelle', fill=(230, 0, 160))
+
 output = sys.argv[2] if len(sys.argv) > 2 else 'pruefung-tmp.png'
 image.save(output)
 field_count = sum(len(s['felder']) for s in calibration['stimmen'])

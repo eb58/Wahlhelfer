@@ -28,11 +28,21 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
   ueber den Zettel verteilte `textmarken` mit Text und Mittelpunkt (`x`/`y`) sowie
   je Stimme (`erststimme`, `zweitstimme`, bei nur einer Stimme schlicht `stimme`) die Felder mit
   `x`/`y` in Musterzettel-Pixeln, `nummer` (Listenplatz wie gedruckt) und `beschriftung`.
-  `auswahl` sagt, wie viele Markierungen je Stimme gueltig sind.
+  `auswahl` sagt, wie viele Markierungen je Stimme gueltig sind. Optional `huelle`: der aeussere
+  Rand aller Tabellen, nur wenn er von `frame` abweicht (MV: `frame` endet vor der Nummernspalte).
+  Die Fotoerkennung deutet jedes gefundene Viereck dann auch als Huelle; `frame` bleibt unveraendert,
+  weil die Scan-Erkennung genau diese Linien findet.
 - `loadKalibrierung(json)` liefert den asynchronen Erkenner `await typ.recognize(aufnahme)`.
-  Bei Smartphone-Fotos liefern Papierkante und perspektivische Druckrahmen (`frame.js`) die
-  grobe Lage. Danach werden mehrere gedruckte Ankreuzringe gemeinsam gesucht und eine robuste
-  affine Ring-Transformation bestimmt. Das ist der normale Erkennungspfad.
+  Bei Smartphone-Fotos liefern Rahmenkandidaten die grobe Lage (`frameQuad.js`, Vorgehen aus dem
+  Sudoku-Scanner): nach adaptivem Schwellwert der Druckrahmen als geschlossene Komponente oder - bei
+  Zetteln ohne umlaufenden Rahmen (Neuwied, MV, Europawahl) - die Huelle aller Tabellenteile auf dem
+  Papier. Die Ecken kommen grob aus den Diagonal-Extrempunkten und genau aus Geraden durch die vier
+  Seiten; bei langen Zetteln verschieben schon wenige Pixel an einer Ecke die Ringe am anderen Ende.
+  Dazu kommt die Linien-Suche aus `frame.js`. Jeder Kandidat wird am Musterzettel bestaetigt
+  (`scoreFrame`: liegen die Ringe dort, wo er sie erwarten laesst?); der beste traegt. Danach werden
+  mehrere gedruckte Ankreuzringe gemeinsam gesucht und eine robuste affine Ring-Transformation
+  bestimmt; liegen alle Ringe in einer Spalte, bleibt die Streckung quer zur Spalte beim Rahmen.
+  Das ist der normale Erkennungspfad.
 - Die Textmarken und die lokale OCR bleiben als Rueckfall fuer kontrastarme oder unvollstaendige
   Rahmenaufnahmen erhalten. Dafuer werden nur unverkleinerte Streifen um die erwarteten Marken
   zusammengesetzt; weniger als drei erkannte, nicht kollineare Marken fuehren zum Abbruch statt
@@ -42,7 +52,7 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
   das weitere Umfeld - so stoert ein Kreuz weder die Ringsuche noch die Fuellgradmessung.
   `adjustFeld` bleibt fuer den einfachen OCR-/Rahmen-Rueckfall erhalten.
 - Die lineare Ausgleichsrechnung fuer Ring- und Texttransformationen liegt gemeinsam in
-  `leastSquares.js`; doppelte 3x3-Loeser sollen nicht wieder in die Fachmodule wandern.
+  `leastSquares.js`; doppelte Gleichungsloeser sollen nicht wieder in die Fachmodule wandern.
 - Ob ein Feld angekreuzt ist, entscheidet allein die Pixelmessung (`ankreuzErkennung.js`).
 - Bilddaten immer ueber `toDarkness()` einlesen: es rechnet Transparenz ueber Weiss. Sonst
   liefert `canvas.getImageData()` durchsichtige Bereiche als Schwarz und der Rahmen verrutscht.
@@ -54,6 +64,9 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 
 - `python scripts/pruefeKalibrierung.py <datei.json> [ausgabe.png]` zeichnet Feld- und Textmarken in
   den Musterzettel - die Sichtkontrolle nach jeder Aenderung an einer Kalibrierung.
+- `node scripts/erzeugeSynthetischeFotos.js` erzeugt fuer jede Kalibrierung drei synthetische Fotos
+  (gerade, leicht schraeg, 4 Grad gedreht) unter `Testdaten/fixtures/synthetische_fotos/`. Nur neu
+  erzeugen, wenn sich Musterzettel oder Kalibrierung aendern; der Zufall ist fest geseedet.
 - `configuration.js` legt fest, welche Kalibrierung im Einsatz gilt. Pro Wahl einmal setzen;
   die Oberflaeche bietet keine Auswahl an.
 
@@ -69,7 +82,11 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 - Vor dem Abschluss die betroffenen Tests ausfuehren.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
 - Die Fototests enthalten derzeit 20 Aufnahmen aus `wahlzettel1_fotos` und 33 Aufnahmen aus
-  `wahlzettel2_fotos`; ein vollständiger Lauf dauert wegen des OCR-Rueckfalls mehrere Minuten.
+  `wahlzettel2_fotos`; alle laufen ueber den Ringpfad, ein vollständiger Lauf dauert knapp eine Minute.
+  Faellt ein Foto in den OCR-Rueckfall, wird er deutlich langsamer.
+- Fuer die anderen Zettelarten gibt es keine echten Fotos; `synthetischeFotos.test.js` prueft sie
+  ohne OCR. Bekannte Luecken stehen dort als `todo` mit Begruendung - sie muessen sicher abgelehnt,
+  duerfen aber nie falsch gewertet werden.
 - Wenn UI- oder Dokument-Layout betroffen ist, zusaetzlich die dazugehoerigen Spezialtests pruefen.
 
 ## Benennung

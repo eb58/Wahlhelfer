@@ -11,8 +11,9 @@ import { determineTextTransformation, transform, transformScale } from './textJu
 import { computeOcrRegions } from './ocrRegions.js';
 import { findPaper, paperToFrame } from './paper.js';
 import {
-  determineRingTransformation, findRoughRingShift, normalizeField, transformRing,
+  determineRingTransformation, findRoughRingShift, normalizeField, scoreFrame, transformRing,
 } from './feldNormalisierung.js';
+import { findFrameCandidates, reframe } from './frameQuad.js';
 import { log, round } from './log.js';
 
 const now = () => globalThis.performance?.now?.() ?? Date.now();
@@ -147,32 +148,45 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   if (perspectiveFrame) log('Perspektivischer Druckrahmen erkannt');
   else if (frame && textFrame !== frame) log('Rahmen fuer OCR verworfen: unplausible Ausdehnung');
 
-  const ringAlignment = perspectiveFrame ? (() => {
+  const referenzen = kalibrierung.felder.map(feld => feld.referenz);
+  const alignRings = candidate => {
     try {
       const ringStart = now();
-      const shift = findRoughRingShift(
-        map, perspectiveFrame, kalibrierung.frame,
-        kalibrierung.felder.map(feld => feld.referenz), kalibrierung.referenzRadius,
-      );
+      const shift = findRoughRingShift(map, candidate, kalibrierung.frame, referenzen, kalibrierung.referenzRadius);
       const anchors = kalibrierung.felder.map(feld => {
         const base = {
           x: feld.referenz.x + shift.dx,
           y: feld.referenz.y + shift.dy,
         };
         const measurement = normalizeField(
-          map, perspectiveFrame, kalibrierung.frame, base, kalibrierung.referenzRadius,
+          map, candidate, kalibrierung.frame, base, kalibrierung.referenzRadius,
           { search: Math.round(kalibrierung.referenzRadius * 1.2) },
         );
         return { source: feld.referenz, target: measurement.referenz, ringScore: measurement.ringScore };
       });
       const alignment = determineRingTransformation(anchors);
       logDuration(`Ausrichtung ueber ${alignment.treffer.length} Ankreuzringe`, ringStart);
-      return alignment;
+      return { ...alignment, frame: candidate };
     } catch (error) {
       log(`Ringbasierte Ausrichtung nicht ausreichend: ${error.message}`);
       return undefined;
     }
-  })() : undefined;
+  };
+
+  // Wie im Sudoku-Scanner: mehrere Rahmenkandidaten, bestaetigt am Musterzettel. Der Rahmen als
+  // geschlossene Komponente ist meist am genauesten; die Linien-Suche bleibt als weiterer Kandidat.
+  // Mit Huelle in der Kalibrierung kann jedes Viereck auch deren Rand sein; welche Deutung passt,
+  // entscheidet ebenfalls scoreFrame.
+  const candidateStart = now();
+  const quads = isPhoto ? findFrameCandidates(map, kalibrierung.frame, { paper }) : [];
+  const huellen = kalibrierung.huelle ? quads.map(quad => reframe(quad, kalibrierung.huelle, kalibrierung.frame)) : [];
+  const frameCandidates = [...quads, ...huellen, perspectiveFrame].filter(Boolean)
+    .map(candidate => ({ candidate, score: scoreFrame(map, candidate, kalibrierung.frame, referenzen, kalibrierung.referenzRadius) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+  logDuration(`Rahmenkandidaten (${frameCandidates.length})`, candidateStart);
+  const ringAlignment = frameCandidates.reduce((found, { candidate }) => found ?? alignRings(candidate), undefined);
+  const ringFrame = ringAlignment?.frame;
 
   const textAlignment = textjustierung && !ringAlignment ? await (async () => {
     log('OCR-Rueckfall: Aussenrahmen wird maskiert');
@@ -241,7 +255,7 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
     ringAlignment.transformation.a * ringAlignment.transformation.d - ringAlignment.transformation.b * ringAlignment.transformation.c,
   ));
   const radius = Math.max(3, Math.round(ringAlignment
-    ? kalibrierung.referenzRadius * ringScale * frameWidth(perspectiveFrame) / frameWidth(kalibrierung.frame)
+    ? kalibrierung.referenzRadius * ringScale * frameWidth(ringFrame) / frameWidth(kalibrierung.frame)
     : textAlignment ? kalibrierung.radius * frameWidth(kalibrierung.frame) * transformScale(textAlignment.transformation)
     : kalibrierung.radius * frameWidth(frame)));
   const measureRadius = innerRadius(radius);
@@ -250,7 +264,7 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   const measuredFelder = ringAlignment ? kalibrierung.felder.map(feld => {
     const point = transformRing(ringAlignment.transformation, feld.referenz);
     const { referenz: ringReferenz, ...measurement } = normalizeField(
-      map, perspectiveFrame, kalibrierung.frame, point, kalibrierung.referenzRadius * ringScale,
+      map, ringFrame, kalibrierung.frame, point, kalibrierung.referenzRadius * ringScale,
     );
     return { ...feld, ...measurement, ringReferenz };
   }) : kalibrierung.felder.map(feld => {

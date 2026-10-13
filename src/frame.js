@@ -91,7 +91,8 @@ const findVerticalLine = (map, paper, top, bottom, from, to) => {
   return best;
 };
 
-const intersectLines = (horizontal, vertical) => {
+/** Schnittpunkt einer flachen Geraden y = a*x + b mit einer steilen x = a*y + b. */
+export const intersectLines = (horizontal, vertical) => {
   const y = (horizontal.a * vertical.b + horizontal.b) / (1 - horizontal.a * vertical.a);
   return { x: vertical.a * y + vertical.b, y };
 };

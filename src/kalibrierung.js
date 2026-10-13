@@ -3,7 +3,9 @@
  *
  * Die Dateien unter `Kalibrierungen/` werden am leeren Musterzettel abgelesen, nicht berechnet -
  * es gibt kein Verfahren mehr, das Ankreuzfelder selbst sucht. Eine Datei nennt je Stimme ihre
- * Ankreuzfelder in Pixeln des Musterzettels und unter `frame` dessen Rahmenlinien. Erst aus
+ * Ankreuzfelder in Pixeln des Musterzettels und unter `frame` dessen Rahmenlinien. Weicht der
+ * aeussere Rand aller Tabellen davon ab (MV: `frame` endet vor der Nummernspalte), steht er
+ * zusaetzlich unter `huelle` - so findet die Fotoerkennung auch dort ihren Bezug. Erst aus
  * beidem zusammen wird die Feldlage rahmenrelativ - und damit unabhaengig von Aufloesung und
  * Bildausschnitt der spaeteren Aufnahme.
  */
@@ -20,6 +22,7 @@ const prepare = kalibrierung => ({
   name: kalibrierung.name,
   referenz: kalibrierung.referenz,
   frame: kalibrierung.frame,
+  huelle: kalibrierung.huelle,
   textmarken: kalibrierung.textmarken,
   thresholds: kalibrierung.thresholds,
   radius: kalibrierung.radius / frameWidth(kalibrierung.frame),
@@ -37,6 +40,8 @@ const prepare = kalibrierung => ({
 const validate = file => {
   if (file.version !== FORMAT_VERSION) throw new Error(`Unbekannte Kalibrierungs-Version: ${file.version}`);
   if (!file.frame || !file.radius) throw new Error('Kalibrierung ohne Rahmen oder Radius');
+  if (file.huelle && ['left', 'right', 'top', 'bottom'].some(key => !Number.isFinite(file.huelle[key])))
+    throw new Error('Kalibrierung mit unvollstaendiger Huelle');
   if (!file.referenz?.breite || !file.referenz?.hoehe) throw new Error('Kalibrierung ohne Referenzgroesse');
   if (file.textmarken?.length < 3 || file.textmarken.some(mark => !mark.text || !Number.isFinite(mark.x) || !Number.isFinite(mark.y)))
     throw new Error('Kalibrierung braucht mindestens drei vollstaendige Textmarken');

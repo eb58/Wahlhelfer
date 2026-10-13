@@ -1,7 +1,7 @@
 /** Perspektivisch normalisierte kleine Ausschnitte rund um die erwarteten Ankreuzringe. */
 import { perspectivePoint } from './frame.js';
 import { darknessAt, darkRatio, ringDarkness } from './image.js';
-import { regressPlane } from './leastSquares.js';
+import { regressLine, regressPlane } from './leastSquares.js';
 
 const regressTransformation = treffer => {
   const x = regressPlane(treffer, t => t.source, t => t.target, 'x');
@@ -9,10 +9,24 @@ const regressTransformation = treffer => {
   return x && y ? { a: x[0], c: x[1], e: x[2], b: y[0], d: y[1], f: y[2] } : undefined;
 };
 
+/**
+ * Liegen alle Ringe in einer Spalte (z. B. Europawahl), ist die Streckung quer zur Spalte nicht
+ * bestimmbar. Sie bleibt dann wie vom Rahmen vorgegeben; justiert werden Lage, Neigung und Laengsstreckung.
+ */
+const regressColumn = treffer => {
+  const x = regressLine(treffer, t => t.source.y, t => t.target.x - t.source.x);
+  const y = regressLine(treffer, t => t.source.y, t => t.target.y);
+  return x && y ? { a: 1, c: x[0], e: x[1], b: 0, d: y[0], f: y[1] } : undefined;
+};
+
+const spread = values => Math.max(...values) - Math.min(...values);
+
 export const transformRing = ({ a, b, c, d, e, f }, { x, y }) => ({
   x: a * x + c * y + e,
   y: b * x + d * y + f,
 });
+
+const combinations2 = values => values.flatMap((a, i) => values.slice(i + 1).map(b => [a, b]));
 
 const combinations3 = values => values.flatMap((a, i) => values.slice(i + 1).flatMap((b, j) =>
   values.slice(i + j + 2).map(c => [a, b, c])));
@@ -24,9 +38,11 @@ const residual = (transformation, { source, target }) => {
 
 export const determineRingTransformation = treffer => {
   const candidates = treffer.filter(({ ringScore }) => ringScore >= 0.24);
+  const column = candidates.length && spread(candidates.map(({ source }) => source.x)) < 80;
+  const regress = column ? regressColumn : regressTransformation;
   let best;
-  for (const probe of combinations3(candidates)) {
-    const transformation = regressTransformation(probe);
+  for (const probe of column ? combinations2(candidates) : combinations3(candidates)) {
+    const transformation = regress(probe);
     if (!transformation) continue;
     const inlier = candidates.filter(treffer => residual(transformation, treffer) <= 10);
     const score = inlier.length * 100 - inlier.reduce((sum, treffer) => sum + residual(transformation, treffer), 0);
@@ -35,10 +51,9 @@ export const determineRingTransformation = treffer => {
   if (!best || best.inlier.length < 6) throw new Error('Zu wenige Ankreuzringe fuer eine sichere Ausrichtung erkannt.');
   if (best.inlier.reduce((sum, treffer) => sum + treffer.ringScore, 0) / best.inlier.length < 0.32)
     throw new Error('Kontrast der gefundenen Ankreuzringe ist zu gering.');
-  const xs = best.inlier.map(({ source }) => source.x), ys = best.inlier.map(({ source }) => source.y);
-  if (Math.max(...xs) - Math.min(...xs) < 80 || Math.max(...ys) - Math.min(...ys) < 300)
+  if ((!column && spread(best.inlier.map(({ source }) => source.x)) < 80) || spread(best.inlier.map(({ source }) => source.y)) < 300)
     throw new Error('Erkannte Ankreuzringe liegen nicht ausreichend verteilt.');
-  const transformation = regressTransformation(best.inlier);
+  const transformation = regress(best.inlier);
   if (Math.abs(transformation.a - 1) > 0.2 || Math.abs(transformation.d - 1) > 0.2
     || Math.abs(transformation.b) > 0.12 || Math.abs(transformation.c) > 0.12)
     throw new Error('Ausrichtung der Ankreuzringe ist geometrisch unplausibel.');
@@ -85,7 +100,11 @@ const scoreShift = (map, perspectiveFrame, kalibrierungsFrame, points, radius, d
   ), 0) / weight;
 };
 
-export const findRoughRingShift = (map, perspectiveFrame, kalibrierungsFrame, points, radius) => {
+/** Wie gut liegen die gedruckten Ringe dort, wo ein Rahmenkandidat sie erwarten laesst? */
+export const scoreFrame = (map, perspectiveFrame, kalibrierungsFrame, points, radius) =>
+  scoreShift(map, perspectiveFrame, kalibrierungsFrame, points, radius, 0, 0);
+
+export const findRoughRingShift =(map, perspectiveFrame, kalibrierungsFrame, points, radius) => {
   let best;
   for (let dy = -radius * 4; dy <= radius; dy += 6)
     for (let dx = -90; dx <= 90; dx += 6) {

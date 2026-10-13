@@ -52,9 +52,10 @@ test('determineRingTransformation lehnt zu geringen Kontrast ab', () => {
 });
 
 test('determineRingTransformation lehnt zu wenig verteilte Ringe ab', () => {
-  // x-Spanne bleibt unter 80px, obwohl genug Punkte mit gutem Score vorliegen.
+  // y-Spanne bleibt unter 300px, obwohl genug Punkte mit gutem Score vorliegen. Eine schmale
+  // x-Spanne allein ist dagegen der Spaltenfall (siehe unten) und wird ausgerichtet.
   const treffer = Array.from({ length: 8 }, (_, i) => {
-    const source = { x: (i % 2) * 30, y: i * 90 };
+    const source = { x: (i % 4) * 100, y: Math.floor(i / 4) * 200 };
     return { source, target: source, ringScore: 0.5 };
   });
   assert.throws(() => determineRingTransformation(treffer), /verteilt/i);
@@ -105,4 +106,15 @@ test('findRoughRingShift schlaegt auf einer leeren Karte fehl', () => {
   const map = leereKarte(300, 700);
   const referenzen = [{ x: 100, y: 60 }, { x: 100, y: 300 }, { x: 100, y: 560 }];
   assert.throws(() => findRoughRingShift(map, identitaetsEcken, identitaetsRahmen, referenzen, 20), /nicht sicher gefunden/i);
+});
+
+test('determineRingTransformation richtet auch Zettel mit nur einer Ringspalte aus', () => {
+  // Europawahl: alle Ringe untereinander. Quer zur Spalte bleibt die Streckung beim Rahmen.
+  const soll = { a: 1, b: 0, c: 0.02, d: 0.97, e: 6, f: -12 };
+  const treffer = [...Array(12).keys()].map(i => {
+    const source = { x: 1175, y: 350 + i * 120 };
+    return { source, target: transformRing(soll, source), ringScore: 0.5 };
+  });
+  const { transformation } = determineRingTransformation(treffer);
+  for (const key of Object.keys(soll)) assert.ok(Math.abs(transformation[key] - soll[key]) < 1e-6, key);
 });
