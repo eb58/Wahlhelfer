@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { findPaper, paperToFrame } from '../src/paper.js';
-import { readJpeg, limitWidth } from './fotoWerkstatt.js';
+import { readFoto } from './fotoWerkstatt.js';
 
 const background = [30, 30, 80];
 const paperColor = [245, 245, 245];
@@ -62,10 +62,10 @@ test('findPaper ignoriert ein getrenntes helles Blatt neben dem Wahlzettel', () 
   assert.ok(paper.right <= 304, `right ${paper.right}`);
 });
 
-test('findPaper trennt das zweite Blatt im problematischen Foto ab', () => {
-  const image = limitWidth(readJpeg(readFileSync(new URL(
+test('findPaper trennt das zweite Blatt im problematischen Foto ab', async () => {
+  const image = await readFoto(readFileSync(new URL(
     '../Testdaten/bundestagswahl-2017/fotos-serie1/PXL_20260803_201232140.jpg', import.meta.url),
-  )));
+  ));
   const paper = findPaper(image);
   assert.ok(paper);
   assert.ok(paper.right < 1300, `right ${paper.right}`);

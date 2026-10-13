@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { loadKalibrierung } from '../src/kalibrierung.js';
-import { readJpeg, limitWidth } from './fotoWerkstatt.js';
+import { readFoto } from './fotoWerkstatt.js';
 import { createFotoOcr } from './fotoOcr.js';
 
 const fixtureFolder = new URL('../Testdaten/bundestagswahl-2017/fotos-serie1/', import.meta.url);
@@ -28,7 +28,7 @@ const checkPhotos = async (t, fixtureFolder, manifest) => {
   try {
     for (const testCase of manifest.faelle) {
       await t.test(testCase.datei, async () => {
-        const image = limitWidth(readJpeg(readFileSync(new URL(testCase.datei, fixtureFolder))));
+        const image = await readFoto(readFileSync(new URL(testCase.datei, fixtureFolder)));
         const result = await typ.recognize(image, { ocr: ocr.recognizeWords });
         const found = sorted(result.felder.filter(feld => feld.status !== 'leer').map(feld => feld.id));
         assert.deepEqual(found, sorted(testCase.markierungen));

@@ -9,7 +9,8 @@
  * Der Zufall ist fest geseedet - dieselben Eingaben ergeben dieselben Bilder.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import jpeg from 'jpeg-js';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 import { readPng } from '../src/png.js';
 import { loadKalibrierung } from '../src/kalibrierung.js';
 
@@ -109,6 +110,9 @@ const lagen = {
   },
 };
 
+const writeJpeg = ({ width, height, data }, url) =>
+  sharp(Buffer.from(data.buffer), { raw: { width, height, channels: 4 } }).jpeg({ quality: 85 }).toFile(fileURLToPath(url));
+
 for (const kalibrierung of zettelarten) {
   const json = readFileSync(new URL(`Kalibrierungen/${kalibrierung}`, root), 'utf8');
   const typ = loadKalibrierung(json);
@@ -116,15 +120,15 @@ for (const kalibrierung of zettelarten) {
   const folder = new URL(`Testdaten/${kalibrierung.replace('.json', '')}/synthetisch/`, root);
   mkdirSync(folder, { recursive: true });
   const width = 1200, height = Math.round(width * muster.height / muster.width * 1.25);
-  const faelle = Object.entries(lagen).map(([lage, ecken], index) => {
+  const faelle = await Promise.all(Object.entries(lagen).map(async ([lage, ecken], index) => {
     // Je Lage ein anderes Feld, damit nicht immer dieselbe Zeile angekreuzt ist.
     const markierungen = typ.stimmen.map(stimme => typ.felder.filter(feld => feld.stimme === stimme.id)[index + 1].id);
     const foto = fotografiere(kreuzeAn(muster, typ, markierungen), { width, height, quad: ecken(width, height), seed: index + 1 });
     const datei = `${lage}.jpg`;
-    writeFileSync(new URL(datei, folder), jpeg.encode(foto, 85).data);
+    await writeJpeg(foto, new URL(datei, folder));
     console.log(kalibrierung, datei, markierungen.join(' '));
     return { datei, lage, markierungen };
-  });
+  }));
   const manifest = { erzeugtMit: 'scripts/erzeugeSynthetischeFotos.js', kalibrierung, anzahl: faelle.length, faelle };
   writeFileSync(new URL('manifest.json', folder), `${JSON.stringify(manifest, null, 2)}
 `);

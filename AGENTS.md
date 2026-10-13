@@ -94,7 +94,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - Vor dem Abschluss die betroffenen Tests ausfuehren.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
 - Die Fototests enthalten derzeit 20 Aufnahmen aus `bundestagswahl-2017/fotos-serie1` und 33 aus
-  `bundestagswahl-2017/fotos-serie2`; alle laufen ueber den Ringpfad, ein vollständiger Lauf dauert knapp eine Minute.
+  `bundestagswahl-2017/fotos-serie2`; alle laufen ueber den Ringpfad, `npm test` dauert insgesamt rund 25 s.
   Faellt ein Foto in den OCR-Rueckfall, wird er deutlich langsamer.
 - Fuer die anderen Zettelarten gibt es keine echten Fotos; `synthetischeFotos.test.js` prueft sie
   ohne OCR. Bekannte Luecken stehen dort als `todo` mit Begruendung - sie muessen sicher abgelehnt,
