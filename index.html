@@ -18,16 +18,6 @@
 
       <!-- Erfassen: Aufnahme eines ausgefuellten Zettels. Die Zettelart steht in configuration.js. -->
       <section class="karte" id="ansichtErfassen">
-        <div class="wertung-bereich" id="wertungBereich" hidden>
-          <h2>Ergebnis der Ankreuzerkennung</h2>
-          <p class="wertung" id="wertung" aria-live="polite" hidden></p>
-        </div>
-
-        <!-- Die geladene Aufnahme mit den Ankreuzfeldern, wie die Erkennung sie gefunden hat. -->
-        <div class="aufnahme-bereich" id="aufnahmeBereich" hidden>
-          <canvas class="aufnahme" id="aufnahme" role="img" aria-label="Aufnahme mit den erkannten Ankreuzfeldern"></canvas>
-        </div>
-
         <div class="actions">
           <button class="knopf" id="erfassenKnopf" type="button">
             <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -40,6 +30,16 @@
           <button class="datei-knopf" id="dateiKnopf" type="button">Bild oder PDF aus Dateien wählen</button>
           <input id="dateiEingabe" class="visually-hidden" type="file" accept="image/*,application/pdf" aria-label="Stimmzettel aus Dateien wählen" />
           <p class="status" id="erfassenStatus" hidden></p>
+        </div>
+
+        <div class="wertung-bereich" id="wertungBereich" hidden>
+          <h2>Ergebnis der Ankreuzerkennung</h2>
+          <p class="wertung" id="wertung" aria-live="polite" hidden></p>
+        </div>
+
+        <!-- Die geladene Aufnahme mit den Ankreuzfeldern, wie die Erkennung sie gefunden hat. -->
+        <div class="aufnahme-bereich" id="aufnahmeBereich" hidden>
+          <canvas class="aufnahme" id="aufnahme" role="img" aria-label="Aufnahme mit den erkannten Ankreuzfeldern"></canvas>
         </div>
       </section>
     </main>

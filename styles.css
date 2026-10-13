@@ -84,8 +84,9 @@ h1 {
   backdrop-filter: blur(12px);
 }
 
+/* Der Aufnahme-Knopf steht oben; Wertung und Vorschau folgen darunter. */
 .wertung-bereich {
-  padding: 20px 18px 0;
+  padding: 2px 18px 18px;
 }
 
 .wertung-bereich h2 {
@@ -98,7 +99,7 @@ h1 {
 }
 
 .aufnahme-bereich {
-  padding: 16px 18px 0;
+  padding: 0 18px 18px;
 }
 
 /* Lange Zettel (Europawahl rund 1:4) nicht ueber den ganzen Bildschirm strecken. */
