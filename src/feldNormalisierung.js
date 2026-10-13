@@ -144,11 +144,18 @@ const findRing = (map, center, radius, search) => {
   };
   const start = scoreAt(center, center);
   let best = { x: center, y: center, ...start };
-  for (let dy = -search; dy <= search; dy++)
-    for (let dx = -search; dx <= search; dx++) {
-      const rating = scoreAt(center + dx, center + dy);
-      if (rating.score > best.score) best = { x: center + dx, y: center + dy, ...rating };
-    }
+  const probe = (x, y) => {
+    const rating = scoreAt(x, y);
+    if (rating.score > best.score) best = { x, y, ...rating };
+  };
+  // Grob nach fein: erst jeder zweite Punkt im ganzen Fenster, dann pixelgenau um den besten.
+  // Gleich weites Fenster, aber nur gut ein Viertel der Rechenschritte.
+  for (let dy = -search; dy <= search; dy += 2)
+    for (let dx = -search; dx <= search; dx += 2) probe(center + dx, center + dy);
+  const coarse = best;
+  for (let dy = -1; dy <= 1; dy++)
+    for (let dx = -1; dx <= 1; dx++)
+      if (Math.abs(coarse.x + dx - center) <= search && Math.abs(coarse.y + dy - center) <= search) probe(coarse.x + dx, coarse.y + dy);
   return best;
 };
 

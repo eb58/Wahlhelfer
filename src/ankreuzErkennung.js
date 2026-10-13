@@ -138,15 +138,7 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   logDuration('Papierlage', paperStart);
   const isPhoto = paper && (paper.right - paper.left < image.width * 0.96
     || paper.bottom - paper.top < image.height * 0.96);
-  const perspectiveStart = now();
-  const perspectiveFrame = isPhoto ? findPerspectiveFrame(map, paper) : undefined;
-  logDuration('Perspektivischer Druckrahmen', perspectiveStart);
-  const textFrame = perspectiveFrame ?? (paper
-    ? paperToFrame(paper, kalibrierung)
-    : usableFrame(frame, kalibrierung, image) ?? frameForImage(kalibrierung, image));
   if (paper) log(`Grobe Papierlage: x ${round(paper.left)}..${round(paper.right)}, y ${round(paper.top)}..${round(paper.bottom)}`);
-  if (perspectiveFrame) log('Perspektivischer Druckrahmen erkannt');
-  else if (frame && textFrame !== frame) log('Rahmen fuer OCR verworfen: unplausible Ausdehnung');
 
   const referenzen = kalibrierung.felder.map(feld => feld.referenz);
   const alignRings = candidate => {
@@ -174,19 +166,29 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   };
 
   // Wie im Sudoku-Scanner: mehrere Rahmenkandidaten, bestaetigt am Musterzettel. Der Rahmen als
-  // geschlossene Komponente ist meist am genauesten; die Linien-Suche bleibt als weiterer Kandidat.
-  // Mit Huelle in der Kalibrierung kann jedes Viereck auch deren Rand sein; welche Deutung passt,
-  // entscheidet ebenfalls scoreFrame.
+  // geschlossene Komponente ist meist am genauesten. Mit Huelle in der Kalibrierung kann jedes
+  // Viereck auch deren Rand sein; welche Deutung passt, entscheidet ebenfalls scoreFrame.
   const candidateStart = now();
   const quads = isPhoto ? findFrameCandidates(map, kalibrierung.frame, { paper }) : [];
   const huellen = kalibrierung.huelle ? quads.map(quad => reframe(quad, kalibrierung.huelle, kalibrierung.frame)) : [];
-  const frameCandidates = [...quads, ...huellen, perspectiveFrame].filter(Boolean)
+  const frameCandidates = [...quads, ...huellen]
     .map(candidate => ({ candidate, score: scoreFrame(map, candidate, kalibrierung.frame, referenzen, kalibrierung.referenzRadius) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
   logDuration(`Rahmenkandidaten (${frameCandidates.length})`, candidateStart);
-  const ringAlignment = frameCandidates.reduce((found, { candidate }) => found ?? alignRings(candidate), undefined);
+  const quadAlignment = frameCandidates.reduce((found, { candidate }) => found ?? alignRings(candidate), undefined);
+
+  // Die Linien-Suche ist teuer und nur noch Ersatz: gerechnet wird sie erst, wenn kein Viereck
+  // traegt - dann als weiterer Ringkandidat und als Lage fuer den OCR-Rueckfall.
+  const perspectiveStart = now();
+  const perspectiveFrame = isPhoto && !quadAlignment ? findPerspectiveFrame(map, paper) : undefined;
+  if (perspectiveFrame) logDuration('Perspektivischer Druckrahmen erkannt', perspectiveStart);
+  const ringAlignment = quadAlignment ?? (perspectiveFrame && alignRings(perspectiveFrame));
   const ringFrame = ringAlignment?.frame;
+  const textFrame = perspectiveFrame ?? (paper
+    ? paperToFrame(paper, kalibrierung)
+    : usableFrame(frame, kalibrierung, image) ?? frameForImage(kalibrierung, image));
+  if (!perspectiveFrame && !ringAlignment && frame && textFrame !== frame) log('Rahmen fuer OCR verworfen: unplausible Ausdehnung');
 
   const textAlignment = textjustierung && !ringAlignment ? await (async () => {
     log('OCR-Rueckfall: Aussenrahmen wird maskiert');
