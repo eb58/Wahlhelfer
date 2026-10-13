@@ -10,7 +10,10 @@ Geometrie ausgerichtet und anschließend nur an den bekannten Feldern ausgewerte
 Eine Kalibrierung unter `Kalibrierungen/` enthält insbesondere:
 
 - `referenz`: Breite und Höhe des vermessenen Musterzettels
-- `frame`: die vier durchgehenden Drucklinien des Musterzettels
+- `frame`: die vier durchgehenden Drucklinien des Musterzettels - genau die Linien, die
+  `findFrame()` am Musterzettel findet
+- `huelle` (optional): der äußere Rand aller Tabellen, nur wenn er von `frame` abweicht.
+  Bei MV endet `frame` vor der Nummernspalte, die Tabellen reichen weiter nach rechts.
 - `radius`: Radius eines gedruckten Ankreuzrings in Musterzettel-Pixeln
 - `textmarken`: erwarteter Text und Mittelpunkt mehrerer verteilter Marken
 - `stimmen`: Stimmen, Auswahlzahl und die vermessenen Felder mit Nummer und Beschriftung
@@ -45,23 +48,59 @@ fälschlich als schwarze Rahmenlinien erkannt.
 Teil der Aufnahme durchgehend dunkel sind, werden zu Gruppen zusammengefasst. Die jeweils
 äußerste linke, rechte, obere und untere Linie bilden den groben rechteckigen Rahmen.
 
-### Smartphone-Fotos
+### Smartphone-Fotos: Rahmenkandidaten
 
-Bei Fotos mit Umgebung ermittelt `findPaper()` zuerst die helle Papierfläche. Innerhalb
-dieser Fläche sucht `findPerspectiveFrame()` die vier gedruckten Rahmenlinien:
+Bei Fotos mit Umgebung ermittelt `findPaper()` zuerst grob die helle Papierfläche als
+achsenparalleles Rechteck. Gesucht wird dann der gedruckte Rahmen als Viereck
+(`src/frameQuad.js`). Das Vorgehen stammt aus dem Sudoku-Scanner (`algorithms-js`):
 
-1. obere waagerechte Linie und ihre Neigung,
-2. untere Linie, bevorzugt aus den äußersten dunklen Randpunkten,
-3. linke und rechte senkrechte Linie,
-4. die vier Schnittpunkte der Linien.
+1. **Arbeitsbild:** Die Dunkelheitskarte wird per Flächenmittel auf höchstens 600 Pixel
+   **Breite** verkleinert. Wie bei der Aufnahme wird die Breite begrenzt, nicht die lange
+   Kante, sonst blieben vom Europawahlzettel (1:4) nur wenige Pixel Breite übrig.
+2. **Adaptiver Schwellwert:** Ein Pixel gilt als Tinte, wenn es mindestens 12 % dunkler ist
+   als das Mittel seiner Umgebung (Integralbild, Radius etwa 1 % der kürzeren Bildseite).
+   Schatten und Helligkeitsverläufe auf dem Papier stören damit kaum.
+3. **Zusammenhangskomponenten:** Zusammenhängende Tintenpixel (8er-Nachbarschaft) bilden
+   Komponenten. Je Komponente werden Begrenzung, Pixel und die Extrempunkte entlang der
+   Diagonalen gemerkt (kleinstes/größtes `x+y` und `x-y`) - das sind grob die vier Ecken.
+4. **Kandidaten:**
+   - jede Komponente, die den Bildrand nicht berührt, höchstens zu 40 % gefüllt ist, vier
+     Seiten von mindestens 25 % der kürzeren Bildseite hat und im Seitenverhältnis zum
+     Kalibrierungsrahmen passt (Faktor 0,6 bis 1,6) - typisch der geschlossene Außenrahmen;
+   - zusätzlich die **Hülle** aller größeren, nur dünn gefüllten Teile (unter 12 %, also
+     Linienwerk) innerhalb der Papierfläche plus 5 % Rand. Das deckt Zettel ohne
+     umlaufenden Rahmen ab, deren Tabellen getrennt stehen (Neuwied, MV, Europawahl).
+     Massive Kopfgrafiken wie Pfeile und Balken fallen über den Füllgrad heraus.
+5. **Ecken genau bestimmen:** Ein einzelner Extrempunkt ist nur auf einen Pixel genau. Bei
+   langen Zetteln verschieben schon wenige Pixel an einer Ecke die Ringe am anderen Ende
+   um ein Vielfaches. Deshalb wird je Seite eine Gerade durch die äußersten Pixel gelegt
+   (`refineCorners`), nur im mittleren Stück der Seite und nur mit Punkten nahe der
+   groben Kante (erst 3, dann 1,5 Pixel Abstand). Die Ecken sind die Schnittpunkte.
+6. **Hülle der Kalibrierung:** Hat die Kalibrierung eine `huelle`, wird jedes Viereck
+   zusätzlich als deren Rand gedeutet und auf den Kalibrierungsrahmen umgerechnet
+   (`reframe`).
 
-Aus den vier Ecken wird mit `perspectivePoint()` eine perspektivische Abbildung vom
-Musterzettel in das Foto berechnet. Jeder Kalibrierungspunkt kann damit auch bei einer
-schrägen Aufnahme in Bildkoordinaten projiziert werden.
+Aus den vier Ecken eines Kandidaten berechnet `perspectivePoint()` die perspektivische
+Abbildung vom Musterzettel ins Foto.
 
-Wenn kein brauchbarer perspektivischer Rahmen gefunden wird, verwendet der Algorithmus
-die Papierlage, einen plausiblen geraden Rahmen oder als letzte grobe Schätzung die Lage
-aus Bildgröße und Kalibrierung.
+### Bestätigung am Musterzettel
+
+Welcher Kandidat stimmt, entscheidet `scoreFrame()`: Für jeden Kandidaten werden alle
+Ankreuzfelder an die Stelle projiziert, an der er sie erwarten lässt, und dort der Ringwert
+(siehe 4.1) gemessen. Die drei bestbewerteten Kandidaten werden der Reihe nach mit der
+Ringausrichtung (Abschnitt 4) versucht; der erste, der sie besteht, trägt.
+
+### Rückfall: Linien-Suche
+
+Nur wenn kein Viereck zu einer Ausrichtung führt, sucht `findPerspectiveFrame()` innerhalb
+der Papierfläche die vier gedruckten Rahmenlinien einzeln (obere Linie mit Neigung, untere
+Linie bevorzugt aus den äußersten Randpunkten, linke und rechte Senkrechte, dann die
+Schnittpunkte). Diese Suche ist teuer und dient deshalb nur noch als weiterer Kandidat und
+als Lage für den OCR-Rückfall.
+
+Wenn auch sie keinen brauchbaren Rahmen liefert, verwendet der OCR-Rückfall die
+Papierlage, einen plausiblen geraden Rahmen oder als letzte grobe Schätzung die Lage aus
+Bildgröße und Kalibrierung.
 
 ## 4. Primärer Erkennungsweg: gedruckte Ankreuzringe
 
@@ -85,9 +124,13 @@ informativ sind.
 ### 4.2 Lokale Ringsuche
 
 Für jedes Feld wird ein kleiner, perspektivisch normalisierter Ausschnitt erzeugt
-(`normalizeField`). Innerhalb des Ausschnitts wird der Ring in einer kleinen Umgebung
+(`normalizeField`). Innerhalb des Ausschnitts wird der Ring im Umkreis von 1,2 Ringradien
 verschoben und mit 72 Messpunkten bewertet. Die Messung berücksichtigt den Ring und sein
 Umfeld, nicht nur die Mitte des Feldes.
+
+Gesucht wird grob nach fein: zuerst jede zweite Position im ganzen Fenster, danach
+pixelgenau um die beste. Das Fenster bleibt so weit wie vorher, braucht aber nur gut ein
+Viertel der Rechenschritte.
 
 ### 4.3 Robuste affine Ringtransformation
 
@@ -100,10 +143,16 @@ koordinaten. `determineRingTransformation()`:
 4. wählt die Lösung mit den meisten und stärksten Treffern,
 5. berechnet die affine Lösung erneut aus allen Inliern.
 
-Eine Lösung wird nur akzeptiert, wenn mindestens sechs Ringe ausreichend kontrastreich und
-über den Zettel verteilt sind, die Transformation geometrisch plausibel ist und keine
+Eine Lösung wird nur akzeptiert, wenn mindestens sechs Ringe ausreichend kontrastreich
+(mittlerer Ringwert mindestens 0,32) und über den Zettel verteilt sind (mindestens 80 Pixel
+in x und 300 Pixel in y), die Transformation geometrisch plausibel ist und keine
 unrealistische Drehung oder Scherung enthält. Die lineare Ausgleichsrechnung für die
 Transformation liegt gemeinsam in `src/leastSquares.js`.
+
+**Eine Ringspalte:** Liegen alle Ringe untereinander (Europawahl, x-Spanne unter 80 Pixel),
+ist die Streckung quer zur Spalte aus den Ringen nicht bestimmbar. Sie bleibt dann wie vom
+Rahmen vorgegeben; bestimmt werden nur Lage, Neigung und Längsstreckung, und als Startlösung
+genügen Zweierkombinationen.
 
 Danach werden alle kalibrierten Feldlagen mit dieser Transformation projiziert und lokal
 noch einmal auf ihren gedruckten Ring eingerastet.
@@ -188,15 +237,22 @@ bleiben eine Entscheidung des Wahlvorstands.
 ## 8. Fehler- und Diagnoseverhalten
 
 Die Verarbeitung bricht ab, wenn keine ausreichende Zettellage erkannt wird oder weder
-Ring- noch OCR-Ausrichtung eine belastbare Geometrie liefern. Die Protokollierung kann über
-`setLogging(true)` aktiviert werden und misst unter anderem:
+Ring- noch OCR-Ausrichtung eine belastbare Geometrie liefern. Ein Foto wird lieber
+abgelehnt als geraten gewertet. Die Protokollierung kann über `setLogging(true)`
+aktiviert werden und misst unter anderem:
 
 - Dunkelheitskarte
 - Papier- und Rahmensuche
-- perspektivischen Druckrahmen
+- Rahmenkandidaten und gegebenenfalls die Linien-Suche
 - Ring- oder OCR-Ausrichtung
 - Feldmessung
 - gesamte Bildverarbeitung
+
+Auf einem PC zeigt die Oberfläche die Aufnahme mit den Ankreuzfeldern als farbige Ringe
+(`drawFelder`: grün angekreuzt, ocker unklar, grau leer). Daran sieht man sofort, ob die
+Ausrichtung stimmt. Auf dem Smartphone entfällt die Vorschau, dort liegt der Zettel vor einem.
+
+Ein Foto von 1600 Pixel Breite braucht für die Erkennung am PC etwa 230 ms.
 
 Bei der OCR werden die erwarteten Textmarken einzeln mit einem Haken für erkannte Marken
 ausgegeben. So lässt sich unterscheiden, ob die Aufnahme unscharf ist oder ob eine
@@ -204,7 +260,16 @@ Kalibrierungsmarke falsch vermessen wurde.
 
 ## 9. Tests und Nachvollziehbarkeit
 
-Die Erkennung wird mit synthetischen PNG-Fällen und echten Smartphone-Fotos geprüft:
+Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Zettelart unter
+`Testdaten/<kalibrierung>/`:
+
+- `scans/`: aus dem Musterzettel erzeugte PNG-Fälle (Kreuze, Mehrfach, Rauschen, Drehung),
+- `fotos-serie<n>/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (53 Stück),
+- `synthetisch/`: für jede Zettelart drei künstliche Fotos (gerade, leicht schräg,
+  4 Grad gedreht), erzeugt mit `node scripts/erzeugeSynthetischeFotos.js`.
+
+Fotos und synthetische Fotos müssen **ohne OCR** richtig gewertet werden. Die Tests laden
+JPEGs mit `sharp` und verkleinern sie wie der Browser auf 1600 Pixel Breite.
 
 ```powershell
 npm test
