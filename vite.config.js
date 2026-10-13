@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
@@ -17,6 +17,8 @@ const copyFiles = (source, destination, files = readdirSync(source)) => {
 };
 
 const syncAssets = () => {
+  // Vorher leeren: sonst bleiben umbenannte oder geloeschte Kalibrierungen als veraltete Kopie liegen.
+  rmSync(resolve(publicDir, 'Kalibrierungen'), { recursive: true, force: true });
   copyFiles(kalibrierungSource, resolve(publicDir, 'Kalibrierungen'),
     readdirSync(kalibrierungSource).filter(file => file.endsWith('.json')));
   copyFiles(resolve(pdfjsSource, 'build'), resolve(publicDir, 'vendor/pdfjs'), ['pdf.worker.min.mjs']);
