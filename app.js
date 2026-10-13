@@ -4,7 +4,7 @@
  */
 import { loadKalibrierung } from './src/kalibrierung.js';
 import { toImageData } from './src/browserImage.js';
-import { stimmRows, isUnambiguous, COLORS } from './src/wertungAnzeige.js';
+import { stimmRows, isUnambiguous, COLORS, drawFelder } from './src/wertungAnzeige.js';
 import { setLogging } from './src/log.js';
 import { isPdf, pdfPageAsImage } from './src/pdf.js';
 import { KALIBRIERUNG } from './configuration.js';
@@ -34,6 +34,22 @@ const showWertung = result => {
   field.hidden = false;
 };
 
+/**
+ * Zeigt die Aufnahme; nach erfolgreicher Erkennung mit den Ankreuzfeldern als farbigen Ringen.
+ * Nur am PC - auf dem Smartphone liegt der Zettel ohnehin vor einem.
+ */
+const mitVorschau = !globalThis.matchMedia?.('(pointer: coarse)').matches;
+const showAufnahme = (imageData, result) => {
+  if (!mitVorschau) return;
+  const canvas = $('aufnahme');
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  const context = canvas.getContext('2d');
+  context.putImageData(imageData, 0, 0);
+  if (result) drawFelder(context, result, { lineWidth: Math.max(2, Math.round(imageData.width / 400)) });
+  $('aufnahmeBereich').hidden = false;
+};
+
 /** Loescht die vorherige Wertung, sobald eine neue Aufnahme angestossen wird - sonst
  *  bliebe bei einem abgebrochenen Kamerabild das alte Ergebnis fehlerhaft stehen. */
 const clearWertung = () => {
@@ -42,6 +58,7 @@ const clearWertung = () => {
   field.hidden = true;
   field.innerHTML = '';
   delete field.dataset.eindeutig;
+  $('aufnahmeBereich').hidden = true;
 };
 
 /** Aufnahmen kommen als Bild von der Kamera, koennen aber auch ein PDF-Scan sein. */
@@ -52,12 +69,16 @@ const capture = async file => {
   $('erfassenKnopf').disabled = true;
   status.hidden = true;
   delete status.dataset.art;
+  let imageData;
   try {
-    const imageData = await toImage(file);
+    imageData = await toImage(file);
     const result = await state.typ.recognize(imageData);
     showWertung(result);
+    showAufnahme(imageData, result);
     $('erfassenKnopfText').textContent = 'Nächsten Stimmzettel aufnehmen';
   } catch (error) {
+    // Auch ohne Wertung hilft das Bild zu sehen, was an der Aufnahme nicht stimmt.
+    if (imageData) showAufnahme(imageData);
     showError(status, error);
   } finally {
     $('erfassenKnopf').disabled = false;

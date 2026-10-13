@@ -97,6 +97,20 @@ h1 {
   text-transform: uppercase;
 }
 
+.aufnahme-bereich {
+  padding: 16px 18px 0;
+}
+
+/* Lange Zettel (Europawahl rund 1:4) nicht ueber den ganzen Bildschirm strecken. */
+.aufnahme {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  margin: 0 auto;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgb(46 60 51 / 12%);
+}
+
 .actions {
   padding: 18px;
 }

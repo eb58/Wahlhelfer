@@ -16,7 +16,8 @@
 
 ## Projektwissen
 
-Siehe "Konzeptstudie Digitaler Wahlassistent.md"
+Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkennungsweg steht in
+`docs/Algorithm.md`.
 
 ## Aufbau der Erkennung
 
@@ -57,8 +58,9 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 - Bilddaten immer ueber `toDarkness()` einlesen: es rechnet Transparenz ueber Weiss. Sonst
   liefert `canvas.getImageData()` durchsichtige Bereiche als Schwarz und der Rahmen verrutscht.
 - Stimmzettel sind heute oft sehr lang (Europawahl rund 1:4). Deshalb begrenzt `browserImage.js`
-  die **Breite** der Aufnahme, nicht die laengste Kante. Die Aufnahme wird nur intern erkannt;
-  die Oberflaeche zeigt keine Bildvorschau, sondern konzentriert sich auf die Wertung.
+  die **Breite** der Aufnahme, nicht die laengste Kante. Am PC zeigt die Oberflaeche die Aufnahme
+  mit den erkannten Ankreuzfeldern (`drawFelder`); auf dem Smartphone (`pointer: coarse`) nicht -
+  dort liegt der Zettel vor einem, die Oberflaeche konzentriert sich auf die Wertung.
 
 ## Werkzeuge
 
@@ -69,6 +71,12 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
   erzeugen, wenn sich Musterzettel oder Kalibrierung aendern; der Zufall ist fest geseedet.
 - `configuration.js` legt fest, welche Kalibrierung im Einsatz gilt. Pro Wahl einmal setzen;
   die Oberflaeche bietet keine Auswahl an.
+
+## Veroeffentlichung
+
+- GitHub Pages liefert den Root von `main` **ungebuendelt** aus (eb58.github.io/Wahlhelfer/).
+  `index.html`, `app.js`, `styles.css` und `configuration.js` muessen deshalb im Projekt-Root
+  bleiben, ebenso `Kalibrierungen/`. Der Vite-Build (`dist/`) ist nur fuer lokale Vorschau.
 
 ## Externe Ressourcen
 
