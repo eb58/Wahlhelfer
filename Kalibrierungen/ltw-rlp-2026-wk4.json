@@ -1,7 +1,7 @@
 {
   "version": 4,
   "name": "Landtagswahl Rheinland-Pfalz 2026, Wahlkreis 4 (Neuwied)",
-  "quelle": "Testdaten/Musterstimmzettel_LTW_Neuwied.png",
+  "quelle": "Testdaten/ltw-rlp-2026-wk4/musterzettel.png",
   "vermessenAm": "2026-08-04",
   "referenz": { "breite": 1125, "hoehe": 1375 },
   "frame": { "left": 42.5, "right": 1082.5, "top": 169, "bottom": 1328 },

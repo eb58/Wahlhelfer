@@ -2,8 +2,8 @@
  * Erzeugt synthetische Smartphone-Fotos fuer alle Kalibrierungen, fuer die es keine echten Fotos gibt.
  *
  * Der Musterzettel bekommt je Stimme ein Kreuz und wird perspektivisch auf einen Holztisch mit
- * Helligkeitsverlauf und Rauschen gelegt. Die Ergebnisse liegen als JPEG mit Manifest unter
- * `Testdaten/fixtures/synthetische_fotos/` und werden von `test/synthetischeFotos.test.js` gelesen.
+ * Helligkeitsverlauf und Rauschen gelegt. Die Ergebnisse liegen je Zettelart als JPEG mit Manifest
+ * unter `Testdaten/<kalibrierung>/synthetisch/` und werden von `test/synthetischeFotos.test.js` gelesen.
  * Neu erzeugen nur, wenn sich Musterzettel oder Kalibrierung aendern:
  *   node scripts/erzeugeSynthetischeFotos.js
  * Der Zufall ist fest geseedet - dieselben Eingaben ergeben dieselben Bilder.
@@ -14,7 +14,6 @@ import { readPng } from '../src/png.js';
 import { loadKalibrierung } from '../src/kalibrierung.js';
 
 const root = new URL('../', import.meta.url);
-const folder = new URL('Testdaten/fixtures/synthetische_fotos/', root);
 
 /** Bildpunkt -> Lage im Musterzettel (0..1), Umkehrung der Abbildung Einheitsquadrat -> Viereck. */
 const inverseHomography = ([topLeft, topRight, bottomRight, bottomLeft]) => {
@@ -110,21 +109,23 @@ const lagen = {
   },
 };
 
-mkdirSync(folder, { recursive: true });
-const faelle = zettelarten.flatMap(kalibrierung => {
+for (const kalibrierung of zettelarten) {
   const json = readFileSync(new URL(`Kalibrierungen/${kalibrierung}`, root), 'utf8');
   const typ = loadKalibrierung(json);
   const muster = readPng(readFileSync(new URL(JSON.parse(json).quelle, root)));
+  const folder = new URL(`Testdaten/${kalibrierung.replace('.json', '')}/synthetisch/`, root);
+  mkdirSync(folder, { recursive: true });
   const width = 1200, height = Math.round(width * muster.height / muster.width * 1.25);
-  return Object.entries(lagen).map(([lage, ecken], index) => {
+  const faelle = Object.entries(lagen).map(([lage, ecken], index) => {
     // Je Lage ein anderes Feld, damit nicht immer dieselbe Zeile angekreuzt ist.
     const markierungen = typ.stimmen.map(stimme => typ.felder.filter(feld => feld.stimme === stimme.id)[index + 1].id);
-    const quad = ecken(width, height);
-    const foto = fotografiere(kreuzeAn(muster, typ, markierungen), { width, height, quad, seed: index + 1 });
-    const datei = `${kalibrierung.replace('.json', '')}-${lage}.jpg`;
+    const foto = fotografiere(kreuzeAn(muster, typ, markierungen), { width, height, quad: ecken(width, height), seed: index + 1 });
+    const datei = `${lage}.jpg`;
     writeFileSync(new URL(datei, folder), jpeg.encode(foto, 85).data);
-    console.log(datei, markierungen.join(' '));
-    return { datei, kalibrierung, lage, markierungen };
+    console.log(kalibrierung, datei, markierungen.join(' '));
+    return { datei, lage, markierungen };
   });
-});
-writeFileSync(new URL('manifest.json', folder), `${JSON.stringify({ erzeugtMit: 'scripts/erzeugeSynthetischeFotos.js', anzahl: faelle.length, faelle }, null, 2)}\n`);
+  const manifest = { erzeugtMit: 'scripts/erzeugeSynthetischeFotos.js', kalibrierung, anzahl: faelle.length, faelle };
+  writeFileSync(new URL('manifest.json', folder), `${JSON.stringify(manifest, null, 2)}
+`);
+}

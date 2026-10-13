@@ -7,7 +7,7 @@ import { readPng } from '../src/png.js';
 import { toDarkness } from '../src/image.js';
 import { findFrame, toAbsolute, frameWidth } from '../src/frame.js';
 
-export const musterZettel = () => readPng(readFileSync(new URL('../Testdaten/Wahlzettel1.png', import.meta.url)));
+export const musterZettel = () => readPng(readFileSync(new URL('../Testdaten/bundestagswahl-2017/musterzettel.png', import.meta.url)));
 
 export const copy = ({ width, height, data }) => ({ width, height, data: new Uint8ClampedArray(data) });
 

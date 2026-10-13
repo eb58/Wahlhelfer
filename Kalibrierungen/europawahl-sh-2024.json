@@ -1,7 +1,7 @@
 {
   "version": 4,
   "name": "Europawahl Schleswig-Holstein 2024",
-  "quelle": "Testdaten/Musterstimmzettel_Europawahl_SH_2024.png",
+  "quelle": "Testdaten/europawahl-sh-2024/musterzettel.png",
   "vermessenAm": "2026-08-01",
   "referenz": { "breite": 1241, "hoehe": 4819 },
   "frame": { "left": 31, "right": 1210.5, "top": 283.5, "bottom": 4699.5 },

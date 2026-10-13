@@ -1,7 +1,7 @@
 {
   "version": 4,
   "name": "Landtagswahl Mecklenburg-Vorpommern 2021, Wahlkreis 24",
-  "quelle": "Testdaten/Musterstimmzettel_LTW_MV_2021_Wahlkreis24.png",
+  "quelle": "Testdaten/ltw-mv-2021-wk24/musterzettel.png",
   "vermessenAm": "2026-08-01",
   "referenz": { "breite": 1241, "hoehe": 4134 },
   "frame": { "left": 42.5, "right": 1186.5, "top": 631, "bottom": 4031.5 },

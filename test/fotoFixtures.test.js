@@ -6,9 +6,9 @@ import { loadKalibrierung } from '../src/kalibrierung.js';
 import { readJpeg, limitWidth } from './fotoWerkstatt.js';
 import { createFotoOcr } from './fotoOcr.js';
 
-const fixtureFolder = new URL('../Testdaten/fixtures/wahlzettel1_fotos/', import.meta.url);
+const fixtureFolder = new URL('../Testdaten/bundestagswahl-2017/fotos-serie1/', import.meta.url);
 const manifest = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder), 'utf8'));
-const fixtureFolder2 = new URL('../Testdaten/fixtures/wahlzettel2_fotos/', import.meta.url);
+const fixtureFolder2 = new URL('../Testdaten/bundestagswahl-2017/fotos-serie2/', import.meta.url);
 const manifest2 = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder2), 'utf8'));
 const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
 const sorted = values => [...values].sort();

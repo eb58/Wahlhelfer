@@ -1,0 +1,31 @@
+{
+  "erzeugtMit": "scripts/erzeugeSynthetischeFotos.js",
+  "kalibrierung": "ltw-mv-2021-wk24.json",
+  "anzahl": 3,
+  "faelle": [
+    {
+      "datei": "gerade.jpg",
+      "lage": "gerade",
+      "markierungen": [
+        "E2",
+        "Z2"
+      ]
+    },
+    {
+      "datei": "schraeg.jpg",
+      "lage": "schraeg",
+      "markierungen": [
+        "E3",
+        "Z3"
+      ]
+    },
+    {
+      "datei": "gedreht.jpg",
+      "lage": "gedreht",
+      "markierungen": [
+        "E4",
+        "Z4"
+      ]
+    }
+  ]
+}

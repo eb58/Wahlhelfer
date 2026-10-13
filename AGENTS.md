@@ -65,7 +65,7 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 - `python scripts/pruefeKalibrierung.py <datei.json> [ausgabe.png]` zeichnet Feld- und Textmarken in
   den Musterzettel - die Sichtkontrolle nach jeder Aenderung an einer Kalibrierung.
 - `node scripts/erzeugeSynthetischeFotos.js` erzeugt fuer jede Kalibrierung drei synthetische Fotos
-  (gerade, leicht schraeg, 4 Grad gedreht) unter `Testdaten/fixtures/synthetische_fotos/`. Nur neu
+  (gerade, leicht schraeg, 4 Grad gedreht) unter `Testdaten/<kalibrierung>/synthetisch/`. Nur neu
   erzeugen, wenn sich Musterzettel oder Kalibrierung aendern; der Zufall ist fest geseedet.
 - `configuration.js` legt fest, welche Kalibrierung im Einsatz gilt. Pro Wahl einmal setzen;
   die Oberflaeche bietet keine Auswahl an.
@@ -79,10 +79,14 @@ Siehe "Konzeptstudie Digitaler Wahlassistent.md"
 
 ## Pruefen
 
+- Testdaten liegen je Zettelart unter `Testdaten/<kalibrierung>/` (Name wie die Datei in
+  `Kalibrierungen/`): `musterzettel.png` (+ PDF), dazu je nach Bestand `scans/`, `fotos-serie<n>/`
+  und `synthetisch/`, jeweils mit `manifest.json`. Neue Zettelart = neuer Ordner.
+
 - Vor dem Abschluss die betroffenen Tests ausfuehren.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
-- Die Fototests enthalten derzeit 20 Aufnahmen aus `wahlzettel1_fotos` und 33 Aufnahmen aus
-  `wahlzettel2_fotos`; alle laufen ueber den Ringpfad, ein vollständiger Lauf dauert knapp eine Minute.
+- Die Fototests enthalten derzeit 20 Aufnahmen aus `bundestagswahl-2017/fotos-serie1` und 33 aus
+  `bundestagswahl-2017/fotos-serie2`; alle laufen ueber den Ringpfad, ein vollständiger Lauf dauert knapp eine Minute.
   Faellt ein Foto in den OCR-Rueckfall, wird er deutlich langsamer.
 - Fuer die anderen Zettelarten gibt es keine echten Fotos; `synthetischeFotos.test.js` prueft sie
   ohne OCR. Bekannte Luecken stehen dort als `todo` mit Begruendung - sie muessen sicher abgelehnt,

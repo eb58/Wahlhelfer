@@ -1,0 +1,28 @@
+{
+  "erzeugtMit": "scripts/erzeugeSynthetischeFotos.js",
+  "kalibrierung": "europawahl-sh-2024.json",
+  "anzahl": 3,
+  "faelle": [
+    {
+      "datei": "gerade.jpg",
+      "lage": "gerade",
+      "markierungen": [
+        "L2"
+      ]
+    },
+    {
+      "datei": "schraeg.jpg",
+      "lage": "schraeg",
+      "markierungen": [
+        "L3"
+      ]
+    },
+    {
+      "datei": "gedreht.jpg",
+      "lage": "gedreht",
+      "markierungen": [
+        "L4"
+      ]
+    }
+  ]
+}
