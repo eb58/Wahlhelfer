@@ -56,7 +56,7 @@ schrumpft von rund 3 MB auf rund 0,5 MB. An allen 53 echten Fotos geprüft: Selb
 ändert sich keine Wertung; die Fototests erkennen genau dieses Beleg-JPEG. Die Belege liegen im Belegordner der PHP-API (`bilder_path`, Standard `php-api/bilder/`); die DB enthält ihren SHA-256-Hash
 und Dateityp. Der Hash bestimmt den Dateinamen, verbindet Aufnahme und Ergebnis und wird beim
 Abruf geprüft. Bilder sind ausschließlich über die authentifizierte Server-API zugänglich.
-Das Control-Center zeigt pro Stapel die einzelnen Zettel mit Ergebnis und Beleg.
+Das ControlCenter zeigt pro Stapel die einzelnen Zettel mit Ergebnis und Beleg.
 Bei PDF-Eingaben wird die erste Seite erkannt und als Beleg-JPEG gespeichert. Ältere Belege aus der
 Zeit vor der Verkleinerung (PNG, Original-JPEG, PDF) bleiben gültig und abrufbar.
 
@@ -68,7 +68,7 @@ gespeichert; jeder Zettel hat trotzdem seine eigene Zuordnung. Das ersetzt keine
 
 Stapel und alle Zettel werden gemeinsam in einer Transaktion gespeichert. Dieselbe
 Stapelkennung mit denselben Ergebnissen zählt nicht erneut. Die Prüfsumme bezieht sich nur
-auf die Ergebnisse, Zuordnungen und den Hash/Dateityp des Belegs. Die Ergebnisübersicht summiert die JSON-Einzelergebnisse
+auf die Ergebnisse, Zuordnungen und den Hash/Dateityp des Belegs. Das ControlCenter summiert die JSON-Einzelergebnisse
 je Partei/Kandidat, Stimme, Stapel und Wahllokal. Es gibt keine separaten Tabellen oder Views
 für Stimmenwertungen, Markierungen oder Summen.
 

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { IDBFactory } from 'fake-indexeddb';
-import { loadStapel, saveStapel, toUpload } from '../src/stapelStorage.js';
+import { loadStapel, saveStapel, toUpload } from '../erfassungsplatz/stapelStorage.js';
 
 test('Originalbilder und Ergebnisse werden dauerhaft zusammen gespeichert und erst nach Bestätigung gelöscht', async () => {
   globalThis.indexedDB = new IDBFactory();

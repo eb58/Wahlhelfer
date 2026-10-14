@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="de" data-app-base="../">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f0e8" />
+    <title>Erfassungsplatz – Wahlassistent</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="intro">
+        <span class="eyebrow">Erfassungsplatz</span>
+        <h1>Digitaler</h1>
+        <h1>Wahlassistent.</h1>
+        <p class="wahl" id="wahl" hidden></p>
+      </section>
+
+      <!-- Anmeldung: ohne gueltige Sitzung blendet styles.css alle anderen Abschnitte aus. -->
+      <section class="karte panel" id="anmeldung">
+        <form id="anmeldeForm" hidden>
+          <label>Benutzername <input name="username" autocomplete="username" autocapitalize="none" required /></label>
+          <label>Passwort <input name="password" type="password" autocomplete="current-password" required /></label>
+          <button class="knopf" type="submit">Anmelden</button>
+        </form>
+        <form id="passwortForm" hidden>
+          <p class="hinweis">Bitte jetzt ein eigenes Passwort festlegen (mindestens 12 Zeichen).</p>
+          <label>Bisheriges Passwort <input name="currentPassword" type="password" autocomplete="current-password" required /></label>
+          <label>Neues Passwort <input name="newPassword" type="password" autocomplete="new-password" minlength="12" required /></label>
+          <button class="knopf" type="submit">Passwort ändern</button>
+        </form>
+        <p class="angemeldet" id="angemeldet" hidden><span id="angemeldetAls"></span> <button class="datei-knopf" id="abmelden" type="button">Abmelden</button></p>
+        <p class="status" id="anmeldeStatus" role="status" data-art="fehler" hidden></p>
+      </section>
+
+      <section class="karte panel">
+        <form id="stapelForm">
+          <label>Wahllokal <select id="wahllokal" required><option value="">Wahllokale werden geladen …</option></select></label>
+          <label>Stimmzettel im Stapel <input id="stapelSoll" type="number" min="1" max="100" value="20" required /></label>
+          <button class="knopf" id="stapelStart" type="submit" disabled>Stapel beginnen</button>
+        </form>
+        <p id="stapelFortschritt" aria-live="polite">Noch kein Stapel begonnen.</p>
+        <button class="datei-knopf" id="stapelVerwerfen" type="button" hidden>Leeren Stapel verwerfen</button>
+        <p class="hinweis">Zettel vorher zählen. Nach jeder bestätigten Aufnahme den Zettel auf den Ausgangsstapel legen; Prüffälle mit Stapelzuordnung aussondern. Ohne QR-Erkennung bleiben unbemerkte Doppelaufnahmen möglich.</p>
+        <label id="stapelKontrolle" hidden><input id="eingangLeer" type="checkbox" /> Eingangsstapel leer; Ausgangsstapel und ausgesonderte Prüffälle sind vollständig.</label>
+        <button class="knopf" id="stapelSenden" type="button" hidden>Stapel an Server senden</button>
+        <p class="status" id="stapelStatus" role="status" hidden></p>
+      </section>
+
+      <!-- Erfassen: Aufnahme eines ausgefuellten Zettels. Die Zettelart steht in configuration.js. -->
+      <section class="karte" id="ansichtErfassen">
+        <div class="actions">
+          <button class="knopf" id="erfassenKnopf" type="button">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M8.5 6.5 10 4h4l1.5 2.5H19A2.5 2.5 0 0 1 21.5 9v8A2.5 2.5 0 0 1 19 19.5H5A2.5 2.5 0 0 1 2.5 17V9A2.5 2.5 0 0 1 5 6.5h3.5Z" />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+            <span id="erfassenKnopfText">Stimmzettel aufnehmen</span>
+          </button>
+          <input id="erfassenEingabe" class="visually-hidden" type="file" accept="image/*" capture="environment" aria-label="Stimmzettel mit der Kamera aufnehmen" />
+          <button class="datei-knopf" id="dateiKnopf" type="button">Bild oder PDF aus Dateien wählen</button>
+          <input id="dateiEingabe" class="visually-hidden" type="file" accept="image/*,application/pdf" aria-label="Stimmzettel aus Dateien wählen" />
+          <p class="status" id="erfassenStatus" hidden></p>
+        </div>
+
+        <div class="wertung-bereich" id="wertungBereich" hidden>
+          <h2>Ergebnis der Ankreuzerkennung</h2>
+          <p class="wertung" id="wertung" aria-live="polite" hidden></p>
+          <button class="knopf" id="zettelBestaetigen" type="button" hidden>Erkennung geprüft – Zettel zum Stapel hinzufügen</button>
+          <button class="datei-knopf" id="zettelVerwerfen" type="button" hidden>Aufnahme verwerfen und erneut aufnehmen</button>
+        </div>
+
+        <!-- Die geladene Aufnahme mit den Ankreuzfeldern, wie die Erkennung sie gefunden hat. -->
+        <div class="aufnahme-bereich" id="aufnahmeBereich" hidden>
+          <canvas class="aufnahme" id="aufnahme" role="img" aria-label="Aufnahme mit den erkannten Ankreuzfeldern"></canvas>
+        </div>
+      </section>
+
+      <!-- Fortschritt des gewaehlten Wahllokals ueber alle Erfassungsplaetze, ohne Stimmen. -->
+      <section class="karte panel" id="monitor" aria-live="polite" hidden></section>
+    </main>
+
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

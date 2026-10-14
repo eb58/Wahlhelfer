@@ -2,9 +2,10 @@
 import { createWorker } from 'tesseract.js';
 import { toImageUrl, toTextStripUrl } from './browserImage.js';
 import { log, round } from './log.js';
+import { appUrl } from '../appUrl.js';
 
 const state = {};
-const assetPath = path => `${import.meta.env.BASE_URL}vendor/${path}`;
+const assetPath = path => appUrl(`vendor/${path}`);
 
 const saveDebugImage = (imageUrl, regions) => {
   if (new URLSearchParams(globalThis.location?.search ?? '').get('ocrDebug') !== '1') return;

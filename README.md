@@ -98,12 +98,14 @@ daraus nur die fachlichen Wahlvorschläge.
 | `GET` | `/api/session` | angemeldetes Konto |
 | `DELETE` | `/api/session` | abmelden |
 | `POST` | `/api/session/password` | eigenes Passwort ändern (`currentPassword`, `newPassword`) |
-| `GET` | `/api/wahllokale` | registrierte Wahllokale und Hash der Wahl |
+| `GET` | `/api/wahllokale` | registrierte Wahllokale mit Fortschritt (Zähler, keine Stimmen) und Hash der Wahl |
 | `POST` | `/api/wahllokale` | Wahllokal registrieren (nur Admin) |
 | `PUT` | `/api/bilder/{sha256}` | Beleg hochladen (Rohdaten, `Content-Type` des Bildes) |
 | `POST` | `/api/stapel` | vollständigen Stapel übertragen; Zettel verweisen per Hash auf ihre Belege |
-| `GET` | `/api/ergebnisse` | Summen je Stapel, Wahllokal und insgesamt |
-| `GET` | `/api/stimmzettel/{id}/bild` | Beleg eines Zettels |
+| `GET` | `/api/ergebnisse` | Summen je Wahllokal und insgesamt, je Stapel nur Zähler (nur Admin) |
+| `GET` | `/api/stapel/{id}` | ein Stapel mit Summen und allen Belegen (nur Admin) |
+| `GET` | `/api/prueffaelle` | alle Zettel mit leerer, mehrfacher oder unklarer Stimme (nur Admin) |
+| `GET` | `/api/stimmzettel/{id}/bild` | Beleg eines Zettels (nur Admin) |
 | `GET` | `/health` | Datenbank erreichbar? `tokenReceived` zeigt, ob das Token ankommt |
 
 Außer der Anmeldung brauchen alle `/api`-Aufrufe das Sitzungstoken (`Authorization: Bearer …`,
@@ -116,11 +118,11 @@ Jede Person hat ein eigenes Konto, wie bei Mitgliederverwaltung und Gratulations
 
 | Rolle | darf |
 |---|---|
-| `admin` | Wahllokale registrieren, in jedem Wahllokal erfassen, alle Ergebnisse und Belege sehen |
-| `wahlvorstand` | nur im eigenen Wahllokal erfassen und nur dessen Ergebnis und Belege sehen |
+| `admin` | ControlCenter: Wahllokale registrieren, alle Ergebnisse und Belege sehen; Erfassungsplatz für jedes Wahllokal |
+| `wahlvorstand` | nur Erfassungsplatz, nur im eigenen Wahllokal; sieht dort den Fortschritt, aber keine Ergebnisse oder Belege |
 
 Jeder Stapel merkt sich, mit welchem Konto er übertragen wurde (`stapel.erfasst_von`). Konten legt
-vorerst ein Skript an; eine Kontenverwaltung im Control-Center kann später folgen:
+vorerst ein Skript an; eine Kontenverwaltung im ControlCenter kann später folgen:
 
 ```text
 php create-user.php <name> <passwort> admin
@@ -139,19 +141,39 @@ Handyfotos wäre sonst über 100 MB JSON und sprengte das Speicherlimit von PHP.
 prüft Hash und Dateityp jedes Belegs, legt ihn unter seinem SHA-256 ab und nimmt einen Stapel
 nur an, wenn alle Belege vorliegen. Ein erneuter Upload derselben Datei ist harmlos.
 
-Unter `ergebnisse.html` zuerst Wahllokale mit erwarteter Stimmzettelzahl registrieren. Auf der
-Startseite Wahllokal und Stapelgröße wählen (Standard: 20). Wie bei der Ergebnisseite legt
-`index.html?wahllokal=518` die Erfassung auf ein Wahllokal fest – praktisch als Link oder QR-Code
+Die Anwendung besteht aus zwei getrennten Teilen in eigenen Ordnern, ohne Verweise aufeinander:
+dem **Erfassungsplatz** (`erfassungsplatz/`) für die Wahlhelfer im Wahllokal und dem
+**ControlCenter** (`controlcenter/`) für das Wahlamt, nur für Admins. Die Startseite `index.html`
+leitet auf den Erfassungsplatz weiter.
+
+Im ControlCenter unter *Verwaltung* zuerst die Wahllokale mit erwarteter Stimmzettelzahl
+registrieren – einzeln oder als CSV (`Nummer;Name;Erwartet`). Am Erfassungsplatz Wahllokal und
+Stapelgröße wählen (Standard: 20). `?wahllokal=518` legt die Erfassung auf ein Wahllokal fest – praktisch als Link oder QR-Code
 für die Wahlhelfer vor Ort. Jede Aufnahme prüfen und zum Stapel
 hinzufügen. Bei vollständigem Stapel den leeren Eingangsstapel bestätigen und übertragen. Bei
 Fehlern bleiben die Daten erhalten; derselbe Stapel kann ohne zusätzliche Zählung erneut
 gesendet werden. Ein Browserprofil bearbeitet jeweils einen aktiven Stapel.
 
-Die Übersicht zeigt vorläufige Erkennungssummen je Stapel, Wahllokal und insgesamt sowie
-fehlende Zettel und Prüffälle. Die Wahllokalansicht für den Wahlvorsteher ist direkt verlinkt,
-z. B. `ergebnisse.html?wahllokal=518`, und aktualisiert sich alle 15 Sekunden. Beide Seiten
-zeigen ohne Anmeldung nur das Anmeldeformular; die Sitzung gilt für den Browser-Tab. Ein
-Wahlvorstand sieht auf beiden Seiten nur sein Wahllokal. Es gibt noch keine unabhängige Bild-Gegenprüfung, QR-Erkennung oder protokollierte
+Am Seitenende zeigt der Erfassungsplatz den Monitor des gewählten Wahllokals: Status,
+erfasste von erwarteten Zetteln, Stapel und Prüffälle über alle Erfassungsplätze, Aktualisierung
+alle 15 Sekunden. Stimmen und Belege zeigt er nicht.
+
+Das ControlCenter ist für das Monitoring von 100–150 Wahllokalen gebaut: links die Navigation,
+rechts die Ansichten, alle 15 Sekunden aktualisiert.
+
+| Ansicht | Inhalt |
+|---|---|
+| Dashboard | Kennzahlen, Fortschritt und Status aller Wahllokale, Kachelkarte, vorläufiges Ergebnis, Handlungsbedarf (über Soll, seit 30 Minuten kein Stapel), letzte Eingänge |
+| Wahllokale | Tabelle mit Suche, Statusfilter und Sortierung; Klick öffnet das Wahllokal mit Ergebnis, Stapeln und Belegen |
+| Ergebnisse | vorläufiges Ergebnis je Stimme, Tabelle Wahllokal × Wahlvorschlag mit Summenzeile, CSV-Export |
+| Prüffälle | alle Zettel mit leerer, mehrfacher oder unklarer Stimme, mit Beleg |
+| Eingänge | alle Stapel, neueste zuerst, mit Konto |
+| Verwaltung | Wahllokale registrieren und als CSV importieren |
+
+Die Tabellen sind AG Grid (wie in der Mitgliederverwaltung). Belege eines Stapels und die
+Prüffälle lädt das ControlCenter erst, wenn sie angezeigt werden. Beide Seiten zeigen ohne Anmeldung nur das
+Anmeldeformular; die Sitzung gilt für den Browser-Tab. Ein Wahlvorstand wird im ControlCenter
+abgewiesen, auch die API liefert ihm Ergebnisse und Belege nicht (403). Es gibt noch keine unabhängige Bild-Gegenprüfung, QR-Erkennung oder protokollierte
 Endentscheidung des Wahlvorstands. Eine übergebene `kennung` wird bereits gegen Doppelzählung
 geprüft; das ersetzt noch nicht das autoritative Verzeichnis ausgegebener QR-Kennungen.
 
@@ -194,7 +216,7 @@ Belegordner benötigt.
 Docker Desktop mit Linux-Containern starten. `compose.yaml` betreibt drei Dienste:
 
 - `wahlassistent`: Apache mit PHP 8.4, erreichbar unter `http://localhost:3000/`
-  (Übersicht: `/ergebnisse.html`, Wahllokalansicht z. B. `/ergebnisse.html?wahllokal=518`).
+  (Erfassungsplatz: `/erfassungsplatz/`, z. B. `/?wahllokal=518`; ControlCenter: `/controlcenter/`).
 - `db`: MariaDB 11.4, Daten im Volume `mariadb_daten`, nur im internen Docker-Netz erreichbar.
 - `phpmyadmin`: `http://localhost:8082/`, nur an `127.0.0.1` gebunden.
 

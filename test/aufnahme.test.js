@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../erfassungsplatz/index.html', import.meta.url), 'utf8');
 
 test('Aufnahme-Knopf ist fuer die rueckseitige Kamera eingerichtet', () => {
   assert.match(html, /id="erfassenEingabe"[^>]*accept="image\/\*"[^>]*capture="environment"/);

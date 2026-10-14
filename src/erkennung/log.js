@@ -2,7 +2,7 @@
  * Ablaufprotokoll mit festem Praefix, damit sich die Zeilen in der Konsole filtern lassen.
  *
  * Standardmaessig aus: die Tests sollen still bleiben. Eingeschaltet wird dort, wo jemand
- * zusieht - in app.js fuer den Browser und in den Admin-Skripten. Nie in Pixelschleifen
+ * zusieht - in erfassungsplatz/main.js fuer den Browser und in den Admin-Skripten. Nie in Pixelschleifen
  * verwenden, sondern nur an Entscheidungspunkten des Ablaufs.
  */
 let enabled = false;

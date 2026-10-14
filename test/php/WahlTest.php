@@ -84,11 +84,12 @@ final class WahlTest extends TestCase
         $this->assertSame(1, $result['gesamt']['stimmen'][0]['wahlvorschlaege'][0]['anzahl']);
         $this->assertSame(1, $result['gesamt']['stimmen'][0]['zweifelsfall']);
         $this->assertSame(2, $result['gesamt']['stimmen'][1]['wahlvorschlaege'][0]['anzahl']);
-        $this->assertSame(2, $result['wahllokale'][0]['stapel'][0]['zettel']);
+        $this->assertSame(['id' => 's1', 'eingang' => '2026-10-14T08:00:00.000Z', 'soll' => 2, 'erfasstVon' => null, 'zettel' => 2, 'prueffaelle' => 1],
+            $result['wahllokale'][0]['stapel'][0], 'Je Stapel nur Zaehler, keine Belege');
         $this->assertSame(['id' => 'z2', 'bildtyp' => 'image/png', 'stimmen' => [
             ['id' => 'erststimme', 'status' => 'zweifelsfall', 'wahlvorschlaege' => []],
             ['id' => 'zweitstimme', 'status' => 'gueltig', 'wahlvorschlaege' => ['Z1']],
-        ]], $result['wahllokale'][0]['stapel'][0]['belege'][1]);
+        ]], toBeleg(['id' => 'z2', 'ergebnis' => $ergebnis('zweifelsfall'), 'bildtyp' => 'image/png']));
         $this->assertSame(0, $result['wahllokale'][1]['zettel']);
         $this->assertSame([], $result['wahllokale'][1]['stapel']);
     }

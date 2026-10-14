@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { stimmRows, summary, isUnambiguous, drawFelder } from '../src/wertungAnzeige.js';
-import { loadKalibrierung } from '../src/kalibrierung.js';
+import { stimmRows, summary, isUnambiguous, drawFelder } from '../erfassungsplatz/wertungAnzeige.js';
+import { loadKalibrierung } from '../src/erkennung/kalibrierung.js';
 import { musterZettel, kreuzeAn } from './zettelWerkstatt.js';
 
 const read = file => readFileSync(new URL(`../Kalibrierungen/${file}`, import.meta.url), 'utf8');

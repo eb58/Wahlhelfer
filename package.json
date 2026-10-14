@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@tesseract.js-data/deu": "^1.0.0",
+    "ag-grid-community": "^35.3.1",
     "pdfjs-dist": "^6.2.108",
     "tesseract.js": "^7.0.0"
   },

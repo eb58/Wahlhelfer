@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { adaptiveInk, components, findFrameCandidates, reframe } from '../src/frameQuad.js';
+import { adaptiveInk, components, findFrameCandidates, reframe } from '../src/erkennung/frameQuad.js';
 
 const kalibrierungsFrame = { left: 0, right: 100, top: 0, bottom: 140 };
 

@@ -40,5 +40,5 @@ export default defineConfig({
   base: './',
   server: { proxy },
   preview: { proxy },
-  build: { rollupOptions: { input: { erfassen: resolve(projectRoot, 'index.html'), ergebnisse: resolve(projectRoot, 'ergebnisse.html') } } },
+  build: { rollupOptions: { input: { start: resolve(projectRoot, 'index.html'), erfassungsplatz: resolve(projectRoot, 'erfassungsplatz/index.html'), controlcenter: resolve(projectRoot, 'controlcenter/index.html') } } },
 });

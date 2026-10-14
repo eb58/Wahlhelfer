@@ -3,9 +3,9 @@
  * Die Kreuze werden ins Bild gezeichnet - so sind Sollwerte im Test bekannt.
  */
 import { readFileSync } from 'node:fs';
-import { readPng } from '../src/png.js';
-import { toDarkness } from '../src/image.js';
-import { findFrame, toAbsolute, frameWidth } from '../src/frame.js';
+import { readPng } from '../src/erkennung/png.js';
+import { toDarkness } from '../src/erkennung/image.js';
+import { findFrame, toAbsolute, frameWidth } from '../src/erkennung/frame.js';
 
 export const musterZettel = () => readPng(readFileSync(new URL('../Testdaten/bundestagswahl-2017/musterzettel.png', import.meta.url)));
 

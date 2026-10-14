@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { createWorker } from 'tesseract.js';
-import { writePng } from '../src/png.js';
+import { writePng } from '../src/erkennung/png.js';
 
 const gap = 20;
 

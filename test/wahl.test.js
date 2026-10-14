@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createStapel, addZettel, saveStapel } from '../src/stapel.js';
+import { createStapel, addZettel, saveStapel } from '../erfassungsplatz/stapel.js';
 import { getWahlDefinition } from '../src/wahl.js';
 import { sha256 } from '../src/serverApi.js';
 

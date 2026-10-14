@@ -1,5 +1,7 @@
-/** Relativ zur Seite: die App liegt beim Hoster in einem Unterordner, die PHP-API daneben in php-api/. */
-const apiUrl = path => `php-api/index.php/api/${path}`;
+import { appUrl } from './appUrl.js';
+
+/** Die App liegt beim Hoster in einem Unterordner, die PHP-API daneben in php-api/. */
+const apiUrl = path => appUrl(`php-api/index.php/api/${path}`);
 const TOKEN_KEY = 'wahlassistent-sitzung';
 const token = () => sessionStorage.getItem(TOKEN_KEY) ?? '';
 const $ = id => document.querySelector(`#${id}`);
@@ -35,11 +37,17 @@ export const sha256 = async data => {
 
 export const describeUser = user => `${user.username} · ${user.role === 'admin' ? 'Admin' : `Wahlvorstand ${user.wahllokal}`}`;
 
+export const abmelden = async () => {
+  await send('session', { method: 'DELETE' }).catch(() => {});
+  expired();
+};
+
 /**
  * Anmeldung, Pflicht-Passwortwechsel und Abmelden (Abschnitt #anmeldung auf beiden Seiten).
  * Liefert den angemeldeten Benutzer oder undefined; erst danach laedt die Seite Daten.
+ * `nurAdmin` (ControlCenter): andere Konten bleiben angemeldet, sehen aber nur die Abweisung.
  */
-export const setupAnmeldung = async () => {
+export const setupAnmeldung = async ({ nurAdmin = false } = {}) => {
   const show = id => ['anmeldeForm', 'passwortForm', 'angemeldet'].forEach(key => { $(key).hidden = key !== id; });
   const fail = error => {
     $('anmeldeStatus').textContent = error.message;
@@ -57,10 +65,7 @@ export const setupAnmeldung = async () => {
   });
   submit('anmeldeForm', async form => sessionStorage.setItem(TOKEN_KEY, (await api('session', form)).token));
   submit('passwortForm', form => api('session/password', form));
-  $('abmelden').addEventListener('click', async () => {
-    await send('session', { method: 'DELETE' }).catch(() => {});
-    expired();
-  });
+  $('abmelden').addEventListener('click', abmelden);
 
   if (!token()) return show('anmeldeForm');
   const user = await api('session').catch(error => { fail(error); });
@@ -68,6 +73,7 @@ export const setupAnmeldung = async () => {
   if (user.passwordChangeRequired) return show('passwortForm');
   $('angemeldetAls').textContent = `Angemeldet als ${describeUser(user)}`;
   show('angemeldet');
+  if (nurAdmin && user.role !== 'admin') return fail(new Error('Diese Seite ist nur für Admins.'));
   document.body.dataset.angemeldet = '';
   return user;
 };

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { loadKalibrierung } from '../src/kalibrierung.js';
+import { loadKalibrierung } from '../src/erkennung/kalibrierung.js';
 import { readFoto } from './fotoWerkstatt.js';
 
 // Erzeugt mit scripts/erzeugeSynthetischeFotos.js: je Zettelart drei Lagen (gerade, schraeg, gedreht)

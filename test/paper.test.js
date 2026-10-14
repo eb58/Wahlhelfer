@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { findPaper, paperToFrame } from '../src/paper.js';
+import { findPaper, paperToFrame } from '../src/erkennung/paper.js';
 import { readFoto } from './fotoWerkstatt.js';
 
 const background = [30, 30, 80];

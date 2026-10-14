@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   determineRingTransformation, transformRing, normalizeField, findRoughRingShift,
-} from '../src/feldNormalisierung.js';
+} from '../src/erkennung/feldNormalisierung.js';
 
 // perspectivePoint wird zur Identitaet, wenn die Bildecken exakt dem Kalibrierungsrahmen entsprechen -
 // so lassen sich Ring-Suche und -Normalisierung unabhaengig von der perspektivischen Projektion testen.

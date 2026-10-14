@@ -95,7 +95,7 @@ final class AnmeldungTest extends DatabaseTestCase
         $this->assertSame(401, $this->request('GET', '/api/session')->statusCode);
     }
 
-    public function testWahlvorstandSiehtUndErfasstNurSeinWahllokal(): void
+    public function testWahlvorstandErfasstNurSeinWahllokalUndHatKeinControlCenter(): void
     {
         $lokal518 = $this->wahllokal('518', 'Schule');
         $lokal519 = $this->wahllokal('519', 'Rathaus');
@@ -104,7 +104,8 @@ final class AnmeldungTest extends DatabaseTestCase
         [$vorstand, $token] = $this->konto('wahlvorstand', '518');
         $this->anmelden($token);
 
-        $this->assertSame([$lokal518], $this->request('GET', '/api/wahllokale')->payload['wahllokale']);
+        $leer = ['zettel' => 0, 'prueffaelle' => 0, 'stapel' => 0, 'letzterEingang' => null];
+        $this->assertSame([$lokal518 + $leer], $this->request('GET', '/api/wahllokale')->payload['wahllokale']);
         $this->assertSame(403, $this->request('POST', '/api/wahllokale', ['nummer' => '520', 'name' => 'Neu', 'erwartet' => 5])->statusCode);
         $other = $this->request('POST', '/api/stapel', $this->stapel($lokal519, [$this->zettel()]));
         $this->assertSame([403, 'Dieses Konto darf nur für Wahllokal 518 erfassen.'], [$other->statusCode, $other->payload['error']]);
@@ -112,13 +113,18 @@ final class AnmeldungTest extends DatabaseTestCase
         $this->assertSame(200, $this->request('POST', '/api/stapel', $own)->statusCode);
         $this->assertSame([['erfasst_von' => $vorstand['id']]], $this->sql('SELECT erfasst_von FROM stapel WHERE id = ?', [$own['id']]));
 
-        $ergebnisse = $this->request('GET', '/api/ergebnisse')->payload;
-        $this->assertSame(['518'], array_column($ergebnisse['wahllokale'], 'nummer'));
-        $this->assertSame(2, $ergebnisse['gesamt']['zettel'], 'Gesamtsumme nur ueber das eigene Wahllokal');
-        $this->assertSame(404, $this->request('GET', "/api/stimmzettel/{$fremd['id']}/bild")->statusCode);
-        $this->assertSame(200, $this->request('GET', "/api/stimmzettel/{$own['zettel'][0]['id']}/bild")->statusCode);
+        // Fortschritt fuer den Erfassungsplatz: nur das eigene Wahllokal, ohne Stimmen.
+        [$fortschritt] = $this->request('GET', '/api/wahllokale')->payload['wahllokale'];
+        $this->assertSame(['518', 2, 1, 1], [$fortschritt['nummer'], $fortschritt['zettel'], $fortschritt['prueffaelle'], $fortschritt['stapel']]);
+        $this->assertArrayNotHasKey('stimmen', $fortschritt);
+        $this->assertSame(403, $this->request('GET', '/api/ergebnisse')->statusCode);
+        $this->assertSame(403, $this->request('GET', '/api/prueffaelle')->statusCode);
+        $this->assertSame(403, $this->request('GET', '/api/stapel/' . rawurlencode($own['id']))->statusCode);
+        $this->assertSame(403, $this->request('GET', "/api/stimmzettel/{$fremd['id']}/bild")->statusCode);
+        $this->assertSame(403, $this->request('GET', "/api/stimmzettel/{$own['zettel'][0]['id']}/bild")->statusCode);
 
         $this->anmelden($this->adminToken);
         $this->assertSame(3, $this->request('GET', '/api/ergebnisse')->payload['gesamt']['zettel']);
+        $this->assertSame(200, $this->request('GET', "/api/stimmzettel/{$fremd['id']}/bild")->statusCode);
     }
 }

@@ -379,14 +379,6 @@ function text(mixed $value, string $name): string
     return trim($value);
 }
 
-function listWahllokale(array $user): array
-{
-    $rows = $user['role'] === 'admin'
-        ? query('SELECT nummer, name, erwartet FROM wahllokal ORDER BY nummer')
-        : query('SELECT nummer, name, erwartet FROM wahllokal WHERE nummer = ?', [$user['wahllokal']]);
-    return array_map(static fn(array $row): array => array_replace($row, ['erwartet' => (int) $row['erwartet']]), $rows);
-}
-
 function registerWahllokal(mixed $value): array
 {
     $nummer = text($value['nummer'] ?? null, 'Wahllokalnummer');
@@ -501,7 +493,7 @@ function addBelege(array &$summe, array $belege): void
 {
     $summe['zettel'] += count($belege);
     foreach ($belege as $beleg) {
-        if (array_filter($beleg['stimmen'], static fn(array $stimme): bool => $stimme['status'] !== 'gueltig')) $summe['prueffaelle']++;
+        if (isPrueffall($beleg)) $summe['prueffaelle']++;
         foreach ($beleg['stimmen'] as $stimme) {
             foreach ($summe['stimmen'] as $s => $ziel) {
                 if ($ziel['id'] !== $stimme['id']) continue;
@@ -515,40 +507,86 @@ function addBelege(array &$summe, array $belege): void
     }
 }
 
-/** Summen je Stapel, Wahllokal und insgesamt aus den gespeicherten Einzelergebnissen. */
+/** Ein gespeicherter Zettel als Beleg: Kennung, Dateityp und Wertung je Stimme. */
+function toBeleg(array $row): array
+{
+    $ergebnis = json_decode($row['ergebnis'], true, 64, JSON_THROW_ON_ERROR);
+    return ['id' => $row['id'], 'bildtyp' => $row['bildtyp'],
+        'stimmen' => array_map(static fn(string $id, array $wertung): array => ['id' => $id] + $wertung, array_keys($ergebnis), $ergebnis)];
+}
+
+function isPrueffall(array $beleg): bool
+{
+    return (bool) array_filter($beleg['stimmen'], static fn(array $stimme): bool => $stimme['status'] !== 'gueltig');
+}
+
+/**
+ * Summen je Wahllokal und insgesamt, je Stapel nur die Zaehler. Einzelne Belege liefert
+ * stapelDetail() - bei 150 Wahllokalen waeren das sonst bei jeder Aktualisierung Megabytes.
+ */
 function buildUebersicht(array $wahl, string $wahlHash, array $wahllokale, array $stapel, array $zettel): array
 {
     $belege = [];
-    foreach ($zettel as $row) {
-        $ergebnis = json_decode($row['ergebnis'], true, 64, JSON_THROW_ON_ERROR);
-        $belege[$row['stapel']][] = ['id' => $row['id'], 'bildtyp' => $row['bildtyp'],
-            'stimmen' => array_map(static fn(string $id, array $wertung): array => ['id' => $id] + $wertung, array_keys($ergebnis), $ergebnis)];
-    }
+    foreach ($zettel as $row) $belege[$row['stapel']][] = toBeleg($row);
     $gesamt = leereSumme($wahl);
     $lokale = [];
     foreach ($wahllokale as $row) $lokale[$row['nummer']] = array_replace($row, ['erwartet' => (int) $row['erwartet']]) + leereSumme($wahl) + ['stapel' => []];
     foreach ($stapel as $row) {
         $data = $belege[$row['id']] ?? [];
-        $summe = leereSumme($wahl);
-        addBelege($summe, $data);
         addBelege($lokale[$row['wahllokal']], $data);
         addBelege($gesamt, $data);
-        $lokale[$row['wahllokal']]['stapel'][] = ['id' => $row['id'], 'eingang' => $row['eingang'], 'soll' => (int) $row['soll']] + $summe + ['belege' => $data];
+        $lokale[$row['wahllokal']]['stapel'][] = ['id' => $row['id'], 'eingang' => $row['eingang'], 'soll' => (int) $row['soll'],
+            'erfasstVon' => $row['erfasst_von'] ?? null, 'zettel' => count($data), 'prueffaelle' => count(array_filter($data, 'isPrueffall'))];
     }
     return ['wahl' => $wahl['name'], 'wahlHash' => $wahlHash, 'gesamt' => $gesamt, 'wahllokale' => array_values($lokale)];
 }
 
-/** Ein Wahlvorstand sieht nur sein Wahllokal; auch die Gesamtsumme umfasst dann nur dieses. */
+/** Ein Wahlvorstand sieht nur sein Wahllokal (Fortschritt am Erfassungsplatz); die Gesamtsumme umfasst dann nur dieses. */
 function uebersicht(array $user): array
 {
     $nur = $user['role'] === 'admin' ? [] : [$user['wahllokal']];
     [$wahllokale, $stapel, $zettel] = transaction(static fn(): array => [
         query('SELECT nummer, name, erwartet FROM wahllokal' . ($nur ? ' WHERE nummer = ?' : '') . ' ORDER BY nummer', $nur),
-        query('SELECT id, wahllokal, eingang, soll FROM stapel' . ($nur ? ' WHERE wahllokal = ?' : '') . ' ORDER BY eingang DESC, id', $nur),
+        query('SELECT s.id, s.wahllokal, s.eingang, s.soll, u.username AS erfasst_von FROM stapel s LEFT JOIN app_user u ON u.id = s.erfasst_von'
+            . ($nur ? ' WHERE s.wahllokal = ?' : '') . ' ORDER BY s.eingang DESC, s.id', $nur),
         query('SELECT z.id, z.stapel, z.ergebnis, z.bildtyp FROM stimmzettel z JOIN stapel s ON s.id = z.stapel'
             . ($nur ? ' WHERE s.wahllokal = ?' : '') . ' ORDER BY z.stapel, z.id', $nur),
     ]);
     return buildUebersicht(wahl(), wahlHash(), $wahllokale, $stapel, $zettel);
+}
+
+/** Ein Stapel mit Summen und allen Belegen, fuer die Detailansicht im ControlCenter. */
+function stapelDetail(string $id): array
+{
+    $row = query('SELECT s.id, s.wahllokal, s.eingang, s.soll, u.username AS erfasst_von FROM stapel s LEFT JOIN app_user u ON u.id = s.erfasst_von WHERE s.id = ?', [$id])[0] ?? null;
+    if (!$row) throw new ApiError('Stapel nicht gefunden.', 404);
+    $belege = array_map('toBeleg', query('SELECT id, ergebnis, bildtyp FROM stimmzettel WHERE stapel = ? ORDER BY id', [$id]));
+    $summe = leereSumme(wahl());
+    addBelege($summe, $belege);
+    return ['id' => $row['id'], 'wahllokal' => $row['wahllokal'], 'eingang' => $row['eingang'], 'soll' => (int) $row['soll'],
+        'erfasstVon' => $row['erfasst_von']] + $summe + ['belege' => $belege];
+}
+
+/** Alle Zettel mit leerer, mehrfacher oder unklarer Stimme, neueste Stapel zuerst. */
+function prueffaelle(): array
+{
+    $rows = query('SELECT z.id, z.ergebnis, z.bildtyp, s.id AS stapel, s.wahllokal, s.eingang FROM stimmzettel z JOIN stapel s ON s.id = z.stapel ORDER BY s.eingang DESC, s.id, z.id');
+    $result = [];
+    foreach ($rows as $row) {
+        $beleg = toBeleg($row);
+        if (isPrueffall($beleg)) $result[] = $beleg + ['stapel' => $row['stapel'], 'wahllokal' => $row['wahllokal'], 'eingang' => $row['eingang']];
+    }
+    return $result;
+}
+
+/** Fortschritt je Wahllokal fuer den Erfassungsplatz: Zaehler ohne Stimmen und Belege. */
+function listWahllokale(array $user): array
+{
+    return array_map(static fn(array $lokal): array => [
+        'nummer' => $lokal['nummer'], 'name' => $lokal['name'], 'erwartet' => $lokal['erwartet'],
+        'zettel' => $lokal['zettel'], 'prueffaelle' => $lokal['prueffaelle'], 'stapel' => count($lokal['stapel']),
+        'letzterEingang' => $lokal['stapel'][0]['eingang'] ?? null,
+    ], uebersicht($user)['wahllokale']);
 }
 
 /* --- Originalbelege ----------------------------------------------------- */
@@ -605,10 +643,10 @@ function storeBild(string $hash, string $type, $stream): bool
     }
 }
 
-function loadStimmzettelBild(array $user, string $id): array
+function loadStimmzettelBild(string $id): array
 {
-    $row = query('SELECT z.bildhash, z.bildtyp, s.wahllokal FROM stimmzettel z JOIN stapel s ON s.id = z.stapel WHERE z.id = ?', [$id])[0] ?? null;
-    if (!$row || !wahllokalErlaubt($user, $row['wahllokal'])) throw new ApiError('Stimmzettel nicht gefunden.', 404);
+    $row = query('SELECT bildhash, bildtyp FROM stimmzettel WHERE id = ?', [$id])[0] ?? null;
+    if (!$row) throw new ApiError('Stimmzettel nicht gefunden.', 404);
     $data = @file_get_contents(bildPath($row['bildhash']));
     if ($data === false) throw new ApiError('Originalbeleg fehlt auf dem Server.', 404);
     if (hash('sha256', $data) !== $row['bildhash']) throw new RuntimeException('Beleg-Prüfsumme stimmt nicht: ' . $row['bildhash']);
@@ -646,13 +684,26 @@ function handleRequest(string $method, string $path): void
         jsonResponse(registerWahllokal(readJsonBody()), 201);
     }
     if ($path === '/api/stapel' && $method === 'POST') jsonResponse(receiveStapel($user, readJsonBody()));
-    if ($path === '/api/ergebnisse' && $method === 'GET') jsonResponse(uebersicht($user));
+    // Ergebnisse und Belege gehoeren ins ControlCenter: nur fuer Admins.
+    if ($path === '/api/ergebnisse' && $method === 'GET') {
+        requireAdmin($user);
+        jsonResponse(uebersicht($user));
+    }
+    if (preg_match('#^/api/stapel/([^/]+)$#', $path, $match) && $method === 'GET') {
+        requireAdmin($user);
+        jsonResponse(stapelDetail(rawurldecode($match[1])));
+    }
+    if ($path === '/api/prueffaelle' && $method === 'GET') {
+        requireAdmin($user);
+        jsonResponse(['prueffaelle' => prueffaelle()]);
+    }
     if (preg_match('#^/api/bilder/([a-f0-9]{64})$#', $path, $match) && $method === 'PUT') {
         if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > BILD_MAX) throw new ApiError('Originalaufnahme ist zu groß (maximal 20 MB).', 413);
         jsonResponse(['hash' => $match[1]], storeBild($match[1], contentType(), requestStream()) ? 201 : 200);
     }
     if (preg_match('#^/api/stimmzettel/([^/]+)/bild$#', $path, $match) && $method === 'GET') {
-        $bild = loadStimmzettelBild($user, rawurldecode($match[1]));
+        requireAdmin($user);
+        $bild = loadStimmzettelBild(rawurldecode($match[1]));
         rawResponse($bild['data'], 200, ['Content-Type' => $bild['type'], 'Cache-Control' => 'no-store', 'Content-Disposition' => 'inline']);
     }
     throw new ApiError('Schnittstelle nicht gefunden.', 404);

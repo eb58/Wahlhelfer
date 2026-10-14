@@ -58,6 +58,24 @@ final class ApiTest extends DatabaseTestCase
         $this->assertSame(0, $result['wahllokale'][1]['zettel']);
     }
 
+    public function testStapelUndPrueffaelleWerdenEinzelnGeladen(): void
+    {
+        $stapel = $this->stapel($this->wahllokal(), [$this->zettel(), $this->zettel('leer'), $this->zettel('zweifelsfall')]);
+        $this->request('POST', '/api/stapel', $stapel);
+        $uebersicht = $this->request('GET', '/api/ergebnisse')->payload['wahllokale'][0]['stapel'][0];
+        $this->assertSame([3, 2, 'admin'], [$uebersicht['zettel'], $uebersicht['prueffaelle'], $uebersicht['erfasstVon']]);
+        $this->assertArrayNotHasKey('belege', $uebersicht);
+
+        $detail = $this->request('GET', '/api/stapel/' . rawurlencode($stapel['id']))->payload;
+        $this->assertSame([$stapel['id'], '001', 3, 2], [$detail['id'], $detail['wahllokal'], $detail['zettel'], $detail['prueffaelle']]);
+        $this->assertCount(3, $detail['belege']);
+        $this->assertSame(404, $this->request('GET', '/api/stapel/unbekannt')->statusCode);
+
+        $prueffaelle = $this->request('GET', '/api/prueffaelle')->payload['prueffaelle'];
+        $this->assertCount(2, $prueffaelle);
+        $this->assertSame(['001', $stapel['id']], [$prueffaelle[0]['wahllokal'], $prueffaelle[0]['stapel']]);
+    }
+
     public function testWiederholungZaehltEinmalUndGeaenderteWiederholungWirdAbgelehnt(): void
     {
         $data = $this->stapel($this->wahllokal(), [$this->zettel()]);
@@ -107,7 +125,7 @@ final class ApiTest extends DatabaseTestCase
     {
         $saved = $this->wahllokal('002', 'Bürgerhaus – Grüße');
         $this->assertApiError(409, '/bereits registriert/', fn() => $this->wahllokal('002', 'Doppeltes Wahllokal'));
-        $this->assertSame([$saved], listWahllokale($this->admin));
+        $this->assertSame([$saved + ['zettel' => 0, 'prueffaelle' => 0, 'stapel' => 0, 'letzterEingang' => null]], listWahllokale($this->admin));
         $this->assertApiError(400, '/Zettelzahl/', static fn() => registerWahllokal(['nummer' => '3', 'name' => 'x', 'erwartet' => '20']));
     }
 

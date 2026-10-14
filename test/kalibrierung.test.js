@@ -6,10 +6,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { loadKalibrierung, FORMAT_VERSION } from '../src/kalibrierung.js';
-import { readPng } from '../src/png.js';
-import { toDarkness, ringDarkness, darkRatio } from '../src/image.js';
-import { innerRadius } from '../src/ankreuzErkennung.js';
+import { loadKalibrierung, FORMAT_VERSION } from '../src/erkennung/kalibrierung.js';
+import { readPng } from '../src/erkennung/png.js';
+import { toDarkness, ringDarkness, darkRatio } from '../src/erkennung/image.js';
+import { innerRadius } from '../src/erkennung/ankreuzErkennung.js';
 import { kreuzeAn } from './zettelWerkstatt.js';
 
 const folder = new URL('../Kalibrierungen/', import.meta.url);

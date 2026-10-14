@@ -72,11 +72,38 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - `configuration.js` legt fest, welche Kalibrierung im Einsatz gilt. Pro Wahl einmal setzen;
   die Oberflaeche bietet keine Auswahl an.
 
+## Erfassungsplatz und ControlCenter
+
+- Zwei getrennte Anwendungen in eigenen Ordnern, ohne Verweise aufeinander: der **Erfassungsplatz**
+  (`erfassungsplatz/`) fuer Wahlhelfer und Wahlvorstand im Wahllokal, das **ControlCenter**
+  (`controlcenter/`) fuer das Wahlamt, nur fuer Admins. Jeder Ordner hat `index.html`, `main.js` und
+  `styles.css`; was nur eine Seite braucht, liegt in ihrem Ordner (Erfassungsplatz: Stapel,
+  IndexedDB-Puffer, Wertungsanzeige, PDF-Aufnahme, Wahllokalauswahl).
+- `src/` enthaelt nur Gemeinsames: oben die Teile beider Seiten bzw. der Vertrag mit dem Server
+  (`serverApi.js`, `appUrl.js`, `wahl.js`, `wahllokalAnzeige.js`), darunter `src/erkennung/` - die
+  Erkennungsbibliothek. Sie haengt an keiner Oberflaeche und laeuft auch in Node (Skripte, Fototests);
+  sie darf nichts aus `erfassungsplatz/` oder `controlcenter/` importieren.
+  Die Root-`index.html` leitet nur auf `erfassungsplatz/` weiter (mit `?wahllokal=`).
+- Die Seiten liegen eine Ebene unter dem App-Root und sagen das mit `<html data-app-base="../">`.
+  Alles, was im App-Root liegt (`php-api/`, `vendor/`, `Kalibrierungen/`), immer ueber
+  `appUrl()` aus `src/appUrl.js` ansprechen, nie relativ zur Seite.
+- Der Erfassungsplatz zeigt vom Server nur den Fortschritt (`GET /api/wahllokale`: Zaehler je
+  Wahllokal, keine Stimmen, keine Belege) im Monitor. Ergebnisse, Stapel, Prueffaelle und Belege
+  (`/api/ergebnisse`, `/api/stapel/{id}`, `/api/prueffaelle`, `/api/stimmzettel/{id}/bild`)
+  verlangen `requireAdmin()`.
+- ControlCenter: `main.js` (Rahmen, Hash-Navigation, Aktualisierung alle 15 s), `ansichten.js` (je
+  Menuepunkt eine Ansicht mit `update(data)`/`destroy()`), `bausteine.js` (DOM-Helfer `h()`, Kacheln,
+  Balken), `tabellen.js` (AG Grid: Theme, deutsche Texte), `auswertung.js` (reine Logik, getestet in
+  `test/controlcenterAuswertung.test.js`). Tabellen immer mit AG Grid und `getRowId`, damit Sortierung
+  und Filter die Aktualisierung ueberstehen. Ausgelegt auf 100-150 Wahllokale: `/api/ergebnisse`
+  liefert keine Einzelbelege, die kommen je Stapel bzw. als Prueffall-Liste erst bei Bedarf.
+
 ## Veroeffentlichung
 
 - GitHub Pages liefert den Root von `main` **ungebuendelt** aus (eb58.github.io/Wahlhelfer/).
-  `index.html`, `app.js`, `styles.css` und `configuration.js` muessen deshalb im Projekt-Root
-  bleiben, ebenso `Kalibrierungen/`. Der Vite-Build (`dist/`) ist nur fuer lokale Vorschau.
+  `index.html` (Weiterleitung), `configuration.js` und `Kalibrierungen/` bleiben deshalb im
+  Projekt-Root. Das ControlCenter braucht den Build (AG Grid kommt aus `node_modules`) und die
+  PHP-API; es laeuft nur gebaut beim Hoster oder lokal im Docker-Stack.
 - Die vollstaendige Anwendung mit Server laeuft beim Hoster (Strato, wie Mitgliederverwaltung und
   Gratulationsdienst): nur PHP und MariaDB, kein Node. Die API steht in `server/` (PHP, `lib.php`),
   wird von `server/deploy.ps1` als `php-api/` neben `dist/` und `configuration.js` gelegt und liest
@@ -93,8 +120,9 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   damit er die Wertung reproduziert; `test/fotoWerkstatt.js` geht in den Fototests denselben Weg.
 - Anmeldung wie in Mitgliederverwaltung und Gratulationsdienst: Konten in `app_user` (Rolle `admin`
   oder `wahlvorstand` mit festem Wahllokal), Sitzungen als SHA-256 in `app_session`, Konten per
-  `server/create-user.php`. Jede Route bekommt den Benutzer aus `requireUser()`; was ein Wahlvorstand
-  sehen oder schreiben darf, entscheidet `wahllokalErlaubt()`. Neue Routen muessen das ebenfalls tun.
+  `server/create-user.php`. Jede Route bekommt den Benutzer aus `requireUser()`; ControlCenter-Routen verlangen
+  `requireAdmin()`, fuer welches Wahllokal ein Wahlvorstand erfassen darf, entscheidet
+  `wahllokalErlaubt()`. Neue Routen muessen das ebenfalls tun.
 - `server/schema.sql` wird an Semikolons zerlegt: keine Semikolons in Kommentaren oder Texten.
 - Belege werden einzeln per `PUT /api/bilder/{sha256}` hochgeladen, der Stapel verweist nur per Hash
   darauf. Nicht wieder Base64 in den Stapel packen: das sprengt das PHP-Speicherlimit.

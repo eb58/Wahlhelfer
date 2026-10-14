@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { loadKalibrierung } from '../src/kalibrierung.js';
-import { readPng } from '../src/png.js';
+import { loadKalibrierung } from '../src/erkennung/kalibrierung.js';
+import { readPng } from '../src/erkennung/png.js';
 
 const fixtureFolder = new URL('../Testdaten/bundestagswahl-2017/scans/', import.meta.url);
 const manifest = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder), 'utf8'));
