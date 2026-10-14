@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wahl-Control-Center – Wahlassistent</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app dashboard">
+      <section class="intro"><span class="eyebrow">Auszählung</span><h1 id="titel">Wahl-Control-Center.</h1><p id="wahl"></p><nav><a href="index.html">Stimmzettel erfassen</a> · <a href="ergebnisse.html" id="bezirkLink" hidden>Alle Wahllokale</a></nav></section>
+      <section class="karte panel">
+        <p class="hinweis">Vorläufige Summen der lokal erkannten Stimmen. Keine unabhängige Bild-Gegenprüfung und keine endgültige Freigabe durch den Wahlvorstand. Leere Stimmen, Mehrfachmarkierungen und Zweifelsfälle bleiben als Prüffälle sichtbar.</p>
+        <details><summary>Serverzugang</summary><form id="zugangForm"><label>Zugangsschlüssel <input id="serverToken" type="password" autocomplete="off" /></label><button class="knopf" type="submit">Zugang übernehmen</button></form></details>
+        <button class="knopf" id="aktualisieren" type="button">Ergebnisse aktualisieren</button>
+        <p class="status" id="status" role="status" hidden></p>
+      </section>
+      <section class="karte panel" id="monitor" aria-live="polite" hidden></section>
+      <section class="karte panel" id="bezirkListe" aria-labelledby="wahllokalTitel">
+        <h2 id="wahllokalTitel">Wahllokale im Wahlbezirk</h2>
+        <p id="wahllokalStand">Alle registrierten Wahllokale, auch ohne eingegangene Stapel.</p>
+        <div class="table-scroll" id="wahllokalListe" aria-live="polite"></div>
+      </section>
+      <details class="karte panel" id="bezirkGesamt"><summary>Gesamtergebnis des Wahlbezirks</summary><div id="gesamt"></div></details>
+      <section id="wahllokale" aria-label="Einzelergebnisse der Wahllokale"></section>
+      <details class="karte panel" id="registrierung"><summary>Wahllokal registrieren</summary>
+        <form id="wahllokalForm">
+          <label>Wahllokalnummer <input name="nummer" maxlength="160" required /></label>
+          <label>Name <input name="name" maxlength="160" required /></label>
+          <label>Erwartete Stimmzettel insgesamt <input name="erwartet" type="number" min="1" max="100000" required /></label>
+          <button class="knopf" type="submit">Wahllokal registrieren</button>
+        </form>
+      </details>
+    </main>
+    <script type="module" src="ergebnisse.js"></script>
+  </body>
+</html>

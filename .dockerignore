@@ -1,0 +1,3 @@
+# Das Image braucht nur die Apache-Konfiguration; alles andere kommt per Bind-Mount.
+*
+!server/apache-docker.conf

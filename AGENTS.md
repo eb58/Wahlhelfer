@@ -77,6 +77,26 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - GitHub Pages liefert den Root von `main` **ungebuendelt** aus (eb58.github.io/Wahlhelfer/).
   `index.html`, `app.js`, `styles.css` und `configuration.js` muessen deshalb im Projekt-Root
   bleiben, ebenso `Kalibrierungen/`. Der Vite-Build (`dist/`) ist nur fuer lokale Vorschau.
+- Die vollstaendige Anwendung mit Server laeuft beim Hoster (Strato, wie Mitgliederverwaltung und
+  Gratulationsdienst): nur PHP und MariaDB, kein Node. Die API steht in `server/` (PHP, `lib.php`),
+  wird von `server/deploy.ps1` als `php-api/` neben `dist/` und `configuration.js` gelegt und liest
+  die Kalibrierung wie der Browser aus `configuration.js`. Das Frontend spricht sie relativ unter
+  `php-api/index.php/api/...` an, deshalb baut Vite mit `base: './'`.
+- Wie in der Mitgliederverwaltung werfen Handler ihre Antwort (`jsonResponse()` -> `ApiResponse`),
+  `db()`, `config()`, `wahl()` und `requestStream()` sind die Test-Naehte. Neue Routen in
+  `handleRequest()` diesem Muster folgen lassen.
+- `getWahlDefinition()` gibt es zweimal (`src/wahl.js`, `server/lib.php`); der Browser vergleicht den
+  SHA-256 des JSON. Beide muessen byteweise dasselbe JSON liefern - `test/wahl.test.js` und
+  `test/php/WahlTest.php` pruefen dieselben Hashwerte. Aendert sich eine Kalibrierung, beide anpassen.
+- Der Beleg ist nicht das Kamera-Original, sondern die auf `MAX_WIDTH` (1600 px) verkleinerte Aufnahme
+  als JPEG (`BELEG_QUALITY` 0.85, `toBeleg()` in `browserImage.js`). Erkannt wird genau dieser Beleg,
+  damit er die Wertung reproduziert; `test/fotoWerkstatt.js` geht in den Fototests denselben Weg.
+- Belege werden einzeln per `PUT /api/bilder/{sha256}` hochgeladen, der Stapel verweist nur per Hash
+  darauf. Nicht wieder Base64 in den Stapel packen: das sprengt das PHP-Speicherlimit.
+- Lokal laeuft alles im eigenen Compose-Stack (`compose.yaml`: `wahlassistent`, `db`, `phpmyadmin`),
+  nicht im Gratulationsdienst-Container. Das Image ist nur Apache+PHP; das Projekt ist schreibgeschuetzt
+  eingebunden, Apache liefert `dist/` als Webroot und `server/` als `/php-api` aus. Entwickelt wird mit
+  `npm run watch` (schreibt direkt nach `dist/`), erreichbar unter `http://localhost:3000/`.
 
 ## Externe Ressourcen
 
@@ -99,6 +119,8 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - Fuer die anderen Zettelarten gibt es keine echten Fotos; `synthetischeFotos.test.js` prueft sie
   ohne OCR. Bekannte Luecken stehen dort als `todo` mit Begruendung - sie muessen sicher abgelehnt,
   duerfen aber nie falsch gewertet werden.
+- Aenderungen an `server/` mit `npm run test:php` pruefen (PHPUnit, faehrt die Wegwerf-MariaDB
+  `wa-test-db` auf Port 3308 selbst hoch; ohne Docker nur die Logiktests, mit Warnung).
 - Wenn UI- oder Dokument-Layout betroffen ist, zusaetzlich die dazugehoerigen Spezialtests pruefen.
 
 ## Benennung

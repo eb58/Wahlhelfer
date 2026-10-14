@@ -4,9 +4,9 @@
 
 **Konzeptname: Digitaler Wahlassistent**
 
-Stand: 30. Juli 2026
+Stand: 14. Oktober 2026
 
-Version: 1.5
+Version: 1.6
 
 > **Leitidee:** Das Papier bleibt das Original. Nach dem Öffnen der Urne fotografieren Wahlhelfer die Stimmzettel mit handelsüblichen Smartphones. Der Browser prüft das Bild vor Ort; die Cloud führt eine zweite Prüfung durch und protokolliert den Ablauf. Über unklare Fälle entscheidet weiterhin der Wahlvorstand.
 
@@ -92,11 +92,11 @@ Beim Scan erhält der Datensatz eine zufällige Sitzungs-ID und eine laufende Er
 
 1.  **Vorbereitung:** Für vier Zweiergruppen werden vier Smartphones bereitgestellt. Eine Installation ist nicht nötig. Jede Gruppe öffnet denselben Web-Link oder den zugehörigen QR-Code und erhält eine eigene Sitzungskennung. Halterungen, Scanmatten und Sonderbeleuchtung sind nicht vorgesehen. Mit Musterzetteln testet jede Gruppe kurz Bildqualität und Markierungserkennung.
 
-2.  **Zählabgleich:** Vor der inhaltlichen Auswertung werden Stimmzettel, Stimmabgabevermerke und Wahlscheine wie bisher zahlenmäßig abgeglichen. Abweichungen werden dokumentiert.
+2.  **Zählabgleich und Stapelbildung:** Vor der inhaltlichen Auswertung werden Stimmzettel, Stimmabgabevermerke und Wahlscheine wie bisher zahlenmäßig abgeglichen. Abweichungen werden dokumentiert. Anschließend werden die Stimmzettel in gezählte Stapel zu je 20 Zetteln aufgeteilt; der letzte Stapel kann kleiner sein. Vor jedem Stapel trägt das Tandem dessen tatsächliche Größe in die Smartphone-Anwendung ein; voreingestellt sind 20.
 
 3.  **Erfassung im Tandem:** Person A nimmt genau einen Zettel vom Eingangsstapel und breitet ihn plan auf dem Tisch aus. Person B fotografiert ihn aus der Hand und sagt Erst- und Zweitstimme laut an. Person A bestätigt die Ansage oder widerspricht unmittelbar.
 
-4.  **Automatische Gegenprüfung:** Das Smartphone führt zunächst eine lokale Vorprüfung durch und zeigt die erkannte Partei oder einen Zweifelsfall an. Danach überträgt die Webanwendung Bild, Vorwertung und Qualitätsdaten verschlüsselt an die Cloud. Eine zweite Prüfkomponente liest dort Layout, Markierungsfelder und Qualitätsmerkmale aus und vergleicht das Ergebnis mit der Ansage. Nur bei Übereinstimmung und ausreichender Bildqualität kommt der Zettel in den Ausgangsstapel.
+4.  **Stapelabschluss und automatische Gegenprüfung:** Das Smartphone führt zunächst eine lokale Vorprüfung durch und zeigt die erkannte Partei oder einen Zweifelsfall sowie den Erfassungsfortschritt an. Erfasste Zettel werden auf einen getrennten Ausgangsstapel gelegt; lokale Zweifelsfälle werden mit ihrer Stapelzuordnung ausgesondert. Erst wenn die erwartete Anzahl erreicht und der Eingangsstapel vollständig abgearbeitet ist, bestätigt das Tandem den Stapelabschluss. Danach überträgt die Webanwendung Bilder, Vorwertungen und Qualitätsdaten des Stapels verschlüsselt an die Cloud. Eine zweite Prüfkomponente liest dort Layout, Markierungsfelder und Qualitätsmerkmale aus und vergleicht das Ergebnis mit der Ansage. Der Ausgangsstapel bleibt bis zur Rückmeldung der Cloud als zusammengehöriger Stapel erhalten. Nur bei Übereinstimmung und ausreichender Bildqualität wird die jeweilige Wertung freigegeben; Abweichungen werden als Zweifelsfälle vorgelegt.
 
 5.  **Zweifelsfall:** Bei menschlichem Widerspruch, technischer Abweichung oder unklarer Markierung wird der Zettel ausgesondert und dem gesamten Wahlvorstand vorgelegt; Entscheidung, Begründung und Abstimmung werden protokolliert.
 
@@ -108,11 +108,23 @@ Beim Scan erhält der Datensatz eine zufällige Sitzungs-ID und eine laufende Er
 
 Die Zweiergruppe verbindet zügiges Arbeiten mit gegenseitiger Kontrolle. Bei acht Wahlhelfern werden vier Tandems gebildet. Person A legt den Zettel auf. Person B fotografiert ihn und sagt Erst- und Zweitstimme an. Person A bestätigt oder widerspricht. Die Ansage kommt vor der Maschinenwertung, damit die Anzeige die Wahrnehmung nicht beeinflusst. Der Ablauf bei einem klaren Zettel lautet: auflegen - aufnehmen - ansagen - bestätigen - weiterschieben.
 
-Alle vier Teams arbeiten gleichzeitig mit getrennten Eingangsstapeln. Die Cloud führt die Datensätze zusammen und verhindert doppelte Erfassungsnummern. Abweichende oder unklare Zettel kommen auf einen gemeinsamen Zweifelsstapel. Dort entscheidet der gesamte Wahlvorstand. So halten Sonderfälle den normalen Ablauf möglichst wenig auf.
+Alle vier Teams arbeiten gleichzeitig mit getrennten, gezählten Eingangsstapeln. Die Cloud führt die Datensätze zusammen und verhindert doppelte Zählungen derselben Stimmzettelkennung, auch über Sitzungen und Stapel hinweg. Abweichende oder unklare Zettel kommen auf einen gemeinsamen Zweifelsstapel; ihre Zuordnung zum ursprünglichen Erfassungsstapel bleibt erhalten. Dort entscheidet der gesamte Wahlvorstand. So halten Sonderfälle den normalen Ablauf möglichst wenig auf.
+
+### Erfassung in kleinen, gezählten Stapeln
+
+Die kleinen Stapel sollen verhindern, dass Stimmzettel unbemerkt überblättert oder doppelt fotografiert werden. Als Ausgangswert sind 20 Zettel je Stapel vorgesehen. Die Stapelgröße wird vor der Erfassung am Smartphone eingestellt; beim letzten Stapel wird die tatsächlich enthaltene Anzahl eingetragen. Ob 20 Zettel eine geeignete Größe sind, wird im Pilot überprüft.
+
+Während der Erfassung zeigt die Anwendung den Fortschritt an, beispielsweise „17 von 20 Stimmzetteln erfasst“. Jeder erfasste Zettel wird vom Eingangsstapel auf den getrennten Ausgangsstapel oder in die zugeordneten Zweifelsfälle gelegt. Auch ein erfasster Zweifelsfall zählt für die Vollständigkeit des Stapels, aber noch nicht als freigegebene Stimme. Ein leerer Eingangsstapel bei zu niedrigem Zähler oder verbliebene Zettel bei erreichtem Sollwert erfordern eine Kontrolle. Die Sollzahl darf nicht nachträglich nur an den Erfassungszähler angepasst werden, um eine Abweichung zu verdecken.
+
+Erst wenn Sollzahl und erfasste Zettelzahl übereinstimmen und kein Zettel im Eingangsstapel verblieben ist, kann das Tandem den Stapel zur Übertragung abschließen. Jeder Stapel erhält eine technische Kennung; Sollzahl, Aufnahmen, Zweifelsfälle und Serverbestätigung werden ihm zugeordnet. Bis zur bestätigten Übernahme bleiben seine Daten auf dem Smartphone erhalten. Eine wiederholte Übertragung desselben Stapels darf keine zusätzliche Zählung auslösen. Der lokale Stapelabschluss bestätigt die Vollständigkeit der Erfassung, nicht die Freigabe der Stimmen; diese folgt erst nach der Cloud-Gegenprüfung und gegebenenfalls der Entscheidung des Wahlvorstands.
+
+**Ohne individuelle QR-Kennung** kann der Mengenabgleich Fehler aufdecken, aber keine vollständige Erfassung garantieren: Ein ausgelassener und ein doppelt fotografierter Zettel können sich zahlenmäßig ausgleichen. Kleine Stapel und der konsequente Wechsel vom Eingangs- zum Ausgangsstapel begrenzen dieses Risiko und erleichtern eine erneute Kontrolle.
+
+**Mit individueller QR-Kennung** zählt der Fortschrittszähler unterschiedliche Stimmzettel statt Aufnahmen. Eine erneute Aufnahme derselben Kennung wird sichtbar als Doppelaufnahme oder Neuaufnahme zugeordnet und erhöht den Zähler nicht. Dadurch kann eine Doppelaufnahme einen überblätterten Zettel nicht mehr im Mengenabgleich verdecken. Unlesbare oder unbekannte Kennungen müssen geklärt werden; sie dürfen den Sollwert nicht als vermeintlich neue Zettel erfüllen. Die Cloud prüft zusätzlich, ob eine Kennung bereits in einem anderen Stapel oder einer anderen Sitzung erfasst wurde. Offene Zuordnungskonflikte blockieren die Freigabe des betroffenen Stapels.
 
 ## 4.2 Webanwendung und Cloud-Auswertung
 
-Die Bedienung erfolgt vollständig im mobilen Browser. Die Wahlhelfer brauchen weder App-Download noch lokale Installation, sondern nur einen bereitgestellten Link. Nach der Kamerafreigabe zeigt die Webanwendung einen einfachen Aufnahmeausschnitt und prüft Bild und Markierungen zunächst auf dem Smartphone. Die vorläufige Erkennung wird sofort angezeigt. Erst danach werden Bild, Vorwertung und Prüfdaten verschlüsselt an den Cloud-Dienst übertragen.
+Die Bedienung erfolgt vollständig im mobilen Browser. Die Wahlhelfer brauchen weder App-Download noch lokale Installation, sondern nur einen bereitgestellten Link. Nach der Kamerafreigabe zeigt die Webanwendung einen einfachen Aufnahmeausschnitt und prüft Bild und Markierungen zunächst auf dem Smartphone. Die vorläufige Erkennung wird sofort angezeigt. Bilder, Vorwertungen und Prüfdaten werden zunächst für den aktuellen Stapel gesammelt und erst nach dessen bestätigtem Abschluss verschlüsselt an den Cloud-Dienst übertragen. Die Oberfläche unterscheidet sichtbar zwischen lokal erfasst, vom Server übernommen und zur Zählung freigegeben.
 
 Die Cloud sollte Wahl, Wahlbezirk und Sitzung technisch voneinander trennen. Jede Aufnahme erhält eine zufällige Sitzungs-ID, einen Zeitstempel und einen Bild-Hash, aber keine Verbindung zu einem Wählerverzeichnis oder zu einer Person. Im Browser sehen beide Personen die lokale Vorwertung, die Cloud-Wertung, die Bildqualität und bei Bedarf das Originalbild.
 
@@ -161,7 +173,7 @@ Dritte sollen die Ergebnisse mit eigener Software prüfen können. Auf Antrag so
 | 2 - offene Ergebnisbelege | Signierte Wahlbezirksdateien, anonymisierte Einzeldatensätze, lokale Vorwertungen, Cloud-Gegenprüfungen, menschliche Entscheidungen und kryptografisches Manifest. | Jeder kann Vollständigkeit, Unverändertheit, Konfliktbehandlung und Aggregation unabhängig prüfen.                      |
 | 3 - Originalbilder auf Antrag | Originalbilder und Entscheidungsprotokolle in einem transparenten, gesetzlich geregelten Prüfportal; Zugang grundsätzlich für jeden Antragsteller. | Antragsteller können Markierung und Wertung zettelweise mit dem veröffentlichten Ergebnis vergleichen; begrenzte Ausnahmen müssen konkret begründet werden. |
 
-Ein Massendownload aller Rohbilder ist dafür nicht nötig. Nötig ist ein nutzbarer Zugang mit einfacher Antragstellung, klarer Frist, unveränderter Originaldatei, Zuordnung zum Wahlbezirk und Prüfprotokoll. Antragsteller sollten die Bilder mit eigener Software auswerten können. Wird ein Bild ausnahmsweise zurückgehalten oder nur normalisiert herausgegeben, müssen Grund, Umfang und Rechtsbehelf dokumentiert werden.
+Ein Massendownload aller Rohbilder ist dafür nicht nötig. Nötig ist ein nutzbarer Zugang mit einfacher Antragstellung, klarer Frist, unveränderter Belegdatei, Zuordnung zum Wahlbezirk und Prüfprotokoll. Belegdatei ist das Bild, aus dem die Wertung entstanden ist, nicht das Kamera-Original: Der Browser verkleinert jede Aufnahme vor der Erkennung auf eine feste Auflösung und wertet genau dieses Bild aus. Entscheidend ist, dass sich das Wahlergebnis aus den Belegen reproduzieren lässt, nicht das Originalfoto. Antragsteller sollten die Bilder mit eigener Software auswerten können. Wird ein Bild ausnahmsweise zurückgehalten oder nur normalisiert herausgegeben, müssen Grund, Umfang und Rechtsbehelf dokumentiert werden.
 
 ## 6.2 Was der BSW-Fall zeigt - und was nicht
 

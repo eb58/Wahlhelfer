@@ -1,0 +1,66 @@
+services:
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: '${DB_ROOT_PASSWORD:?Bitte DB_ROOT_PASSWORD in .env setzen}'
+    volumes:
+      - mariadb_daten:/var/lib/mysql
+    networks:
+      - datenbank
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+  wahlassistent:
+    build: .
+    image: wahlassistent-server
+    ports:
+      - '${WAHLASSISTENT_BIND:-127.0.0.1}:${WAHLASSISTENT_PORT:-3000}:80'
+    environment:
+      WAHL_API_TOKEN: '${WAHLASSISTENT_TOKEN:?Bitte in .env einen Zugangsschluessel setzen}'
+      WAHL_DB_HOST: db
+      WAHL_DB_NAME: '${DB_NAME:?Bitte DB_NAME in .env setzen (je Wahl eine eigene Datenbank)}'
+      WAHL_DB_USER: wahlassistent
+      WAHL_DB_PASSWORD: '${DB_PASSWORD:?Bitte DB_PASSWORD in .env setzen}'
+      WAHL_BILDER_PATH: /data/bilder
+    volumes:
+      # npm run watch schreibt nach dist/; Aenderungen an server/ wirken sofort.
+      - .:/srv/wahlassistent:ro
+      - belegbilder:/data/bilder
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+      - datenbank
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/apache2
+      - /var/lock/apache2
+    security_opt:
+      - no-new-privileges:true
+  phpmyadmin:
+    image: phpmyadmin:5.2-apache
+    ports:
+      - '127.0.0.1:${PHPMYADMIN_PORT:-8082}:80'
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+      - datenbank
+    restart: unless-stopped
+volumes:
+  mariadb_daten:
+  belegbilder:
+networks:
+  datenbank:
+    internal: true

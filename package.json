@@ -12,6 +12,10 @@
     "watch": "vite build --watch",
     "preview": "vite preview",
     "test": "node --test \"test/**/*.test.js\"",
+    "test:php": "node test/tools/ensure-phpunit.mjs && node test/tools/ensure-test-db.mjs && php test/tools/phpunit.phar --configuration test/phpunit.xml",
+    "test:php:db:up": "docker compose -f test/docker-compose.test.yml up -d --wait",
+    "test:php:db:down": "docker compose -f test/docker-compose.test.yml down -v",
+    "deploy": "powershell -ExecutionPolicy Bypass -File server/deploy.ps1",
     "pruefe": "python scripts/pruefeKalibrierung.py",
     "pruefe:ocr": "node scripts/pruefeTextmarken.js"
   },
@@ -21,6 +25,7 @@
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
+    "fake-indexeddb": "^6.2.5",
     "sharp": "^0.35.5",
     "vite": "^8.0.16"
   }

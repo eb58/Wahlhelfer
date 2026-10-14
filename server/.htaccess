@@ -1,0 +1,15 @@
+RewriteEngine On
+
+# Muss vor den [L]-Regeln stehen: reicht Authorization als REDIRECT_HTTP_AUTHORIZATION
+# an PHP durch, das ihn unter FastCGI/CGI sonst nicht sieht.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Nur index.php ist von aussen erreichbar - nicht Konfiguration, Schema oder Belege.
+RewriteRule ^(?!index\.php(/|$)). - [F]
+
+SetEnvIf Authorization "(.+)" HTTP_AUTHORIZATION=$1
+
+# Falls der Hoster es erlaubt (Apache >= 2.4.13, AllowOverride FileInfo), ist das
+# der sauberste Weg - bei fehlender Freigabe antwortet Apache mit 500:
+# CGIPassAuth On

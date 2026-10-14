@@ -1,0 +1,20 @@
+# Wegwerf-Datenbank fuer die PHP-Integrationstests, auf tmpfs.
+# Start: npm run test:php:db:up  |  Stop: npm run test:php:db:down
+services:
+  db:
+    image: mariadb:11.4
+    container_name: wa-test-db
+    environment:
+      MARIADB_ROOT_PASSWORD: test
+      MARIADB_DATABASE: wahlassistent_test
+    ports:
+      - '127.0.0.1:3308:3306'
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      # Ueber TCP statt healthcheck.sh: waehrend der Erstinitialisierung laeuft ein
+      # temporaerer Server nur am Socket, der danach durchgestartet wird.
+      test: ['CMD', 'mariadb', '-h', '127.0.0.1', '-uroot', '-ptest', '-e', 'SELECT 1', 'wahlassistent_test']
+      interval: 2s
+      timeout: 3s
+      retries: 40

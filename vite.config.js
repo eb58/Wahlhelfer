@@ -31,6 +31,14 @@ const syncAssets = () => {
 
 syncAssets();
 
+// PHP-API im eigenen Docker-Container (compose.yaml). Host-Header unveraendert lassen:
+// die API vergleicht ihn bei schreibenden Anfragen mit dem Origin.
+const proxy = { '/php-api': { target: 'http://localhost:3000', changeOrigin: false } };
+
 export default defineConfig({
-  base: '/',
+  // Relativ, damit der Build auch in einem Unterordner beim Hoster laeuft.
+  base: './',
+  server: { proxy },
+  preview: { proxy },
+  build: { rollupOptions: { input: { erfassen: resolve(projectRoot, 'index.html'), ergebnisse: resolve(projectRoot, 'ergebnisse.html') } } },
 });

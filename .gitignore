@@ -1,4 +1,11 @@
 node_modules/
+.env
+data/
+.deploy/
+server/config.local.php
+server/bilder/
+test/tools/phpunit.phar
+test/.cache/
 dist/
 public/Kalibrierungen/
 public/vendor/
