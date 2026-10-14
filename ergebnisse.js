@@ -1,4 +1,4 @@
-import { api, setupZugang } from './src/serverApi.js';
+import { api, setupAnmeldung } from './src/serverApi.js';
 import { showBeleg } from './src/belegAnzeige.js';
 import { getWahllokalStatus, selectWahllokale } from './src/wahllokalAnzeige.js';
 
@@ -52,7 +52,7 @@ const refresh = async () => {
     const opened = new Set(Array.from(document.querySelectorAll('#wahllokale details[open][data-key]'), element => element.dataset.key));
     $('bezirkListe').hidden = monitor;
     $('bezirkGesamt').hidden = monitor;
-    $('registrierung').hidden = monitor;
+    $('registrierung').hidden = monitor || user.role !== 'admin';
     $('bezirkLink').hidden = !monitor;
     $('monitor').hidden = !monitor;
     if (monitor) {
@@ -147,7 +147,7 @@ const refresh = async () => {
   } catch (error) { showError(error); }
   finally { loading = false; $('aktualisieren').disabled = false; }
 };
-setupZugang();
+const user = await setupAnmeldung();
 $('aktualisieren').addEventListener('click', refresh);
 $('wahllokalForm').addEventListener('submit', async event => {
   event.preventDefault();
@@ -161,5 +161,7 @@ $('wahllokalForm').addEventListener('submit', async event => {
   } catch (error) { showError(error); }
   finally { button.disabled = false; }
 });
-await refresh();
-globalThis.setInterval(() => { if (!document.querySelector('dialog[open]')) refresh(); }, 15000);
+if (user) {
+  await refresh();
+  globalThis.setInterval(() => { if (!document.querySelector('dialog[open]')) refresh(); }, 15000);
+}

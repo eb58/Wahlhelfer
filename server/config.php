@@ -12,8 +12,6 @@ $config = [
         'password' => $env('WAHL_DB_PASSWORD'),
         'charset' => 'utf8mb4',
     ],
-    // Gemeinsamer Zugangsschluessel fuer Erfassung und Ergebnisse, mindestens 24 Zeichen.
-    'token' => $env('WAHL_API_TOKEN'),
     // Originalbelege; die API legt dort selbst eine .htaccess an, die jeden Direktabruf sperrt.
     'bilder_path' => $env('WAHL_BILDER_PATH', __DIR__ . '/bilder'),
     // Leer = aus configuration.js im App-Ordner ablesen, wie im Browser.

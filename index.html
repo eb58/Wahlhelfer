@@ -17,10 +17,24 @@
         <nav><a href="ergebnisse.html">Ergebnisse und Wahllokale</a></nav>
       </section>
 
+      <!-- Anmeldung: ohne gueltige Sitzung blendet styles.css alle anderen Abschnitte aus. -->
+      <section class="karte panel" id="anmeldung">
+        <form id="anmeldeForm" hidden>
+          <label>Benutzername <input name="username" autocomplete="username" autocapitalize="none" required /></label>
+          <label>Passwort <input name="password" type="password" autocomplete="current-password" required /></label>
+          <button class="knopf" type="submit">Anmelden</button>
+        </form>
+        <form id="passwortForm" hidden>
+          <p class="hinweis">Bitte jetzt ein eigenes Passwort festlegen (mindestens 12 Zeichen).</p>
+          <label>Bisheriges Passwort <input name="currentPassword" type="password" autocomplete="current-password" required /></label>
+          <label>Neues Passwort <input name="newPassword" type="password" autocomplete="new-password" minlength="12" required /></label>
+          <button class="knopf" type="submit">Passwort ändern</button>
+        </form>
+        <p class="angemeldet" id="angemeldet" hidden><span id="angemeldetAls"></span> <button class="datei-knopf" id="abmelden" type="button">Abmelden</button></p>
+        <p class="status" id="anmeldeStatus" role="status" data-art="fehler" hidden></p>
+      </section>
+
       <section class="karte panel">
-        <details><summary>Serverzugang</summary>
-          <form id="zugangForm"><label>Zugangsschlüssel <input id="serverToken" type="password" autocomplete="off" /></label><button class="knopf" type="submit">Zugang übernehmen</button></form>
-        </details>
         <form id="stapelForm">
           <label>Wahllokal <select id="wahllokal" required><option value="">Wahllokale werden geladen …</option></select></label>
           <label>Stimmzettel im Stapel <input id="stapelSoll" type="number" min="1" max="100" value="20" required /></label>

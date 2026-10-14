@@ -91,6 +91,11 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - Der Beleg ist nicht das Kamera-Original, sondern die auf `MAX_WIDTH` (1600 px) verkleinerte Aufnahme
   als JPEG (`BELEG_QUALITY` 0.85, `toBeleg()` in `browserImage.js`). Erkannt wird genau dieser Beleg,
   damit er die Wertung reproduziert; `test/fotoWerkstatt.js` geht in den Fototests denselben Weg.
+- Anmeldung wie in Mitgliederverwaltung und Gratulationsdienst: Konten in `app_user` (Rolle `admin`
+  oder `wahlvorstand` mit festem Wahllokal), Sitzungen als SHA-256 in `app_session`, Konten per
+  `server/create-user.php`. Jede Route bekommt den Benutzer aus `requireUser()`; was ein Wahlvorstand
+  sehen oder schreiben darf, entscheidet `wahllokalErlaubt()`. Neue Routen muessen das ebenfalls tun.
+- `server/schema.sql` wird an Semikolons zerlegt: keine Semikolons in Kommentaren oder Texten.
 - Belege werden einzeln per `PUT /api/bilder/{sha256}` hochgeladen, der Stapel verweist nur per Hash
   darauf. Nicht wieder Base64 in den Stapel packen: das sprengt das PHP-Speicherlimit.
 - Lokal laeuft alles im eigenen Compose-Stack (`compose.yaml`: `wahlassistent`, `db`, `phpmyadmin`),

@@ -9,8 +9,9 @@ const root = new URL('../', import.meta.url);
 if (!KALIBRIERUNG.endsWith('/bundestagswahl-2017.json')) throw new Error('Demo benötigt den vorhandenen Bundestags-Musterzettel.');
 // Standard: lokaler Docker-Container (compose.yaml).
 const base = process.env.WAHLASSISTENT_URL ?? 'http://localhost:3000/';
-const token = process.env.WAHLASSISTENT_TOKEN;
-if (!token) throw new Error('WAHLASSISTENT_TOKEN setzen (Zugangsschlüssel der PHP-API).');
+const { WAHLASSISTENT_USER: username, WAHLASSISTENT_PASSWORD: password } = process.env;
+if (!username || !password) throw new Error('WAHLASSISTENT_USER und WAHLASSISTENT_PASSWORD eines Admin-Kontos setzen.');
+let token = '';
 const send = async (path, options = {}) => {
   const response = await fetch(new URL(`php-api/index.php/api/${path}`, base), { ...options, headers: { 'X-Auth-Token': token, ...options.headers } });
   const result = await response.json();
@@ -18,6 +19,7 @@ const send = async (path, options = {}) => {
   return result;
 };
 const api = (path, data) => send(path, data === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+token = (await api('session', { username, password })).token;
 const existing = await api('wahllokale');
 if (existing.wahllokale.some(row => row.nummer === '518')) throw new Error('Wahllokal 518 existiert bereits. Keine Daten verändert.');
 const folder = new URL('Testdaten/bundestagswahl-2017/scans/', root);

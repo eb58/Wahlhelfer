@@ -10,8 +10,6 @@ return [
         'user' => 'db_user',
         'password' => 'db_passwort',
     ],
-    // z. B. php -r "echo bin2hex(random_bytes(32));"
-    'token' => '',
     // Am besten ausserhalb des Webroots; der Ordner muss fuer PHP beschreibbar sein.
     // 'bilder_path' => '/home/user/wahlassistent-bilder',
 ];

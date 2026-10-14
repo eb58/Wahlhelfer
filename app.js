@@ -8,15 +8,18 @@ import { stimmRows, isUnambiguous, COLORS, drawFelder } from './src/wertungAnzei
 import { setLogging } from './src/log.js';
 import { isPdf, pdfPageAsImage } from './src/pdf.js';
 import { KALIBRIERUNG } from './configuration.js';
-import { api, putBild, setupZugang, sha256 } from './src/serverApi.js';
+import { api, putBild, setupAnmeldung, sha256 } from './src/serverApi.js';
 import { createStapel, addZettel } from './src/stapel.js';
 import { loadStapel, saveStapel, toUpload } from './src/stapelStorage.js';
 import { getWahlDefinition } from './src/wahl.js';
+import { selectWahllokale } from './src/wahllokalAnzeige.js';
 
 // Der Ablauf ist in der Browser-Konsole mitzulesen (Praefix "[Wahl]").
 setLogging(true);
 
 const $ = id => document.querySelector(`#${id}`);
+// Wie in ergebnisse.html: ?wahllokal=518 beschraenkt die Erfassung auf dieses Wahllokal.
+const wahllokalNummer = new URL(globalThis.location.href).searchParams.get('wahllokal');
 const state = { typ: undefined, stapel: undefined, pending: undefined, busy: false, wahlHash: undefined };
 
 const renderStapel = () => {
@@ -142,7 +145,6 @@ $('dateiKnopf').addEventListener('click', () => { clearWertung(); openInput($('d
 $('erfassenEingabe').addEventListener('change', handleFileSelection);
 $('dateiEingabe').addEventListener('change', handleFileSelection);
 
-setupZugang();
 $('stapelVerwerfen').addEventListener('click', async () => {
   if (!state.stapel || state.stapel.zettel.length || state.busy || state.pending) return;
   try { await storeStapel(undefined); renderStapel(); }
@@ -206,7 +208,10 @@ try {
   showError($('erfassenStatus'), error);
 }
 
+// Ohne Anmeldung zeigt die Seite nur das Anmeldeformular und fragt den Server nichts.
+const user = await setupAnmeldung();
 try {
+  if (!user) throw new Error('Bitte anmelden.');
   const stored = await loadStapel();
   if (stored) {
     const stapel = stored;
@@ -221,11 +226,17 @@ try {
   if (localHash !== data.wahlHash || (state.stapel && state.stapel.wahlHash !== localHash))
     throw new Error('Wahlvorschläge im Browser, gespeicherten Stapel und Server müssen übereinstimmen.');
   state.wahlHash = localHash;
-  $('wahllokal').replaceChildren(new Option('Wahllokal auswählen', ''), ...data.wahllokale.map(row => new Option(`${row.nummer} · ${row.name}`, row.nummer)));
-  if (state.stapel) $('wahllokal').value = state.stapel.wahllokal;
   if (!data.wahllokale.length) throw new Error('Zuerst ein Wahllokal in der Ergebnisübersicht registrieren.');
+  const wahllokale = selectWahllokale(data.wahllokale, wahllokalNummer);
+  if (state.stapel && !wahllokale.some(row => row.nummer === state.stapel.wahllokal))
+    throw new Error(`Der begonnene Stapel gehört zu Wahllokal ${state.stapel.wahllokal}. Dort abschließen oder die Seite ohne ?wahllokal= öffnen.`);
+  // Ein Wahlvorstand sieht nur sein eigenes Wahllokal: dann gibt es nichts auszuwaehlen.
+  $('wahllokal').replaceChildren(...(wahllokale.length > 1 ? [new Option('Wahllokal auswählen', '')] : []),
+    ...wahllokale.map(row => new Option(`${row.nummer} · ${row.name}`, row.nummer)));
+  if (state.stapel) $('wahllokal').value = state.stapel.wahllokal;
 } catch (error) {
   state.typ = undefined;
+  state.wahlHash = undefined;
   showError($('stapelStatus'), error);
 }
 renderStapel();

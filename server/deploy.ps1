@@ -12,7 +12,7 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $deployDir = Join-Path $projectRoot ".deploy\wahlassistent"
 # config.local.php (Zugangsdaten) und bilder/ (Originalbelege) liegen nur beim Hoster und bleiben dort.
-$apiFiles = @(".htaccess", "config.php", "config.local.example.php", "index.php", "lib.php", "schema.sql")
+$apiFiles = @(".htaccess", "config.php", "config.local.example.php", "create-user.php", "index.php", "lib.php", "schema.sql")
 $sshOpt = "-o UpdateHostKeys=no"
 $remoteApp = "${Webroot}/${AppPath}"
 $remoteApi = "${remoteApp}/php-api"

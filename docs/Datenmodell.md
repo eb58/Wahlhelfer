@@ -4,7 +4,7 @@ Jede Wahl erhält ein eigenes MariaDB-Schema, also eine eigene Datenbank mit dem
 Tabellenaufbau. Wahllokale, Stapel und Ergebnisse verschiedener Wahlen bleiben dadurch getrennt.
 Es gibt keine zusätzliche Wahl-Tabelle und keine Wahl-ID in jeder Ergebniszeile.
 
-## Vier Tabellen
+## Vier fachliche Tabellen
 
 | Tabelle | Inhalt |
 |---|---|
@@ -12,6 +12,12 @@ Es gibt keine zusätzliche Wahl-Tabelle und keine Wahl-ID in jeder Ergebniszeile
 | `stapel` | Kennung, Wahllokalnummer, Sollzahl, Eingangszeit und Prüfsumme für Wiederholungsuploads. |
 | `wahlvorschlag` | Stimmenart, eindeutige Kennung, gedruckter Listenplatz und Partei-/Kandidatenbeschriftung. |
 | `stimmzettel` | Erfassungskennung, Stapel, optionale QR-Kennung, fachliches Ergebnis als JSON und Hash/Dateityp des Belegs. |
+
+Dazu kommen drei technische Tabellen für die Anmeldung: `app_user` (Konto mit Rolle `admin` oder
+`wahlvorstand`, ein Wahlvorstand mit seinem Wahllokal), `app_session` (Sitzungstoken, nur als
+SHA-256) und `app_login_attempt` (Fehlversuche für die Drosselung). `stapel.erfasst_von` verweist
+auf das Konto, das den Stapel übertragen hat. Die Konten gehören zur Datenbank der Wahl und werden
+für jede Wahl neu angelegt.
 
 ```mermaid
 erDiagram

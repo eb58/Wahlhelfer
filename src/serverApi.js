@@ -1,15 +1,22 @@
 /** Relativ zur Seite: die App liegt beim Hoster in einem Unterordner, die PHP-API daneben in php-api/. */
 const apiUrl = path => `php-api/index.php/api/${path}`;
+const TOKEN_KEY = 'wahlassistent-sitzung';
+const token = () => sessionStorage.getItem(TOKEN_KEY) ?? '';
+const $ = id => document.querySelector(`#${id}`);
 
 // X-Auth-Token zusaetzlich, weil manche Hoster Authorization nicht an PHP durchreichen.
-const zugang = () => {
-  const token = sessionStorage.getItem('wahlassistent-token') ?? '';
-  return token ? { Authorization: `Bearer ${token}`, 'X-Auth-Token': token } : {};
+const zugang = () => (token() ? { Authorization: `Bearer ${token()}`, 'X-Auth-Token': token() } : {});
+
+/** Abgelaufene oder beendete Sitzung: Token verwerfen, die Seite zeigt dann wieder die Anmeldung. */
+const expired = () => {
+  sessionStorage.removeItem(TOKEN_KEY);
+  globalThis.location.reload();
 };
 
 const send = async (path, options = {}) => {
   const response = await fetch(apiUrl(path), { ...options, headers: { ...zugang(), ...options.headers } });
   const result = await response.json().catch(() => { throw new Error('Server nicht erreichbar oder PHP-API nicht eingerichtet.'); });
+  if (response.status === 401 && token()) expired();
   if (!response.ok) throw new Error(result.error ?? 'Serveranfrage fehlgeschlagen.');
   return result;
 };
@@ -26,18 +33,48 @@ export const sha256 = async data => {
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
 };
 
-export const setupZugang = () => {
-  const input = document.querySelector('#serverToken');
-  input.value = sessionStorage.getItem('wahlassistent-token') ?? '';
-  document.querySelector('#zugangForm').addEventListener('submit', event => {
+export const describeUser = user => `${user.username} · ${user.role === 'admin' ? 'Admin' : `Wahlvorstand ${user.wahllokal}`}`;
+
+/**
+ * Anmeldung, Pflicht-Passwortwechsel und Abmelden (Abschnitt #anmeldung auf beiden Seiten).
+ * Liefert den angemeldeten Benutzer oder undefined; erst danach laedt die Seite Daten.
+ */
+export const setupAnmeldung = async () => {
+  const show = id => ['anmeldeForm', 'passwortForm', 'angemeldet'].forEach(key => { $(key).hidden = key !== id; });
+  const fail = error => {
+    $('anmeldeStatus').textContent = error.message;
+    $('anmeldeStatus').hidden = false;
+  };
+  const submit = (id, action) => $(id).addEventListener('submit', async event => {
     event.preventDefault();
-    sessionStorage.setItem('wahlassistent-token', input.value.trim());
-    globalThis.location.reload();
+    const button = event.target.querySelector('button');
+    button.disabled = true;
+    try {
+      await action(Object.fromEntries(new FormData(event.target)));
+      globalThis.location.reload();
+    } catch (error) { fail(error); }
+    finally { button.disabled = false; }
   });
+  submit('anmeldeForm', async form => sessionStorage.setItem(TOKEN_KEY, (await api('session', form)).token));
+  submit('passwortForm', form => api('session/password', form));
+  $('abmelden').addEventListener('click', async () => {
+    await send('session', { method: 'DELETE' }).catch(() => {});
+    expired();
+  });
+
+  if (!token()) return show('anmeldeForm');
+  const user = await api('session').catch(error => { fail(error); });
+  if (!user) return show('anmeldeForm');
+  if (user.passwordChangeRequired) return show('passwortForm');
+  $('angemeldetAls').textContent = `Angemeldet als ${describeUser(user)}`;
+  show('angemeldet');
+  document.body.dataset.angemeldet = '';
+  return user;
 };
 
 export const loadBild = async id => {
   const response = await fetch(apiUrl(`stimmzettel/${encodeURIComponent(id)}/bild`), { headers: zugang() });
+  if (response.status === 401) expired();
   if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error ?? 'Beleg nicht erreichbar.');
   return response.blob();
 };

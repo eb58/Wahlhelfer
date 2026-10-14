@@ -94,17 +94,45 @@ daraus nur die fachlichen Wahlvorschläge.
 
 | Methode | Pfad | Zweck |
 |---|---|---|
+| `POST` | `/api/session` | anmelden (`username`, `password`), liefert Sitzungstoken und Konto |
+| `GET` | `/api/session` | angemeldetes Konto |
+| `DELETE` | `/api/session` | abmelden |
+| `POST` | `/api/session/password` | eigenes Passwort ändern (`currentPassword`, `newPassword`) |
 | `GET` | `/api/wahllokale` | registrierte Wahllokale und Hash der Wahl |
-| `POST` | `/api/wahllokale` | Wahllokal registrieren |
+| `POST` | `/api/wahllokale` | Wahllokal registrieren (nur Admin) |
 | `PUT` | `/api/bilder/{sha256}` | Beleg hochladen (Rohdaten, `Content-Type` des Bildes) |
 | `POST` | `/api/stapel` | vollständigen Stapel übertragen; Zettel verweisen per Hash auf ihre Belege |
 | `GET` | `/api/ergebnisse` | Summen je Stapel, Wahllokal und insgesamt |
 | `GET` | `/api/stimmzettel/{id}/bild` | Beleg eines Zettels |
-| `GET` | `/health` | Datenbank erreichbar? `tokenReceived` zeigt, ob der Zugang ankommt |
+| `GET` | `/health` | Datenbank erreichbar? `tokenReceived` zeigt, ob das Token ankommt |
 
-Alle `/api`-Aufrufe brauchen den Zugangsschlüssel (`Authorization: Bearer …`, zusätzlich als
-`X-Auth-Token`, weil manche Hoster `Authorization` nicht an PHP durchreichen). Schreibende
-Aufrufe von einer fremden Website werden abgelehnt.
+Außer der Anmeldung brauchen alle `/api`-Aufrufe das Sitzungstoken (`Authorization: Bearer …`,
+zusätzlich als `X-Auth-Token`, weil manche Hoster `Authorization` nicht an PHP durchreichen).
+Schreibende Aufrufe von einer fremden Website werden abgelehnt.
+
+### Konten und Rollen
+
+Jede Person hat ein eigenes Konto, wie bei Mitgliederverwaltung und Gratulationsdienst:
+
+| Rolle | darf |
+|---|---|
+| `admin` | Wahllokale registrieren, in jedem Wahllokal erfassen, alle Ergebnisse und Belege sehen |
+| `wahlvorstand` | nur im eigenen Wahllokal erfassen und nur dessen Ergebnis und Belege sehen |
+
+Jeder Stapel merkt sich, mit welchem Konto er übertragen wurde (`stapel.erfasst_von`). Konten legt
+vorerst ein Skript an; eine Kontenverwaltung im Control-Center kann später folgen:
+
+```text
+php create-user.php <name> <passwort> admin
+php create-user.php <name> <passwort> wahlvorstand <wahllokal>
+php create-user.php <name> --sperren
+```
+
+Das Passwort gilt nur für die erste Anmeldung und muss dann geändert werden (mindestens 12
+Zeichen). Derselbe Aufruf setzt ein vergessenes Passwort zurück oder entsperrt ein Konto; dabei
+enden alle Sitzungen des Kontos. Eine Sitzung gilt 12 Stunden, also einen Wahlabend lang. Nach
+10 Fehlversuchen je Name bzw. 20 je IP innerhalb von 15 Minuten ist die Anmeldung gesperrt. Die
+Fehlermeldung verrät nicht, ob es den Namen gibt.
 
 Belege gehen bewusst einzeln und nicht als Base64 im Stapel an den Server: ein Stapel mit 20
 Handyfotos wäre sonst über 100 MB JSON und sprengte das Speicherlimit von PHP. Der Server
@@ -112,17 +140,18 @@ prüft Hash und Dateityp jedes Belegs, legt ihn unter seinem SHA-256 ab und nimm
 nur an, wenn alle Belege vorliegen. Ein erneuter Upload derselben Datei ist harmlos.
 
 Unter `ergebnisse.html` zuerst Wahllokale mit erwarteter Stimmzettelzahl registrieren. Auf der
-Startseite Wahllokal und Stapelgröße wählen (Standard: 20). Jede Aufnahme prüfen und zum Stapel
+Startseite Wahllokal und Stapelgröße wählen (Standard: 20). Wie bei der Ergebnisseite legt
+`index.html?wahllokal=518` die Erfassung auf ein Wahllokal fest – praktisch als Link oder QR-Code
+für die Wahlhelfer vor Ort. Jede Aufnahme prüfen und zum Stapel
 hinzufügen. Bei vollständigem Stapel den leeren Eingangsstapel bestätigen und übertragen. Bei
 Fehlern bleiben die Daten erhalten; derselbe Stapel kann ohne zusätzliche Zählung erneut
 gesendet werden. Ein Browserprofil bearbeitet jeweils einen aktiven Stapel.
 
 Die Übersicht zeigt vorläufige Erkennungssummen je Stapel, Wahllokal und insgesamt sowie
 fehlende Zettel und Prüffälle. Die Wahllokalansicht für den Wahlvorsteher ist direkt verlinkt,
-z. B. `ergebnisse.html?wahllokal=518`, und aktualisiert sich alle 15 Sekunden. Den Schlüssel
-auf beiden Seiten unter „Serverzugang“ eingeben; er bleibt für die Browsersitzung gespeichert und
-berechtigt im Prototyp zur Erfassung, Registrierung und Ergebniseinsicht. Getrennte Rollen folgen
-später. Es gibt noch keine unabhängige Bild-Gegenprüfung, QR-Erkennung oder protokollierte
+z. B. `ergebnisse.html?wahllokal=518`, und aktualisiert sich alle 15 Sekunden. Beide Seiten
+zeigen ohne Anmeldung nur das Anmeldeformular; die Sitzung gilt für den Browser-Tab. Ein
+Wahlvorstand sieht auf beiden Seiten nur sein Wahllokal. Es gibt noch keine unabhängige Bild-Gegenprüfung, QR-Erkennung oder protokollierte
 Endentscheidung des Wahlvorstands. Eine übergebene `kennung` wird bereits gegen Doppelzählung
 geprüft; das ersetzt noch nicht das autoritative Verzeichnis ausgegebener QR-Kennungen.
 
@@ -147,11 +176,13 @@ PNG- und PDF-Belege bleiben abrufbar.
    `-SkipUpload` entsteht nur das Paket unter `.deploy/`. `config.local.php` und `bilder/` beim
    Hoster bleiben dabei unangetastet.
 3. Beim ersten Mal `server/config.local.example.php` als `php-api/config.local.php` ablegen und
-   DB-Zugangsdaten sowie den Zugangsschlüssel eintragen (mindestens 24 Zeichen), etwa erzeugt mit
-   `php -r "echo bin2hex(random_bytes(32));"`.
-4. Prüfen:
-   `curl -H "Authorization: Bearer <schluessel>" https://<domain>/<app>/php-api/index.php/health`
-   muss `{"status":"ok","tokenReceived":true}` liefern.
+   die DB-Zugangsdaten eintragen.
+4. Per SSH im Ordner `php-api/` das erste Admin-Konto anlegen:
+   `php create-user.php <name> <startpasswort> admin`. Die Tabellen entstehen dabei gleich mit.
+5. Prüfen:
+   `curl -H "Authorization: Bearer test" https://<domain>/<app>/php-api/index.php/health`
+   muss `{"status":"ok","tokenReceived":true}` liefern. Steht dort `false`, reicht der Hoster den
+   Header nicht durch; der Client schickt das Token deshalb zusätzlich als `X-Auth-Token`.
 
 `php-api/.htaccess` sperrt alles außer `index.php`; der Belegordner erhält zusätzlich eine eigene
 `.htaccess` mit `Require all denied`. Wer die Belege lieber außerhalb des Webroots ablegt, setzt
@@ -183,17 +214,17 @@ Ersteinrichtung:
 
 ```powershell
 Copy-Item .env.example .env
-php -r "echo bin2hex(random_bytes(32));"
 ```
 
-Den Schlüssel als `WAHLASSISTENT_TOKEN` in `.env` eintragen, ebenso je ein zufälliges
-`DB_PASSWORD` und `DB_ROOT_PASSWORD` sowie `DB_NAME` für die Wahl. Datenbank und Benutzer
-einmalig anlegen (auch für jede weitere Wahl, mit neuem `DB_NAME`):
+In `.env` je ein zufälliges `DB_PASSWORD` und `DB_ROOT_PASSWORD` eintragen, etwa mit
+`php -r "echo bin2hex(random_bytes(24));"`, dazu `DB_NAME` für die Wahl. Datenbank und
+DB-Benutzer einmalig anlegen (auch für jede weitere Wahl, mit neuem `DB_NAME`):
 
 ```powershell
 docker compose up -d db
 docker compose exec db mariadb -uroot -p<DB_ROOT_PASSWORD> -e "CREATE DATABASE IF NOT EXISTS <db_name> CHARACTER SET utf8mb4 COLLATE utf8mb4_bin; CREATE USER IF NOT EXISTS 'wahlassistent'@'%' IDENTIFIED BY '<DB_PASSWORD>'; GRANT ALL PRIVILEGES ON <db_name>.* TO 'wahlassistent'@'%';"
 docker compose up --build -d
+docker compose exec wahlassistent php /srv/wahlassistent/server/create-user.php <name> <startpasswort> admin
 ```
 
 Die Tabellen legt die API beim ersten Aufruf selbst an. `npm run dev` und `npm run dev:source`
@@ -207,7 +238,8 @@ Browser `crypto.subtle`, Wahlabgleich und Stapelübertragung brauchen einen sich
 ## Fiktives Wahllokal 518
 
 ```powershell
-$env:WAHLASSISTENT_TOKEN = '<WAHLASSISTENT_TOKEN aus .env>'
+$env:WAHLASSISTENT_USER = '<admin-konto>'
+$env:WAHLASSISTENT_PASSWORD = '<passwort>'
 node scripts/fuelleDemoWahllokal.js
 ```
 
@@ -228,7 +260,7 @@ npm run test:php
 `npm test` prüft Erkennung und Oberfläche. `npm run test:php` lädt einmalig PHPUnit, fährt eine
 flüchtige MariaDB (`wa-test-db`, Port 3308) hoch und prüft die API: reine Logik ohne Datenbank,
 dazu jede Route gegen die echte Datenbank – Wiederholungsuploads, Zurückrollen fehlerhafter
-Stapel, Belegprüfung, Zugang, Wahllokalregistrierung und UTF-8. Ohne Docker laufen nur die
+Stapel, Belegprüfung, Anmeldung, Rollen, Wahllokalregistrierung und UTF-8. Ohne Docker laufen nur die
 Logiktests, mit deutlicher Warnung. Stoppen: `npm run test:php:db:down`.
 Der Wahl-Hash muss in Browser und PHP byteweise gleich sein; `test/wahl.test.js` und
 `test/php/WahlTest.php` prüfen dieselben Werte.

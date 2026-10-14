@@ -9,7 +9,7 @@ final class WahlTest extends TestCase
 {
     protected function setUp(): void
     {
-        config(['token' => TEST_TOKEN, 'bilder_path' => sys_get_temp_dir()]);
+        config(['bilder_path' => sys_get_temp_dir()]);
         unset($_SERVER['HTTP_ORIGIN'], $_SERVER['HTTP_X_AUTH_TOKEN'], $_SERVER['HTTP_AUTHORIZATION']);
     }
 
@@ -103,14 +103,8 @@ final class WahlTest extends TestCase
         $this->assertApiError(400, '/Belegkennung/', static fn() => bildPath('../config.local'));
     }
 
-    public function testZugangUndHerkunftWerdenGeprueft(): void
+    public function testHerkunftWirdGeprueft(): void
     {
-        $this->assertApiError(401, '/Serverzugang/', static fn() => requireZugang());
-        $_SERVER['HTTP_X_AUTH_TOKEN'] = TEST_TOKEN;
-        requireZugang();
-        config(['token' => 'zu-kurz']);
-        $this->assertApiError(503, '/nicht eingerichtet/', static fn() => requireZugang());
-
         $_SERVER['HTTP_HOST'] = 'localhost:5173';
         $_SERVER['HTTP_ORIGIN'] = 'http://localhost:5173';
         requireSameOrigin();

@@ -6,6 +6,15 @@ const STATUS = ['gueltig', 'leer', 'mehrfach', 'zweifelsfall'];
 const BILD_MAX = 20 * 1024 * 1024;
 const JSON_MAX = 4 * 1024 * 1024;
 const LOCK_NAME = "SHA2(CONCAT('wahlassistent:', DATABASE()), 256)";
+const ROLLEN = ['admin', 'wahlvorstand'];
+// Fest statt gleitend: ein Wahlabend soll ohne erneute Anmeldung durchgehen.
+const SESSION_TTL_HOURS = 12;
+const PASSWORD_MIN_LENGTH = 12;
+const LOGIN_WINDOW_MINUTES = 15;
+const LOGIN_MAX_PER_USER = 10;
+const LOGIN_MAX_PER_IP = 20;
+// Gegen diesen Hash wird bei unbekanntem Namen geprueft, damit die Antwortzeit keine Konten verraet.
+const LOGIN_DUMMY_HASH = '$2y$10$Jtm1wvH5iTHqUqfigVQSR.zHemfPv.6xgHB8WCzlJGQN5AukOXw8W';
 
 final class ApiError extends RuntimeException
 {
@@ -158,20 +167,13 @@ function authorizationHeader(): string
 
 /**
  * Etliche Hoster reichen den Authorization-Header nicht an PHP durch (FastCGI/CGI).
- * Der Client sendet den Schluessel deshalb zusaetzlich als X-Auth-Token.
+ * Der Client sendet das Sitzungstoken deshalb zusaetzlich als X-Auth-Token.
  */
 function bearerToken(): string
 {
     return preg_match('/^Bearer\s+(.+)$/i', authorizationHeader(), $matches)
         ? trim($matches[1])
         : trim((string) ($_SERVER['HTTP_X_AUTH_TOKEN'] ?? ''));
-}
-
-function requireZugang(): void
-{
-    $token = (string) (config()['token'] ?? '');
-    if (strlen($token) < 24) throw new ApiError('Serverzugang ist nicht eingerichtet: token mit mindestens 24 Zeichen in config.local.php setzen.', 503);
-    if (!hash_equals($token, bearerToken())) throw new ApiError('Serverzugang fehlt oder ist ungültig.', 401);
 }
 
 function requireSameOrigin(): void
@@ -182,6 +184,115 @@ function requireSameOrigin(): void
     $host = ($parts['host'] ?? '') . (isset($parts['port']) ? ':' . $parts['port'] : '');
     if (strcasecmp($host, (string) ($_SERVER['HTTP_HOST'] ?? '')) !== 0)
         throw new ApiError('Zugriff von einer anderen Website ist nicht erlaubt.', 403);
+}
+
+/* --- Anmeldung ---------------------------------------------------------- */
+
+function tokenHash(string $token): string
+{
+    return hash('sha256', $token);
+}
+
+function publicUser(array $user): array
+{
+    return ['username' => $user['username'], 'role' => $user['role'], 'wahllokal' => $user['wahllokal'],
+        'passwordChangeRequired' => (bool) $user['password_change_required']];
+}
+
+/** Der Benutzer zur Sitzung dieser Anfrage, oder null. Gesperrte Konten verlieren sofort den Zugang. */
+function currentUser(): ?array
+{
+    $token = bearerToken();
+    if ($token === '') return null;
+    return query('SELECT u.id, u.username, u.role, u.wahllokal, u.password_change_required FROM app_session s
+        JOIN app_user u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > NOW() AND u.active = 1', [tokenHash($token)])[0] ?? null;
+}
+
+function requireUser(): array
+{
+    return currentUser() ?? throw new ApiError('Anmeldung erforderlich.', 401);
+}
+
+function requireAdmin(array $user): void
+{
+    if ($user['role'] !== 'admin') throw new ApiError('Nur Admins dürfen das.', 403);
+}
+
+/** Admins duerfen jedes Wahllokal, ein Wahlvorstand nur sein eigenes. */
+function wahllokalErlaubt(array $user, string $nummer): bool
+{
+    return $user['role'] === 'admin' || $user['wahllokal'] === $nummer;
+}
+
+function validatePassword(mixed $password): string
+{
+    if (!is_string($password) || mb_strlen($password) < PASSWORD_MIN_LENGTH) throw new ApiError('Das Passwort muss mindestens 12 Zeichen haben.');
+    return $password;
+}
+
+function login(mixed $value): array
+{
+    $username = is_string($value['username'] ?? null) ? mb_substr(trim($value['username']), 0, 80) : '';
+    $password = is_string($value['password'] ?? null) ? $value['password'] : '';
+    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    execute('DELETE FROM app_login_attempt WHERE attempted_at < NOW() - INTERVAL ' . LOGIN_WINDOW_MINUTES . ' MINUTE');
+    $attempts = static fn(string $column, string $key): int => (int) query("SELECT COUNT(*) AS n FROM app_login_attempt WHERE $column = ?", [$key])[0]['n'];
+    if ($attempts('username', $username) >= LOGIN_MAX_PER_USER || $attempts('ip', $ip) >= LOGIN_MAX_PER_IP)
+        throw new ApiError('Zu viele Anmeldeversuche. Bitte später erneut probieren.', 429);
+    $user = query('SELECT id, username, role, wahllokal, password_hash, password_change_required, active FROM app_user WHERE username = ?', [$username])[0] ?? null;
+    $active = $user && (int) $user['active'] === 1;
+    $passwordOk = password_verify($password, $active ? $user['password_hash'] : LOGIN_DUMMY_HASH);
+    if (!$active || !$passwordOk) {
+        execute('INSERT INTO app_login_attempt (username, ip) VALUES (?, ?)', [$username, $ip]);
+        throw new ApiError('Anmeldung fehlgeschlagen.', 401);
+    }
+    execute('DELETE FROM app_login_attempt WHERE username = ?', [$username]);
+    execute('DELETE FROM app_session WHERE expires_at <= NOW()');
+    $token = bin2hex(random_bytes(32));
+    execute('INSERT INTO app_session (token_hash, user_id, expires_at) VALUES (?, ?, NOW() + INTERVAL ' . SESSION_TTL_HOURS . ' HOUR)', [tokenHash($token), $user['id']]);
+    return ['token' => $token, 'user' => publicUser($user)];
+}
+
+function logout(): void
+{
+    execute('DELETE FROM app_session WHERE token_hash = ?', [tokenHash(bearerToken())]);
+}
+
+/** Neues Passwort; beendet alle anderen Sitzungen des Kontos. */
+function changePassword(array $user, mixed $value): array
+{
+    $current = is_string($value['currentPassword'] ?? null) ? $value['currentPassword'] : '';
+    $new = validatePassword($value['newPassword'] ?? null);
+    if (!password_verify($current, query('SELECT password_hash FROM app_user WHERE id = ?', [$user['id']])[0]['password_hash']))
+        throw new ApiError('Das bisherige Passwort stimmt nicht.', 403);
+    if ($new === $current) throw new ApiError('Das neue Passwort muss sich vom bisherigen unterscheiden.');
+    execute('UPDATE app_user SET password_hash = ?, password_change_required = 0 WHERE id = ?', [password_hash($new, PASSWORD_DEFAULT), $user['id']]);
+    execute('DELETE FROM app_session WHERE user_id = ? AND token_hash <> ?', [$user['id'], tokenHash(bearerToken())]);
+    return publicUser(['password_change_required' => 0] + $user);
+}
+
+/** Legt ein Konto an oder setzt es zurueck (create-user.php). Das Passwort muss beim ersten Login geaendert werden. */
+function saveUser(string $username, mixed $password, string $role, ?string $wahllokal): void
+{
+    $username = text($username, 'Benutzername');
+    if (mb_strlen($username) > 80) throw new ApiError('Benutzername ist zu lang (maximal 80 Zeichen).');
+    $password = validatePassword($password);
+    if (!in_array($role, ROLLEN, true)) throw new ApiError('Rolle muss admin oder wahlvorstand sein.');
+    if ($role === 'admin') $wahllokal = null;
+    elseif ($wahllokal === null || !query('SELECT nummer FROM wahllokal WHERE nummer = ?', [$wahllokal]))
+        throw new ApiError('Ein Wahlvorstand braucht ein registriertes Wahllokal.');
+    execute('INSERT INTO app_user (username, password_hash, role, wahllokal, password_change_required, active) VALUES (?, ?, ?, ?, 1, 1)
+        ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), role = VALUES(role), wahllokal = VALUES(wahllokal), password_change_required = 1, active = 1',
+        [$username, password_hash($password, PASSWORD_DEFAULT), $role, $wahllokal]);
+    execute('DELETE s FROM app_session s JOIN app_user u ON u.id = s.user_id WHERE u.username = ?', [$username]);
+}
+
+/** Sperrt ein Konto; laufende Sitzungen enden sofort. */
+function lockUser(string $username): void
+{
+    if (!query('SELECT id FROM app_user WHERE username = ?', [$username])) throw new ApiError("Konto $username gibt es nicht.", 404);
+    execute('UPDATE app_user SET active = 0 WHERE username = ?', [$username]);
+    execute('DELETE s FROM app_session s JOIN app_user u ON u.id = s.user_id WHERE u.username = ?', [$username]);
 }
 
 /* --- Wahl --------------------------------------------------------------- */
@@ -268,10 +379,12 @@ function text(mixed $value, string $name): string
     return trim($value);
 }
 
-function listWahllokale(): array
+function listWahllokale(array $user): array
 {
-    return array_map(static fn(array $row): array => array_replace($row, ['erwartet' => (int) $row['erwartet']]),
-        query('SELECT nummer, name, erwartet FROM wahllokal ORDER BY nummer'));
+    $rows = $user['role'] === 'admin'
+        ? query('SELECT nummer, name, erwartet FROM wahllokal ORDER BY nummer')
+        : query('SELECT nummer, name, erwartet FROM wahllokal WHERE nummer = ?', [$user['wahllokal']]);
+    return array_map(static fn(array $row): array => array_replace($row, ['erwartet' => (int) $row['erwartet']]), $rows);
 }
 
 function registerWahllokal(mixed $value): array
@@ -340,16 +453,17 @@ function normalizeBild(mixed $bild): array
     return ['hash' => $bild['hash'], 'type' => $bild['type']];
 }
 
-function receiveStapel(mixed $value): array
+function receiveStapel(array $user, mixed $value): array
 {
     $data = normalizeStapel($value, wahl(), wahlHash());
+    if (!wahllokalErlaubt($user, $data['wahllokal'])) throw new ApiError("Dieses Konto darf nur für Wahllokal {$user['wahllokal']} erfassen.", 403);
     foreach ($data['zettel'] as $row) {
         if (storedBildType($row['bild']['hash']) !== $row['bild']['type'])
             throw new ApiError('Originalaufnahme fehlt auf dem Server. Stapel erneut übertragen.', 409);
     }
     // Wie bisher: Ergebnisse, Zuordnungen und Hash/Dateityp der Belege, keine technischen Zusatzangaben.
     $fingerprint = jsonHash($data);
-    return transaction(static function () use ($data, $fingerprint): array {
+    return transaction(static function () use ($data, $fingerprint, $user): array {
         if (!query('SELECT nummer FROM wahllokal WHERE nummer = ?', [$data['wahllokal']])) throw new ApiError('Wahllokal ist nicht registriert.', 404);
         $existing = query('SELECT pruefsumme, eingang FROM stapel WHERE id = ?', [$data['id']])[0] ?? null;
         if ($existing) {
@@ -361,7 +475,8 @@ function receiveStapel(mixed $value): array
                 throw new ApiError('Ein Zettel wurde bereits in einem anderen Stapel erfasst. Stapel prüfen.', 409);
         }
         $eingang = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d\TH:i:s.v\Z');
-        execute('INSERT INTO stapel (id, wahllokal, soll, eingang, pruefsumme) VALUES (?, ?, ?, ?, ?)', [$data['id'], $data['wahllokal'], $data['soll'], $eingang, $fingerprint]);
+        execute('INSERT INTO stapel (id, wahllokal, soll, eingang, pruefsumme, erfasst_von) VALUES (?, ?, ?, ?, ?, ?)',
+            [$data['id'], $data['wahllokal'], $data['soll'], $eingang, $fingerprint, $user['id']]);
         foreach ($data['zettel'] as $row) {
             $ergebnis = [];
             foreach ($row['stimmen'] as $stimme) $ergebnis[$stimme['id']] = ['status' => $stimme['status'], 'wahlvorschlaege' => $stimme['wahlvorschlaege']];
@@ -423,12 +538,15 @@ function buildUebersicht(array $wahl, string $wahlHash, array $wahllokale, array
     return ['wahl' => $wahl['name'], 'wahlHash' => $wahlHash, 'gesamt' => $gesamt, 'wahllokale' => array_values($lokale)];
 }
 
-function uebersicht(): array
+/** Ein Wahlvorstand sieht nur sein Wahllokal; auch die Gesamtsumme umfasst dann nur dieses. */
+function uebersicht(array $user): array
 {
+    $nur = $user['role'] === 'admin' ? [] : [$user['wahllokal']];
     [$wahllokale, $stapel, $zettel] = transaction(static fn(): array => [
-        query('SELECT nummer, name, erwartet FROM wahllokal ORDER BY nummer'),
-        query('SELECT id, wahllokal, eingang, soll FROM stapel ORDER BY eingang DESC, id'),
-        query('SELECT id, stapel, ergebnis, bildtyp FROM stimmzettel ORDER BY stapel, id'),
+        query('SELECT nummer, name, erwartet FROM wahllokal' . ($nur ? ' WHERE nummer = ?' : '') . ' ORDER BY nummer', $nur),
+        query('SELECT id, wahllokal, eingang, soll FROM stapel' . ($nur ? ' WHERE wahllokal = ?' : '') . ' ORDER BY eingang DESC, id', $nur),
+        query('SELECT z.id, z.stapel, z.ergebnis, z.bildtyp FROM stimmzettel z JOIN stapel s ON s.id = z.stapel'
+            . ($nur ? ' WHERE s.wahllokal = ?' : '') . ' ORDER BY z.stapel, z.id', $nur),
     ]);
     return buildUebersicht(wahl(), wahlHash(), $wahllokale, $stapel, $zettel);
 }
@@ -487,10 +605,10 @@ function storeBild(string $hash, string $type, $stream): bool
     }
 }
 
-function loadStimmzettelBild(string $id): array
+function loadStimmzettelBild(array $user, string $id): array
 {
-    $row = query('SELECT bildhash, bildtyp FROM stimmzettel WHERE id = ?', [$id])[0] ?? null;
-    if (!$row) throw new ApiError('Stimmzettel nicht gefunden.', 404);
+    $row = query('SELECT z.bildhash, z.bildtyp, s.wahllokal FROM stimmzettel z JOIN stapel s ON s.id = z.stapel WHERE z.id = ?', [$id])[0] ?? null;
+    if (!$row || !wahllokalErlaubt($user, $row['wahllokal'])) throw new ApiError('Stimmzettel nicht gefunden.', 404);
     $data = @file_get_contents(bildPath($row['bildhash']));
     if ($data === false) throw new ApiError('Originalbeleg fehlt auf dem Server.', 404);
     if (hash('sha256', $data) !== $row['bildhash']) throw new RuntimeException('Beleg-Prüfsumme stimmt nicht: ' . $row['bildhash']);
@@ -511,19 +629,30 @@ function handleRequest(string $method, string $path): void
         jsonResponse(['status' => 'ok', 'tokenReceived' => bearerToken() !== '']);
     }
     if (!str_starts_with($path, '/api/')) throw new ApiError('Schnittstelle nicht gefunden.', 404);
-    requireZugang();
     if ($method !== 'GET') requireSameOrigin();
     ensureWahl();
-    if ($path === '/api/wahllokale' && $method === 'GET') jsonResponse(['wahllokale' => listWahllokale(), 'wahlHash' => wahlHash()]);
-    if ($path === '/api/wahllokale' && $method === 'POST') jsonResponse(registerWahllokal(readJsonBody()), 201);
-    if ($path === '/api/stapel' && $method === 'POST') jsonResponse(receiveStapel(readJsonBody()));
-    if ($path === '/api/ergebnisse' && $method === 'GET') jsonResponse(uebersicht());
+    if ($path === '/api/session' && $method === 'POST') jsonResponse(login(readJsonBody()));
+    $user = requireUser();
+    if ($path === '/api/session' && $method === 'GET') jsonResponse(publicUser($user));
+    if ($path === '/api/session' && $method === 'DELETE') {
+        logout();
+        jsonResponse(['ok' => true]);
+    }
+    if ($path === '/api/session/password' && $method === 'POST') jsonResponse(changePassword($user, readJsonBody()));
+    if ($user['password_change_required']) throw new ApiError('Bitte zuerst das Passwort ändern.', 403);
+    if ($path === '/api/wahllokale' && $method === 'GET') jsonResponse(['wahllokale' => listWahllokale($user), 'wahlHash' => wahlHash()]);
+    if ($path === '/api/wahllokale' && $method === 'POST') {
+        requireAdmin($user);
+        jsonResponse(registerWahllokal(readJsonBody()), 201);
+    }
+    if ($path === '/api/stapel' && $method === 'POST') jsonResponse(receiveStapel($user, readJsonBody()));
+    if ($path === '/api/ergebnisse' && $method === 'GET') jsonResponse(uebersicht($user));
     if (preg_match('#^/api/bilder/([a-f0-9]{64})$#', $path, $match) && $method === 'PUT') {
         if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > BILD_MAX) throw new ApiError('Originalaufnahme ist zu groß (maximal 20 MB).', 413);
         jsonResponse(['hash' => $match[1]], storeBild($match[1], contentType(), requestStream()) ? 201 : 200);
     }
     if (preg_match('#^/api/stimmzettel/([^/]+)/bild$#', $path, $match) && $method === 'GET') {
-        $bild = loadStimmzettelBild(rawurldecode($match[1]));
+        $bild = loadStimmzettelBild($user, rawurldecode($match[1]));
         rawResponse($bild['data'], 200, ['Content-Type' => $bild['type'], 'Cache-Control' => 'no-store', 'Content-Disposition' => 'inline']);
     }
     throw new ApiError('Schnittstelle nicht gefunden.', 404);

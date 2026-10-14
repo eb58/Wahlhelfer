@@ -5,7 +5,7 @@ use PHPUnit\Framework\TestCase;
 
 require __DIR__ . '/../../server/lib.php';
 
-const TEST_TOKEN = 'testzugang-mit-mindestens-24-zeichen';
+const TEST_PASSWORD = 'testpasswort-12';
 const TEST_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aAZkAAAAASUVORK5CYII=';
 
 /** Erfassungs- und Stapelkennungen erzeugt der Browser (crypto.randomUUID). */
@@ -41,6 +41,9 @@ abstract class DatabaseTestCase extends TestCase
     private static ?PDO $pdo = null;
     private static ?string $failure = null;
     protected string $bilderPath;
+    /** Angemeldetes Admin-Konto, so wie currentUser() es liefert. */
+    protected array $admin;
+    protected string $adminToken;
 
     private static function pdo(): ?PDO
     {
@@ -69,13 +72,35 @@ abstract class DatabaseTestCase extends TestCase
             $pdo->exec('DROP TABLE `' . $row['TABLE_NAME'] . '`');
         }
         $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+        // Nur die Tabellen; die Wahlvorschlaege traegt ensureWahl() fuer die Wahl des jeweiligen Tests ein.
+        foreach (array_filter(array_map('trim', explode(';', (string) file_get_contents(__DIR__ . '/../../server/schema.sql')))) as $sql) $pdo->exec($sql);
         $this->bilderPath = sys_get_temp_dir() . '/wahlbilder-' . bin2hex(random_bytes(6));
         db($pdo);
-        config(['token' => TEST_TOKEN, 'bilder_path' => $this->bilderPath]);
+        config(['bilder_path' => $this->bilderPath]);
         wahl(kalibrierung());
-        unset($_SERVER['HTTP_ORIGIN'], $_SERVER['HTTP_X_AUTH_TOKEN'], $_SERVER['CONTENT_LENGTH'], $_SERVER['CONTENT_TYPE']);
-        $_SERVER = ['REQUEST_METHOD' => 'GET', 'HTTP_HOST' => 'localhost', 'HTTP_AUTHORIZATION' => 'Bearer ' . TEST_TOKEN] + $_SERVER;
+        unset($_SERVER['HTTP_ORIGIN'], $_SERVER['HTTP_X_AUTH_TOKEN'], $_SERVER['CONTENT_LENGTH'], $_SERVER['CONTENT_TYPE'], $_SERVER['HTTP_AUTHORIZATION']);
+        $_SERVER = ['REQUEST_METHOD' => 'GET', 'HTTP_HOST' => 'localhost', 'REMOTE_ADDR' => '192.0.2.1'] + $_SERVER;
         requestStream(null);
+        [$this->admin, $this->adminToken] = $this->konto('admin');
+        $this->anmelden($this->adminToken);
+    }
+
+    /** Legt ein Konto samt Sitzung an (ohne Passwortwechsel-Pflicht) und liefert Benutzer und Token. */
+    protected function konto(string $role, ?string $wahllokal = null, string $username = ''): array
+    {
+        $username = $username ?: $role . ($wahllokal ?? '');
+        execute('INSERT INTO app_user (username, password_hash, role, wahllokal, password_change_required) VALUES (?, ?, ?, ?, 0)',
+            [$username, password_hash(TEST_PASSWORD, PASSWORD_BCRYPT, ['cost' => 4]), $role, $wahllokal]);
+        $id = (int) db()->lastInsertId();
+        $token = bin2hex(random_bytes(16));
+        execute('INSERT INTO app_session (token_hash, user_id, expires_at) VALUES (?, ?, NOW() + INTERVAL 1 HOUR)', [tokenHash($token), $id]);
+        return [['id' => $id, 'username' => $username, 'role' => $role, 'wahllokal' => $wahllokal, 'password_change_required' => 0], $token];
+    }
+
+    protected function anmelden(?string $token): void
+    {
+        if ($token === null) unset($_SERVER['HTTP_AUTHORIZATION']);
+        else $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
     }
 
     protected function tearDown(): void

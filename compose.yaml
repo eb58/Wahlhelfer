@@ -20,7 +20,6 @@ services:
     ports:
       - '${WAHLASSISTENT_BIND:-127.0.0.1}:${WAHLASSISTENT_PORT:-3000}:80'
     environment:
-      WAHL_API_TOKEN: '${WAHLASSISTENT_TOKEN:?Bitte in .env einen Zugangsschluessel setzen}'
       WAHL_DB_HOST: db
       WAHL_DB_NAME: '${DB_NAME:?Bitte DB_NAME in .env setzen (je Wahl eine eigene Datenbank)}'
       WAHL_DB_USER: wahlassistent
