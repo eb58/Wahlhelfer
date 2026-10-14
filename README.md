@@ -147,14 +147,15 @@ dem **Erfassungsplatz** (`erfassungsplatz/`) für die Wahlhelfer im Wahllokal un
 leitet auf den Erfassungsplatz weiter.
 
 Im ControlCenter unter *Verwaltung* zuerst die Wahllokale mit erwarteter Stimmzettelzahl
-registrieren – einzeln oder als CSV (`Nummer;Name;Erwartet`). Am Erfassungsplatz Wahllokal und
-Stapelgröße wählen (Standard: 20). `?wahllokal=518` legt die Erfassung auf ein Wahllokal fest – praktisch als Link oder QR-Code
-für die Wahlhelfer vor Ort. Jede Aufnahme prüfen und zum Stapel
-hinzufügen. Bei vollständigem Stapel den leeren Eingangsstapel bestätigen und übertragen. Bei
+registrieren – einzeln oder als CSV (`Nummer;Name;Erwartet`). Jedes Wahllokal
+bekommt einen eigenen Link, z. B. `…/?wahllokal=518` – als Link oder QR-Code für die Wahlhelfer
+vor Ort. Am Erfassungsplatz wird kein Wahllokal ausgewählt; ohne Wahllokal im Link wird nicht
+erfasst. Nach der Anmeldung nur die Stapelgröße eintragen (Standard: 20), dann jede Aufnahme
+prüfen und zum Stapel hinzufügen. Bei vollständigem Stapel den leeren Eingangsstapel bestätigen und übertragen. Bei
 Fehlern bleiben die Daten erhalten; derselbe Stapel kann ohne zusätzliche Zählung erneut
 gesendet werden. Ein Browserprofil bearbeitet jeweils einen aktiven Stapel.
 
-Am Seitenende zeigt der Erfassungsplatz den Monitor des gewählten Wahllokals: Status,
+Am Seitenende zeigt der Erfassungsplatz den Monitor des Wahllokals: Status,
 erfasste von erwarteten Zetteln, Stapel und Prüffälle über alle Erfassungsplätze, Aktualisierung
 alle 15 Sekunden. Stimmen und Belege zeigt er nicht.
 

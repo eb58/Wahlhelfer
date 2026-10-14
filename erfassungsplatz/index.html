@@ -3,19 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#f4f0e8" />
+    <meta name="theme-color" content="#1f4d35" />
     <title>Erfassungsplatz – Wahlassistent</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app">
-      <section class="intro">
-        <span class="eyebrow">Erfassungsplatz</span>
-        <h1>Digitaler</h1>
-        <h1>Wahlassistent.</h1>
-        <p class="wahl" id="wahl" hidden></p>
-      </section>
+    <!-- Schmale Kopfzeile: auf dem Smartphone gehoert der Platz dem Stapel und der Aufnahme. -->
+    <header class="kopf">
+      <div class="kopf__titel">
+        <strong id="kopfTitel">Erfassungsplatz</strong>
+        <span id="wahl" hidden></span>
+      </div>
+      <p class="angemeldet" id="angemeldet" hidden>
+        <span class="visually-hidden" id="angemeldetAls"></span>
+        <button class="icon-knopf" id="abmelden" type="button" aria-label="Abmelden" title="Abmelden">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+        </button>
+      </p>
+    </header>
 
+    <main class="app">
       <!-- Anmeldung: ohne gueltige Sitzung blendet styles.css alle anderen Abschnitte aus. -->
       <section class="karte panel" id="anmeldung">
         <form id="anmeldeForm" hidden>
@@ -29,28 +36,41 @@
           <label>Neues Passwort <input name="newPassword" type="password" autocomplete="new-password" minlength="12" required /></label>
           <button class="knopf" type="submit">Passwort ändern</button>
         </form>
-        <p class="angemeldet" id="angemeldet" hidden><span id="angemeldetAls"></span> <button class="datei-knopf" id="abmelden" type="button">Abmelden</button></p>
         <p class="status" id="anmeldeStatus" role="status" data-art="fehler" hidden></p>
       </section>
 
-      <section class="karte panel">
+      <section class="karte panel" id="stapelBereich">
+        <!-- Vor dem Stapel: nur die Stapelgroesse. Das Wahllokal steht im Link. -->
         <form id="stapelForm">
-          <label>Wahllokal <select id="wahllokal" required><option value="">Wahllokale werden geladen …</option></select></label>
-          <label>Stimmzettel im Stapel <input id="stapelSoll" type="number" min="1" max="100" value="20" required /></label>
-          <button class="knopf" id="stapelStart" type="submit" disabled>Stapel beginnen</button>
+          <div class="zeile">
+            <label>Zettel im Stapel <input id="stapelSoll" type="number" inputmode="numeric" min="1" max="100" value="20" required /></label>
+            <button class="knopf" id="stapelStart" type="submit" disabled>Stapel beginnen</button>
+          </div>
+          <details class="ablauf">
+            <summary>So wird erfasst</summary>
+            <p class="hinweis">Zettel vorher zählen. Nach jeder bestätigten Aufnahme den Zettel auf den Ausgangsstapel legen; Prüffälle mit Stapelzuordnung aussondern. Ohne QR-Erkennung bleiben unbemerkte Doppelaufnahmen möglich.</p>
+          </details>
         </form>
-        <p id="stapelFortschritt" aria-live="polite">Noch kein Stapel begonnen.</p>
-        <button class="datei-knopf" id="stapelVerwerfen" type="button" hidden>Leeren Stapel verwerfen</button>
-        <p class="hinweis">Zettel vorher zählen. Nach jeder bestätigten Aufnahme den Zettel auf den Ausgangsstapel legen; Prüffälle mit Stapelzuordnung aussondern. Ohne QR-Erkennung bleiben unbemerkte Doppelaufnahmen möglich.</p>
-        <label id="stapelKontrolle" hidden><input id="eingangLeer" type="checkbox" /> Eingangsstapel leer; Ausgangsstapel und ausgesonderte Prüffälle sind vollständig.</label>
+
+        <!-- Waehrend des Stapels: nur der Fortschritt. -->
+        <div class="stapel-leiste" id="stapelLeiste" hidden>
+          <div class="stapel-leiste__text">
+            <span>Stapel</span>
+            <strong id="stapelFortschritt" aria-live="polite"></strong>
+          </div>
+          <progress id="stapelBalken" max="20" value="0"></progress>
+          <button class="datei-knopf" id="stapelVerwerfen" type="button" hidden>Leeren Stapel verwerfen</button>
+        </div>
+
+        <label class="kontrolle" id="stapelKontrolle" hidden><input id="eingangLeer" type="checkbox" /> Eingangsstapel leer; Ausgangsstapel und ausgesonderte Prüffälle sind vollständig.</label>
         <button class="knopf" id="stapelSenden" type="button" hidden>Stapel an Server senden</button>
         <p class="status" id="stapelStatus" role="status" hidden></p>
       </section>
 
       <!-- Erfassen: Aufnahme eines ausgefuellten Zettels. Die Zettelart steht in configuration.js. -->
-      <section class="karte" id="ansichtErfassen">
-        <div class="actions">
-          <button class="knopf" id="erfassenKnopf" type="button">
+      <section class="karte" id="ansichtErfassen" hidden>
+        <div class="actions" id="aufnahmeAktionen">
+          <button class="knopf knopf--gross" id="erfassenKnopf" type="button">
             <svg aria-hidden="true" viewBox="0 0 24 24">
               <path d="M8.5 6.5 10 4h4l1.5 2.5H19A2.5 2.5 0 0 1 21.5 9v8A2.5 2.5 0 0 1 19 19.5H5A2.5 2.5 0 0 1 2.5 17V9A2.5 2.5 0 0 1 5 6.5h3.5Z" />
               <circle cx="12" cy="13" r="3.5" />
@@ -64,10 +84,9 @@
         </div>
 
         <div class="wertung-bereich" id="wertungBereich" hidden>
-          <h2>Ergebnis der Ankreuzerkennung</h2>
           <p class="wertung" id="wertung" aria-live="polite" hidden></p>
-          <button class="knopf" id="zettelBestaetigen" type="button" hidden>Erkennung geprüft – Zettel zum Stapel hinzufügen</button>
-          <button class="datei-knopf" id="zettelVerwerfen" type="button" hidden>Aufnahme verwerfen und erneut aufnehmen</button>
+          <button class="knopf" id="zettelBestaetigen" type="button" hidden>Geprüft – zum Stapel</button>
+          <button class="datei-knopf" id="zettelVerwerfen" type="button" hidden>Verwerfen und neu aufnehmen</button>
         </div>
 
         <!-- Die geladene Aufnahme mit den Ankreuzfeldern, wie die Erkennung sie gefunden hat. -->
@@ -77,7 +96,7 @@
       </section>
 
       <!-- Fortschritt des gewaehlten Wahllokals ueber alle Erfassungsplaetze, ohne Stimmen. -->
-      <section class="karte panel" id="monitor" aria-live="polite" hidden></section>
+      <section class="monitor" id="monitor" aria-live="polite" hidden></section>
     </main>
 
     <script type="module" src="main.js"></script>

@@ -71,7 +71,7 @@ export const setupAnmeldung = async ({ nurAdmin = false } = {}) => {
   const user = await api('session').catch(error => { fail(error); });
   if (!user) return show('anmeldeForm');
   if (user.passwordChangeRequired) return show('passwortForm');
-  $('angemeldetAls').textContent = `Angemeldet als ${describeUser(user)}`;
+  $('angemeldetAls').textContent = describeUser(user);
   show('angemeldet');
   if (nurAdmin && user.role !== 'admin') return fail(new Error('Diese Seite ist nur für Admins.'));
   document.body.dataset.angemeldet = '';

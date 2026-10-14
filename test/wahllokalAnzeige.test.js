@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
-import { getFortschritt, selectWahllokale } from '../erfassungsplatz/wahllokal.js';
+import { findWahllokal, getFortschritt } from '../erfassungsplatz/wahllokal.js';
 
 const readPage = name => readFileSync(new URL(`../${name}`, import.meta.url), 'utf8');
 
@@ -28,9 +28,9 @@ test('Erfassungsplatz und ControlCenter liegen getrennt und verweisen nicht aufe
   assert.match(readPage('index.html'), /url=erfassungsplatz\//);
 });
 
-test('Ohne ?wahllokal= bleiben alle Wahllokale wählbar, sonst genau das gewählte', () => {
+test('Das Wahllokal kommt aus dem Link; ohne oder mit fremder Nummer wird nicht erfasst', () => {
   const wahllokale = [{ nummer: '518', zettel: 500 }, { nummer: '519', zettel: 0 }];
-  assert.deepEqual(selectWahllokale(wahllokale, null), wahllokale);
-  assert.deepEqual(selectWahllokale(wahllokale, '519'), [wahllokale[1]]);
-  assert.throws(() => selectWahllokale(wahllokale, '520'), /nicht registriert/);
+  assert.equal(findWahllokal(wahllokale, '519'), wahllokale[1]);
+  assert.throws(() => findWahllokal(wahllokale, null), /Im Link fehlt das Wahllokal/);
+  assert.throws(() => findWahllokal(wahllokale, '520'), /nicht registriert oder für dieses Konto nicht freigegeben/);
 });

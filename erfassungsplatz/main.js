@@ -8,31 +8,40 @@ import { stimmRows, isUnambiguous, COLORS, drawFelder } from './wertungAnzeige.j
 import { setLogging } from './erkennung/log.js';
 import { isPdf, pdfPageAsImage } from './pdf.js';
 import { KALIBRIERUNG } from '../configuration.js';
-import { api, putBild, setupAnmeldung, sha256 } from '../shared/serverApi.js';
+import { api, describeUser, putBild, setupAnmeldung, sha256 } from '../shared/serverApi.js';
 import { appUrl } from '../shared/appUrl.js';
 import { createStapel, addZettel } from './stapel.js';
 import { loadStapel, saveStapel, toUpload } from './stapelStorage.js';
 import { getWahlDefinition } from './wahl.js';
 import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
-import { getFortschritt, selectWahllokale } from './wahllokal.js';
+import { findWahllokal, getFortschritt } from './wahllokal.js';
 
 // Der Ablauf ist in der Browser-Konsole mitzulesen (Praefix "[Wahl]").
 setLogging(true);
 
 const $ = id => document.querySelector(`#${id}`);
-// ?wahllokal=518 beschraenkt die Erfassung auf dieses Wahllokal.
+// Das Wahllokal steht im Link (?wahllokal=518); jedes Wahllokal bekommt seinen eigenen Link.
 const wahllokalNummer = new URL(globalThis.location.href).searchParams.get('wahllokal');
-const state = { typ: undefined, stapel: undefined, pending: undefined, busy: false, wahlHash: undefined, wahllokale: [] };
+const state = { typ: undefined, stapel: undefined, pending: undefined, busy: false, wahlHash: undefined, lokal: undefined };
+if (wahllokalNummer) $('kopfTitel').textContent = `Wahllokal ${wahllokalNummer}`;
 
+/** Je Phase nur das Noetige: vor dem Stapel das Formular, waehrend des Stapels Fortschritt und Aufnahme. */
 const renderStapel = () => {
   const stapel = state.stapel;
   const complete = stapel && stapel.zettel.length === stapel.soll;
-  $('stapelFortschritt').textContent = stapel ? `${stapel.zettel.length} von ${stapel.soll} Stimmzetteln erfasst` : 'Noch kein Stapel begonnen.';
-  $('wahllokal').disabled = !!stapel || state.busy;
+  $('stapelForm').hidden = !!stapel || !state.lokal;
+  $('stapelLeiste').hidden = !stapel;
+  $('ansichtErfassen').hidden = !stapel || (complete && !state.pending);
+  if (stapel) {
+    $('stapelFortschritt').textContent = `${stapel.zettel.length} / ${stapel.soll}`;
+    Object.assign($('stapelBalken'), { max: stapel.soll, value: stapel.zettel.length });
+  }
   $('stapelSoll').disabled = !!stapel || state.busy;
   $('stapelStart').disabled = !!stapel || !state.wahlHash || state.busy;
   $('erfassenKnopf').disabled = !stapel || complete || state.busy || !!state.pending || !state.typ;
   $('dateiKnopf').disabled = $('erfassenKnopf').disabled;
+  // Wartet eine Wertung auf Bestaetigung, steht sie direkt unter dem Fortschritt.
+  $('aufnahmeAktionen').hidden = !!state.pending;
   $('stapelKontrolle').hidden = !complete;
   $('stapelSenden').hidden = !complete;
   $('stapelSenden').disabled = state.busy || !$('eingangLeer').checked;
@@ -45,23 +54,23 @@ const renderStapel = () => {
 
 const node = (tag, content) => Object.assign(document.createElement(tag), { textContent: content });
 
-/** Monitor: Fortschritt des gewaehlten Wahllokals, wie ihn der Server ueber alle Stapel kennt. */
+/** Monitor: Fortschritt des Wahllokals, wie ihn der Server ueber alle Stapel und Erfassungsplaetze kennt. */
 const renderMonitor = () => {
-  const nummer = state.stapel?.wahllokal ?? $('wahllokal').value;
-  const lokal = state.wahllokale.find(row => row.nummer === nummer);
+  const lokal = state.lokal;
   $('monitor').hidden = !lokal;
   if (!lokal) return;
   const progress = Object.assign(node('progress'), { max: lokal.erwartet, value: Math.min(lokal.zettel, lokal.erwartet) });
   progress.setAttribute('aria-label', `${lokal.zettel} von ${lokal.erwartet} Stimmzetteln erfasst`);
-  $('monitor').replaceChildren(node('h2', `Wahllokal ${lokal.nummer} · ${lokal.name}`), node('p', getWahllokalStatus(lokal)),
-    node('p', getFortschritt(lokal)), progress,
-    ...(lokal.letzterEingang ? [node('p', `Letzter Stapel: ${new Date(lokal.letzterEingang).toLocaleString('de-DE')}`)] : []),
-    node('p', 'Aktualisierung alle 15 Sekunden.'));
+  const kopf = node('p');
+  kopf.className = 'monitor__kopf';
+  kopf.append(node('strong', 'Wahllokal gesamt'), node('span', getWahllokalStatus(lokal)));
+  $('monitor').replaceChildren(kopf, progress, node('p', getFortschritt(lokal)));
 };
 
 const loadWahllokale = async () => {
   const data = await api('wahllokale');
-  state.wahllokale = selectWahllokale(data.wahllokale, wahllokalNummer);
+  state.lokal = findWahllokal(data.wahllokale, wahllokalNummer);
+  $('wahl').textContent = [state.lokal.name, state.typ?.name].filter(Boolean).join(' · ');
   renderMonitor();
   return data;
 };
@@ -181,7 +190,7 @@ $('stapelForm').addEventListener('submit', async event => {
   state.busy = true;
   renderStapel();
   try {
-    await storeStapel(createStapel($('wahllokal').value, Number($('stapelSoll').value), state.wahlHash));
+    await storeStapel(createStapel(state.lokal.nummer, Number($('stapelSoll').value), state.wahlHash));
     $('eingangLeer').checked = false;
     $('stapelStatus').hidden = true;
     renderStapel();
@@ -201,7 +210,6 @@ $('zettelBestaetigen').addEventListener('click', async () => {
 });
 $('zettelVerwerfen').addEventListener('click', () => { clearWertung(); renderStapel(); });
 $('eingangLeer').addEventListener('change', renderStapel);
-$('wahllokal').addEventListener('change', renderMonitor);
 $('stapelSenden').addEventListener('click', async () => {
   if (state.busy || !state.stapel || state.stapel.zettel.length !== state.stapel.soll || !$('eingangLeer').checked) return;
   state.busy = true;
@@ -223,7 +231,8 @@ $('stapelSenden').addEventListener('click', async () => {
 
 /* --- Start -------------------------------------------------------------- */
 
-// Ohne brauchbare Kalibrierung gibt es nichts zu erkennen - dann bleibt der Knopf gesperrt.
+// Ohne brauchbare Kalibrierung gibt es nichts zu erkennen; der Fehler erscheint nach der Anmeldung.
+let kalibrierungsFehler;
 try {
   const kalibrierung = await (await fetch(appUrl(KALIBRIERUNG))).json();
   state.typ = loadKalibrierung(kalibrierung);
@@ -231,14 +240,16 @@ try {
   wahl.textContent = state.typ.name;
   wahl.hidden = false;
 } catch (error) {
-  $('erfassenKnopf').disabled = true;
-  showError($('erfassenStatus'), error);
+  kalibrierungsFehler = error;
 }
 
 // Ohne Anmeldung zeigt die Seite nur das Anmeldeformular und fragt den Server nichts.
 const user = await setupAnmeldung();
+// Die Kopfzeile zeigt nur den Abmelde-Knopf; wer angemeldet ist, steht in dessen Tooltip.
+if (user) $('abmelden').title = `Abmelden (${describeUser(user)})`;
 try {
   if (!user) throw new Error('Bitte anmelden.');
+  if (kalibrierungsFehler) throw kalibrierungsFehler;
   const stored = await loadStapel();
   if (stored) {
     const stapel = stored;
@@ -247,20 +258,15 @@ try {
     state.stapel = stapel;
     $('stapelSoll').value = stapel.soll;
   }
+  // Ein laufender Stapel gehoert zu genau einem Wahllokal; geschrieben wird nur unter dessen Link.
+  if (state.stapel && state.stapel.wahllokal !== wahllokalNummer)
+    throw new Error(`Der begonnene Stapel gehört zu Wahllokal ${state.stapel.wahllokal}. Bitte dessen Link öffnen und dort abschließen.`);
   const data = await loadWahllokale();
   const definition = getWahlDefinition(JSON.parse(state.typ.toJson()));
   const localHash = await sha256(new TextEncoder().encode(JSON.stringify(definition)));
   if (localHash !== data.wahlHash || (state.stapel && state.stapel.wahlHash !== localHash))
     throw new Error('Wahlvorschläge im Browser, gespeicherten Stapel und Server müssen übereinstimmen.');
   state.wahlHash = localHash;
-  if (!data.wahllokale.length) throw new Error('Noch kein Wahllokal registriert. Das übernimmt ein Admin.');
-  const wahllokale = state.wahllokale;
-  if (state.stapel && !wahllokale.some(row => row.nummer === state.stapel.wahllokal))
-    throw new Error(`Der begonnene Stapel gehört zu Wahllokal ${state.stapel.wahllokal}. Dort abschließen oder die Seite ohne ?wahllokal= öffnen.`);
-  // Ein Wahlvorstand sieht nur sein eigenes Wahllokal: dann gibt es nichts auszuwaehlen.
-  $('wahllokal').replaceChildren(...(wahllokale.length > 1 ? [new Option('Wahllokal auswählen', '')] : []),
-    ...wahllokale.map(row => new Option(`${row.nummer} · ${row.name}`, row.nummer)));
-  if (state.stapel) $('wahllokal').value = state.stapel.wahllokal;
   renderMonitor();
   globalThis.setInterval(() => loadWahllokale().catch(() => {}), 15000);
 } catch (error) {

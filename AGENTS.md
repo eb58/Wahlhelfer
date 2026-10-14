@@ -86,6 +86,10 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - Die Seiten liegen eine Ebene unter dem App-Root und sagen das mit `<html data-app-base="../">`.
   Alles, was im App-Root liegt (`php-api/`, `vendor/`, `Kalibrierungen/`), immer ueber
   `appUrl()` aus `shared/appUrl.js` ansprechen, nie relativ zur Seite.
+- Der Erfassungsplatz ist fuer das Smartphone gebaut: schmale Kopfzeile, je Phase nur das Noetige
+  (vor dem Stapel die Stapelgroesse, waehrend des Stapels Fortschritt und Aufnahme, waehrend einer
+  Wertung nur diese, am Ende Kontrolle und Senden). Das Wahllokal kommt allein aus dem Link
+  (`?wahllokal=518`, `findWahllokal()`); eine Auswahl gibt es bewusst nicht, angemeldet wird trotzdem.
 - Der Erfassungsplatz zeigt vom Server nur den Fortschritt (`GET /api/wahllokale`: Zaehler je
   Wahllokal, keine Stimmen, keine Belege) im Monitor. Ergebnisse, Stapel, Prueffaelle und Belege
   (`/api/ergebnisse`, `/api/stapel/{id}`, `/api/prueffaelle`, `/api/stimmzettel/{id}/bild`)
