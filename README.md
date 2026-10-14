@@ -43,9 +43,11 @@ npm run dev:lan
 ipconfig
 ```
 
-Dann auf dem Smartphone `http://<IPv4-Adresse-des-PCs>:5173` öffnen. Die IPv4-Adresse steht bei
-`ipconfig` unter dem aktiven WLAN- oder Ethernet-Adapter. Falls Windows beim ersten Start nach
-der Firewall fragt, den Zugriff im privaten Netzwerk erlauben.
+Dann auf dem Smartphone `https://<IPv4-Adresse-des-PCs>:5173/?wahllokal=518` öffnen und die
+Warnung zum selbst signierten Zertifikat einmal bestätigen (Chrome: *Erweitert* → *Weiter zu …*).
+Die IPv4-Adresse steht bei `ipconfig` unter dem aktiven WLAN-Adapter – nicht die `172.…`-Adresse
+von WSL/Hyper-V. Falls Windows beim ersten Start nach der Firewall fragt, den Zugriff im privaten
+Netzwerk erlauben.
 
 Für die Entwicklung mit einzelnen Modulen und Hot Reload:
 
@@ -251,10 +253,11 @@ docker compose exec wahlassistent php /srv/wahlassistent/server/create-user.php 
 ```
 
 Die Tabellen legt die API beim ersten Aufruf selbst an. `npm run dev` und `npm run dev:source`
-leiten `php-api/` an den Container auf Port 3000 weiter. Über `npm run dev:lan` per
-`http://<IP>:5173` lässt sich auf dem Smartphone nur die Erkennung testen: ohne HTTPS fehlt dem
-Browser `crypto.subtle`, Wahlabgleich und Stapelübertragung brauchen einen sicheren Ursprung
-(HTTPS oder `localhost`).
+leiten `php-api/` an den Container auf Port 3000 weiter. Über `npm run dev:lan` läuft die
+Vorschau per HTTPS mit selbst signiertem Zertifikat im WLAN – zum Testen auf dem Smartphone
+`https://<WLAN-IP des PCs>:5173/?wahllokal=518` öffnen und die Zertifikatswarnung einmal
+bestätigen. HTTPS ist nötig, weil der Browser `crypto.subtle` (Wahlabgleich, Belege) nur auf
+sicheren Seiten bereitstellt.
 
 `docker compose down` erhält die Daten; `down -v` löscht die Volumes samt Wahldaten und Belegen.
 

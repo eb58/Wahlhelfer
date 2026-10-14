@@ -2,6 +2,7 @@ import { copyFileSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export const projectRoot = fileURLToPath(new URL('.', import.meta.url));
 const publicDir = resolve(projectRoot, 'public');
@@ -35,10 +36,13 @@ syncAssets();
 // die API vergleicht ihn bei schreibenden Anfragen mit dem Origin.
 const proxy = { '/php-api': { target: 'http://localhost:3000', changeOrigin: false } };
 
-export default defineConfig({
+// --mode lan (npm run dev:lan): HTTPS mit selbst signiertem Zertifikat. Ohne sichere Seite fehlt dem
+// Smartphone-Browser crypto.subtle, dann laesst sich kein Stapel beginnen oder senden.
+export default defineConfig(({ mode }) => ({
   // Relativ, damit der Build auch in einem Unterordner beim Hoster laeuft.
   base: './',
+  plugins: mode === 'lan' ? [basicSsl()] : [],
   server: { proxy },
   preview: { proxy },
   build: { rollupOptions: { input: { start: resolve(projectRoot, 'index.html'), erfassungsplatz: resolve(projectRoot, 'erfassungsplatz/index.html'), controlcenter: resolve(projectRoot, 'controlcenter/index.html') } } },
-});
+}));

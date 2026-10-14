@@ -31,6 +31,8 @@ export const api = (path, data) => send(path, data === undefined ? {} : {
 export const putBild = (hash, blob) => send(`bilder/${hash}`, { method: 'PUT', headers: { 'Content-Type': blob.type }, body: blob });
 
 export const sha256 = async data => {
+  // crypto.subtle gibt es nur auf sicheren Seiten (HTTPS oder localhost).
+  if (!globalThis.crypto?.subtle) throw new Error(`Diese Seite braucht HTTPS. ${globalThis.location?.origin ?? ''} gilt dem Browser nicht als sicher.`);
   const digest = await globalThis.crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
 };
