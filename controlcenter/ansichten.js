@@ -2,8 +2,8 @@
  * Die Ansichten des ControlCenters. Jede wird beim Aufruf einmal aufgebaut (Werkzeuge, Tabellen)
  * und bekommt mit update(data) jede neue Antwort von GET /api/ergebnisse; destroy() raeumt auf.
  */
-import { api } from '../src/serverApi.js';
-import { getWahllokalStatus } from '../src/wahllokalAnzeige.js';
+import { api } from '../shared/serverApi.js';
+import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
 import {
   STATUS, formatProzent, formatSeit, formatZahl, formatZeitpunkt, getEingaenge, getHandlungsbedarf, getKennzahlen,
   getLetzterEingang, getStatusArt, getWertungText, parseWahllokalCsv, toErgebnisCsv,

@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createWorker } from 'tesseract.js';
-import { determineTextTransformation, transform } from '../src/erkennung/textJustierung.js';
+import { determineTextTransformation, transform } from '../erfassungsplatz/erkennung/textJustierung.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const calibrationFolder = resolve(root, 'Kalibrierungen');

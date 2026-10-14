@@ -2,7 +2,7 @@
  * ControlCenter fuer das Wahlamt: Monitoring der Wahllokale und vorlaeufige Ergebnisse. Nur fuer Admins.
  * Navigation ueber den Hash (#dashboard, #wahllokal/518 ...), Daten alle 15 Sekunden neu.
  */
-import { abmelden, api, describeUser, setupAnmeldung } from '../src/serverApi.js';
+import { abmelden, api, describeUser, setupAnmeldung } from '../shared/serverApi.js';
 import { formatZahl, parseRoute } from './auswertung.js';
 import { ansichten } from './ansichten.js';
 import { showBeleg } from './beleg.js';

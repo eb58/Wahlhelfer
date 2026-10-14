@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { perspectivePoint, findPerspectiveFrame } from '../src/erkennung/frame.js';
+import { perspectivePoint, findPerspectiveFrame } from '../erfassungsplatz/erkennung/frame.js';
 
 test('perspectivePoint ist die Identitaet, wenn Bildecken und Kalibrierungsrahmen deckungsgleich sind', () => {
   const frame = { left: 10, right: 90, top: 5, bottom: 205 };

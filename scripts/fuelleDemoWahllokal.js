@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
 import { KALIBRIERUNG } from '../configuration.js';
-import { loadKalibrierung } from '../src/erkennung/kalibrierung.js';
-import { readPng } from '../src/erkennung/png.js';
+import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
+import { readPng } from '../erfassungsplatz/erkennung/png.js';
 
 const root = new URL('../', import.meta.url);
 if (!KALIBRIERUNG.endsWith('/bundestagswahl-2017.json')) throw new Error('Demo benötigt den vorhandenen Bundestags-Musterzettel.');

@@ -1,5 +1,5 @@
 /** Wiederkehrende Elemente der Ansichten. Texte gehen immer als Textknoten ins DOM, nie als HTML. */
-import { getWahllokalStatus } from '../src/wahllokalAnzeige.js';
+import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
 import { formatProzent, formatZahl, getAnteile, getStatusArt } from './auswertung.js';
 
 /** h('a', { href, class, onclick }, ...kinder) - Attribute, Ereignisse und Kinder in einem Aufruf. */

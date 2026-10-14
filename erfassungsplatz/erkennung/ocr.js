@@ -2,7 +2,7 @@
 import { createWorker } from 'tesseract.js';
 import { toImageUrl, toTextStripUrl } from './browserImage.js';
 import { log, round } from './log.js';
-import { appUrl } from '../appUrl.js';
+import { appUrl } from '../../shared/appUrl.js';
 
 const state = {};
 const assetPath = path => appUrl(`vendor/${path}`);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { regressLine, regressPlane, solveLinear } from '../src/erkennung/leastSquares.js';
+import { regressLine, regressPlane, solveLinear } from '../erfassungsplatz/erkennung/leastSquares.js';
 
 test('solveLinear loest Gleichungssysteme beliebiger Groesse und erkennt Singularitaet', () => {
   assert.deepEqual(solveLinear([[2, 0], [0, 4]], [2, 8]), [1, 2]);

@@ -1,7 +1,7 @@
 # Algorithmus der Ankreuzerkennung
 
 Dieses Dokument beschreibt den derzeit implementierten Erkennungsweg in
-`src/erkennung/ankreuzErkennung.js`. Die Anwendung sucht keine Ankreuzfelder im Bild. Ihre Lage
+`erfassungsplatz/erkennung/ankreuzErkennung.js`. Die Anwendung sucht keine Ankreuzfelder im Bild. Ihre Lage
 steht in einer von Hand vermessenen Kalibrierungsdatei; das Bild wird auf diese bekannte
 Geometrie ausgerichtet und anschließend nur an den bekannten Feldern ausgewertet.
 
@@ -52,7 +52,7 @@ Teil der Aufnahme durchgehend dunkel sind, werden zu Gruppen zusammengefasst. Di
 
 Bei Fotos mit Umgebung ermittelt `findPaper()` zuerst grob die helle Papierfläche als
 achsenparalleles Rechteck. Gesucht wird dann der gedruckte Rahmen als Viereck
-(`src/erkennung/frameQuad.js`). Das Vorgehen stammt aus dem Sudoku-Scanner (`algorithms-js`):
+(`erfassungsplatz/erkennung/frameQuad.js`). Das Vorgehen stammt aus dem Sudoku-Scanner (`algorithms-js`):
 
 1. **Arbeitsbild:** Die Dunkelheitskarte wird per Flächenmittel auf höchstens 600 Pixel
    **Breite** verkleinert. Wie bei der Aufnahme wird die Breite begrenzt, nicht die lange
@@ -147,7 +147,7 @@ Eine Lösung wird nur akzeptiert, wenn mindestens sechs Ringe ausreichend kontra
 (mittlerer Ringwert mindestens 0,32) und über den Zettel verteilt sind (mindestens 80 Pixel
 in x und 300 Pixel in y), die Transformation geometrisch plausibel ist und keine
 unrealistische Drehung oder Scherung enthält. Die lineare Ausgleichsrechnung für die
-Transformation liegt gemeinsam in `src/erkennung/leastSquares.js`.
+Transformation liegt gemeinsam in `erfassungsplatz/erkennung/leastSquares.js`.
 
 **Eine Ringspalte:** Liegen alle Ringe untereinander (Europawahl, x-Spanne unter 80 Pixel),
 ist die Streckung quer zur Spalte aus den Ringen nicht bestimmbar. Sie bleibt dann wie vom

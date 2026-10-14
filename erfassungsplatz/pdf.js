@@ -8,7 +8,7 @@
  * die benoetigten Dateien beim Start und beim Build aus node_modules.
  */
 
-import { appUrl } from '../src/appUrl.js';
+import { appUrl } from '../shared/appUrl.js';
 
 /** PDF-Punkte sind 1/72 Zoll; 150 dpi ist ein guter Kompromiss aus Schaerfe und Rechenzeit. */
 export const RENDER_DPI = 150;

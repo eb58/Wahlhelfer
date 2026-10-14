@@ -297,7 +297,7 @@ function lockUser(string $username): void
 
 /* --- Wahl --------------------------------------------------------------- */
 
-/** Nur fachliche Angaben, gleich aufgebaut wie getWahlDefinition() in src/wahl.js. */
+/** Nur fachliche Angaben, gleich aufgebaut wie getWahlDefinition() in erfassungsplatz/wahl.js. */
 function getWahlDefinition(array $kalibrierung): array
 {
     $stimmen = array_map(static function (array $stimme): array {

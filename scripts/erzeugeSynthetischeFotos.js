@@ -11,8 +11,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
-import { readPng } from '../src/erkennung/png.js';
-import { loadKalibrierung } from '../src/erkennung/kalibrierung.js';
+import { readPng } from '../erfassungsplatz/erkennung/png.js';
+import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
 
 const root = new URL('../', import.meta.url);
 

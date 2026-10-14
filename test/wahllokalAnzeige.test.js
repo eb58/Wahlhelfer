@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { getWahllokalStatus } from '../src/wahllokalAnzeige.js';
+import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
 import { getFortschritt, selectWahllokale } from '../erfassungsplatz/wahllokal.js';
 
 const readPage = name => readFileSync(new URL(`../${name}`, import.meta.url), 'utf8');

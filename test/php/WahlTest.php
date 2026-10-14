@@ -15,7 +15,7 @@ final class WahlTest extends TestCase
 
     public function testWahlHashEntsprichtDemBrowser(): void
     {
-        // Dieselben Werte prueft test/wahl.test.js fuer getWahlDefinition() aus src/wahl.js.
+        // Dieselben Werte prueft test/wahl.test.js fuer getWahlDefinition() aus erfassungsplatz/wahl.js.
         $this->assertSame('ec7521371a58afa0d5c2224474793391bec2643aea9ecbe3f350a93bbc57e4c5', jsonHash(getWahlDefinition(kalibrierung())));
         $this->assertSame('e5a1e30c74deded4ddabea95ae317d42ed8d047352d877a35a0e54a608f72c77', jsonHash(getWahlDefinition(kalibrierung('europawahl-sh-2024'))));
     }

@@ -1,19 +1,19 @@
 /**
  * Erfassungsplatz: Stimmzettel stapelweise aufnehmen, Wertung anzeigen, Fortschritt des Wahllokals.
- * Die Zettelart steht in `configuration.js` fest; die Auswertung selbst steckt in src/.
+ * Die Zettelart steht in `configuration.js` fest; die Auswertung selbst steckt in erkennung/.
  */
-import { loadKalibrierung } from '../src/erkennung/kalibrierung.js';
-import { toBeleg, toImageData } from '../src/erkennung/browserImage.js';
+import { loadKalibrierung } from './erkennung/kalibrierung.js';
+import { toBeleg, toImageData } from './erkennung/browserImage.js';
 import { stimmRows, isUnambiguous, COLORS, drawFelder } from './wertungAnzeige.js';
-import { setLogging } from '../src/erkennung/log.js';
+import { setLogging } from './erkennung/log.js';
 import { isPdf, pdfPageAsImage } from './pdf.js';
 import { KALIBRIERUNG } from '../configuration.js';
-import { api, putBild, setupAnmeldung, sha256 } from '../src/serverApi.js';
-import { appUrl } from '../src/appUrl.js';
+import { api, putBild, setupAnmeldung, sha256 } from '../shared/serverApi.js';
+import { appUrl } from '../shared/appUrl.js';
 import { createStapel, addZettel } from './stapel.js';
 import { loadStapel, saveStapel, toUpload } from './stapelStorage.js';
-import { getWahlDefinition } from '../src/wahl.js';
-import { getWahllokalStatus } from '../src/wahllokalAnzeige.js';
+import { getWahlDefinition } from './wahl.js';
+import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
 import { getFortschritt, selectWahllokale } from './wahllokal.js';
 
 // Der Ablauf ist in der Browser-Konsole mitzulesen (Praefix "[Wahl]").
