@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
 import { KALIBRIERUNG } from '../configuration.js';
-import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
+import { loadKalibrierung } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
 import { readImage } from '../test/fotoWerkstatt.js';
 
 const root = new URL('../', import.meta.url);

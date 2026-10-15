@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
-import { findWahllokal, getFortschritt } from '../erfassungsplatz/wahllokal.js';
+import { getWahllokalStatus } from '../src/api/wahllokalAnzeige.js';
+import { findWahllokal, getFortschritt } from '../src/erfassungsplatz/wahllokal.js';
 
-const readPage = name => readFileSync(new URL(`../${name}`, import.meta.url), 'utf8');
+const readPage = name => readFileSync(new URL(`../src/${name}`, import.meta.url), 'utf8');
 
 test('Wahllokale ohne Eingang und laufende Erfassung sind unterscheidbar', () => {
   assert.equal(getWahllokalStatus({ zettel: 0, erwartet: 500, prueffaelle: 0 }), 'Noch nicht begonnen');

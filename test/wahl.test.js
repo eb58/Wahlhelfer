@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createStapel, addZettel, saveStapel } from '../erfassungsplatz/stapel.js';
-import { getWahlDefinition } from '../erfassungsplatz/wahl.js';
-import { sha256 } from '../shared/serverApi.js';
+import { createStapel, addZettel, saveStapel } from '../src/erfassungsplatz/stapel.js';
+import { getWahlDefinition } from '../src/erfassungsplatz/wahl.js';
+import { sha256 } from '../src/api/serverApi.js';
 
 const kalibrierung = name => JSON.parse(readFileSync(new URL(`../Kalibrierungen/${name}.json`, import.meta.url), 'utf8'));
 const wahlHash = name => sha256(new TextEncoder().encode(JSON.stringify(getWahlDefinition(kalibrierung(name)))));

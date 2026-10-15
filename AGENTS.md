@@ -73,20 +73,24 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 
 ## Erfassungsplatz und ControlCenter
 
-- Zwei getrennte Anwendungen in eigenen Ordnern, ohne Verweise aufeinander: der **Erfassungsplatz**
-  (`erfassungsplatz/`) fuer Wahlhelfer und Wahlvorstand im Wahllokal, das **ControlCenter**
-  (`controlcenter/`) fuer das Wahlamt, nur fuer Admins. Jeder Ordner hat `index.html`, `main.js` und
+- Der Browser-Code liegt unter `src/`: zwei getrennte Anwendungen in eigenen Ordnern, ohne Verweise
+  aufeinander - der **Erfassungsplatz** (`src/erfassungsplatz/`) fuer Wahlhelfer und Wahlvorstand im
+  Wahllokal, das **ControlCenter** (`src/controlcenter/`) fuer das Wahlamt, nur fuer Admins - und
+  dazu `src/api/`. Vite baut mit `src/` als Root, in `dist/` liegen die Seiten deshalb wieder auf
+  oberster Ebene (`dist/erfassungsplatz/`, `dist/controlcenter/`). Jeder Seitenordner hat `index.html`, `main.js` und
   `styles.css`; was nur eine Seite braucht, liegt in ihrem Ordner. Beim Erfassungsplatz sind das Stapel,
   IndexedDB-Puffer, Wertungsanzeige, PDF-Aufnahme, Aufnahme und Beleg (`browserImage.js`),
-  Wahllokalauswahl, Wahldefinition und die Erkennung (`erfassungsplatz/erkennung/`). Die Erkennung
+  Wahllokalauswahl, Wahldefinition und die Erkennung (`src/erfassungsplatz/erkennung/`). Die Erkennung
   haengt an keiner Oberflaeche und laeuft auch in Node (Skripte, Fototests); sie importiert nichts aus
   dem uebrigen Erfassungsplatz. In `erkennung/` liegt nur Code, der den Wahlzettel erkennt - Bilder
   beschaffen, Belege erzeugen oder Dateien lesen gehoert nicht dorthin.
-- `shared/` enthaelt nur, was beide Seiten brauchen: `serverApi.js` (API und Anmeldung), `appUrl.js`
-  und `wahllokalAnzeige.js` (Status eines Wahllokals). Neues kommt nur hinein, wenn beide Seiten es nutzen.
+- `src/api/` ist die Browser-Seite der PHP-API in `server/`: alles, was mit dem Server spricht oder
+  seine Antworten deutet - `serverApi.js` (Aufrufe, Anmeldung, Belege), `appUrl.js` (Pfade zum App-Root)
+  und `wahllokalAnzeige.js` (was die Zaehler eines Wahllokals bedeuten). Was nur eine Seite braucht und
+  nicht mit dem Server zu tun hat, gehoert in deren Ordner.
 - Die Seiten liegen eine Ebene unter dem App-Root und sagen das mit `<html data-app-base="../">`.
   Alles, was im App-Root liegt (`php-api/`, `vendor/`, `Kalibrierungen/`), immer ueber
-  `appUrl()` aus `shared/appUrl.js` ansprechen, nie relativ zur Seite.
+  `appUrl()` aus `src/api/appUrl.js` ansprechen, nie relativ zur Seite.
 - Der Erfassungsplatz ist fuer das Smartphone gebaut: schmale Kopfzeile, je Phase nur das Noetige
   (vor dem Stapel die Stapelgroesse, waehrend des Stapels Fortschritt und Aufnahme, waehrend einer
   Wertung nur diese, am Ende Kontrolle und Senden). Das Wahllokal kommt allein aus dem Link
@@ -115,7 +119,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - Wie in der Mitgliederverwaltung werfen Handler ihre Antwort (`jsonResponse()` -> `ApiResponse`),
   `db()`, `config()`, `wahl()` und `requestStream()` sind die Test-Naehte. Neue Routen in
   `handleRequest()` diesem Muster folgen lassen.
-- `getWahlDefinition()` gibt es zweimal (`erfassungsplatz/wahl.js`, `server/lib.php`); der Browser vergleicht den
+- `getWahlDefinition()` gibt es zweimal (`src/erfassungsplatz/wahl.js`, `server/lib.php`); der Browser vergleicht den
   SHA-256 des JSON. Beide muessen byteweise dasselbe JSON liefern - `test/wahl.test.js` und
   `test/php/WahlTest.php` pruefen dieselben Hashwerte. Aendert sich eine Kalibrierung, beide anpassen.
 - Der Beleg ist nicht das Kamera-Original, sondern die auf `MAX_WIDTH` (1600 px) verkleinerte Aufnahme

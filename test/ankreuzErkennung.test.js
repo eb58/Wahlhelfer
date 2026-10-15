@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
-import { computeImageThresholds } from '../erfassungsplatz/erkennung/ankreuzErkennung.js';
+import { loadKalibrierung } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
+import { computeImageThresholds } from '../src/erfassungsplatz/erkennung/ankreuzErkennung.js';
 import { musterZettel, kreuzeAn, scale, crop } from './zettelWerkstatt.js';
 
 const muster = await musterZettel();

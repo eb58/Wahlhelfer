@@ -36,12 +36,17 @@ const proxy = { '/php-api': { target: 'http://localhost:3000', changeOrigin: fal
 export default defineConfig(({ mode }) => ({
   // Relativ, damit der Build auch in einem Unterordner beim Hoster laeuft.
   base: './',
+  // Die Seiten liegen unter src/; mit src/ als Root landen sie in dist/ wieder auf oberster Ebene
+  // (dist/erfassungsplatz/, dist/controlcenter/), die Links bleiben also gleich.
+  root: resolve(projectRoot, 'src'),
   publicDir,
   plugins: mode === 'lan' ? [basicSsl()] : [],
   server: { proxy },
   preview: { proxy },
   build: {
-    rollupOptions: { input: { erfassungsplatz: resolve(projectRoot, 'erfassungsplatz/index.html'), controlcenter: resolve(projectRoot, 'controlcenter/index.html') } },
+    outDir: resolve(projectRoot, 'dist'),
+    emptyOutDir: true,
+    rollupOptions: { input: { erfassungsplatz: resolve(projectRoot, 'src/erfassungsplatz/index.html'), controlcenter: resolve(projectRoot, 'src/controlcenter/index.html') } },
     // Das ControlCenter bringt AG Grid komplett mit (rund 1,1 MB). Die Groesse spielt hier kaum eine Rolle:
     // Admins im Wahlamt am PC, Wahlhelfer laden nur den kleinen Erfassungsplatz.
     chunkSizeWarningLimit: 2000,

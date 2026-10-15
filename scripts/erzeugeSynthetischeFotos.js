@@ -12,7 +12,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { readImage } from '../test/fotoWerkstatt.js';
-import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
+import { loadKalibrierung } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
 
 const root = new URL('../', import.meta.url);
 

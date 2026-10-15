@@ -7,7 +7,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
+import { loadKalibrierung } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
 import { readFoto } from './fotoWerkstatt.js';
 
 const sorted = values => [...values].sort();

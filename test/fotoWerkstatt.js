@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { BELEG_QUALITY, MAX_WIDTH } from '../erfassungsplatz/browserImage.js';
+import { BELEG_QUALITY, MAX_WIDTH } from '../src/erfassungsplatz/browserImage.js';
 
 /**
  * Bilddatei (PNG, JPEG, ...) -> ImageData-kompatibles Objekt, wie es im Browser `getImageData()`

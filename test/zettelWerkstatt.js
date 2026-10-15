@@ -4,8 +4,8 @@
  */
 import { readFileSync } from 'node:fs';
 import { readImage } from './fotoWerkstatt.js';
-import { toDarkness } from '../erfassungsplatz/erkennung/image.js';
-import { findFrame, toAbsolute, frameWidth } from '../erfassungsplatz/erkennung/frame.js';
+import { toDarkness } from '../src/erfassungsplatz/erkennung/image.js';
+import { findFrame, toAbsolute, frameWidth } from '../src/erfassungsplatz/erkennung/frame.js';
 
 export const musterZettel = () => readImage(readFileSync(new URL('../Testdaten/bundestagswahl-2017/musterzettel.png', import.meta.url)));
 

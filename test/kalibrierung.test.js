@@ -6,9 +6,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { loadKalibrierung, FORMAT_VERSION } from '../erfassungsplatz/erkennung/kalibrierung.js';
-import { toDarkness, ringDarkness, darkRatio } from '../erfassungsplatz/erkennung/image.js';
-import { innerRadius } from '../erfassungsplatz/erkennung/ankreuzErkennung.js';
+import { loadKalibrierung, FORMAT_VERSION } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
+import { toDarkness, ringDarkness, darkRatio } from '../src/erfassungsplatz/erkennung/image.js';
+import { innerRadius } from '../src/erfassungsplatz/erkennung/ankreuzErkennung.js';
 import { kreuzeAn } from './zettelWerkstatt.js';
 import { readImage } from './fotoWerkstatt.js';
 

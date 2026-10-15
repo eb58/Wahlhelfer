@@ -20,7 +20,7 @@ test('doppelt kodierte Umlaute werden mit Zeile gemeldet', () => {
 });
 
 test('nur Textdateien werden geprueft', () => {
-  assert.ok(isTextFile('erfassungsplatz/main.js'));
+  assert.ok(isTextFile('src/erfassungsplatz/main.js'));
   assert.ok(isTextFile('server/schema.sql'));
   assert.ok(!isTextFile('Testdaten/bundestagswahl-2017/musterzettel.png'));
 });

@@ -1,4 +1,4 @@
-import { sha256 } from '../shared/serverApi.js';
+import { sha256 } from '../api/serverApi.js';
 
 const open = () => new Promise((resolve, reject) => {
   const request = globalThis.indexedDB.open('wahlassistent', 1);

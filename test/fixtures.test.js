@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
+import { loadKalibrierung } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
 import { readImage } from './fotoWerkstatt.js';
 
 const fixtureFolder = new URL('../Testdaten/bundestagswahl-2017/scans/', import.meta.url);

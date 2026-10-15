@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { appUrl } from '../shared/appUrl.js';
+import { appUrl } from '../src/api/appUrl.js';
 
 test('appUrl führt aus dem Unterordner der Seite zum App-Root', () => {
   assert.equal(appUrl('./Kalibrierungen/a.json'), 'Kalibrierungen/a.json');

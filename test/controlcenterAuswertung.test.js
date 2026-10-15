@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   formatProzent, formatSeit, getAnteile, getEingaenge, getHandlungsbedarf, getKennzahlen,
   getStatusArt, getWertungText, parseRoute, parseWahllokalCsv, toErgebnisCsv,
-} from '../controlcenter/auswertung.js';
+} from '../src/controlcenter/auswertung.js';
 
 const stimme = (name, anzahlen) => ({
   id: name.toLowerCase(), name, gueltig: anzahlen.reduce((a, b) => a + b, 0), leer: 1, mehrfach: 0, zweifelsfall: 2,

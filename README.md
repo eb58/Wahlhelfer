@@ -138,8 +138,9 @@ prüft Hash und Dateityp jedes Belegs, legt ihn unter seinem SHA-256 ab und nimm
 nur an, wenn alle Belege vorliegen. Ein erneuter Upload derselben Datei ist harmlos.
 
 Die Anwendung besteht aus zwei getrennten Teilen in eigenen Ordnern, ohne Verweise aufeinander:
-dem **Erfassungsplatz** (`erfassungsplatz/`) für die Wahlhelfer im Wahllokal und dem
-**ControlCenter** (`controlcenter/`) für das Wahlamt, nur für Admins.
+dem **Erfassungsplatz** (`src/erfassungsplatz/`) für die Wahlhelfer im Wahllokal und dem
+**ControlCenter** (`src/controlcenter/`) für das Wahlamt, nur für Admins. Beide sprechen über
+`src/api/` mit der PHP-API in `server/`.
 
 Im ControlCenter unter *Verwaltung* zuerst die Wahllokale mit erwarteter Stimmzettelzahl
 registrieren – einzeln oder als CSV (`Nummer;Name;Erwartet`). Jedes Wahllokal

@@ -3,7 +3,7 @@
  * CSV-Export und -Import. Grundlage ist die Antwort von GET /api/ergebnisse.
  * Sortieren und Filtern der Tabellen uebernimmt AG Grid.
  */
-import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
+import { getWahllokalStatus } from '../api/wahllokalAnzeige.js';
 
 export const ANSICHTEN = ['dashboard', 'wahllokale', 'ergebnisse', 'prueffaelle', 'eingaenge', 'verwaltung'];
 

@@ -1,4 +1,4 @@
-import { loadBild } from '../shared/serverApi.js';
+import { loadBild } from '../api/serverApi.js';
 
 export const showBeleg = async (zettel, stimmen) => {
   const blob = await loadBild(zettel.id);

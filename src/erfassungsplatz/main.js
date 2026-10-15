@@ -6,13 +6,13 @@ import { loadKalibrierung } from './erkennung/kalibrierung.js';
 import { toBeleg, toImageData } from './browserImage.js';
 import { stimmRows, isUnambiguous, COLORS, drawFelder } from './wertungAnzeige.js';
 import { isPdf, pdfPageAsImage } from './pdf.js';
-import { KALIBRIERUNG } from '../configuration.js';
-import { api, describeUser, putBild, setupAnmeldung, sha256 } from '../shared/serverApi.js';
-import { appUrl } from '../shared/appUrl.js';
+import { KALIBRIERUNG } from '../../configuration.js';
+import { api, describeUser, putBild, setupAnmeldung, sha256 } from '../api/serverApi.js';
+import { appUrl } from '../api/appUrl.js';
 import { createStapel, addZettel } from './stapel.js';
 import { loadStapel, saveStapel, toUpload } from './stapelStorage.js';
 import { getWahlDefinition } from './wahl.js';
-import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
+import { getWahllokalStatus } from '../api/wahllokalAnzeige.js';
 import { findWahllokal, getFortschritt } from './wahllokal.js';
 
 const $ = id => document.querySelector(`#${id}`);
