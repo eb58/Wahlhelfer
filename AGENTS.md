@@ -163,6 +163,10 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - Fuer die anderen Zettelarten gibt es keine echten Fotos; `test/fotos/synthetisch-*.test.js` prueft sie
   mit synthetischen Fotos. Bekannte Luecken stehen dort als `todo` mit Begruendung - sie muessen sicher abgelehnt,
   duerfen aber nie falsch gewertet werden.
+- `npm run test:e2e` (Playwright, `test/e2e/`) spielt den ganzen Ablauf im Browser gegen einen
+  Wegwerf-Stack auf Port 3100 durch und verlangt eine fehlerfreie Konsole. Nicht im pre-commit-Hook;
+  vor einem Deploy und nach Umbauten an Oberflaeche, API oder Build laufen lassen. Testdateien dort
+  heissen `*.spec.js`, damit `npm test` (`*.test.js`) sie nicht aufgreift.
 - Aenderungen an `server/` mit `npm run test:php` pruefen (PHPUnit, faehrt die Wegwerf-MariaDB
   `wa-test-db` auf Port 3308 selbst hoch; ohne Docker nur die Logiktests, mit Warnung).
 - Wenn UI- oder Dokument-Layout betroffen ist, zusaetzlich die dazugehoerigen Spezialtests pruefen.

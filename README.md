@@ -276,6 +276,7 @@ Nummer 518 bereits, bricht das Skript vor Änderungen ab.
 ```powershell
 npm test
 npm run test:php
+npm run test:e2e
 ```
 
 `npm test` prüft Erkennung und Oberfläche. `npm run test:php` lädt einmalig PHPUnit, fährt eine
@@ -285,3 +286,11 @@ Stapel, Belegprüfung, Anmeldung, Rollen, Wahllokalregistrierung und UTF-8. Ohne
 Logiktests, mit deutlicher Warnung. Stoppen: `npm run test:php:db:down`.
 Der Wahl-Hash muss in Browser und PHP byteweise gleich sein; `test/wahl.test.js` und
 `test/php/WahlTest.php` prüfen dieselben Werte.
+
+`npm run test:e2e` spielt den ganzen Weg im Browser durch (Playwright mit dem installierten Chrome):
+Admin registriert ein Wahllokal, ein Wahlvorstand erfasst am simulierten Smartphone einen Stapel aus
+zwei echten Fotos und sendet ihn, das ControlCenter zeigt ihn in allen Ansichten samt Beleg. Keine
+Seite darf dabei Fehler in die Konsole schreiben. Der Test baut die Anwendung und fährt einen eigenen
+Docker-Stack auf Port 3100 hoch (`test/e2e/compose.yaml`, Daten nur auf tmpfs), der danach wieder
+verschwindet – die lokalen Daten bleiben unberührt. Dauer rund 20 Sekunden, deshalb nicht im
+pre-commit-Hook; vor einem Deploy und nach größeren Umbauten laufen lassen.

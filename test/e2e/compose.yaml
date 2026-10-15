@@ -1,0 +1,37 @@
+# Wegwerf-Stack fuer den E2E-Test (npm run test:e2e): dasselbe Apache-PHP-Image wie compose.yaml,
+# aber eigene Datenbank und Belegablage auf tmpfs und Port 3100. Die lokalen Daten bleiben unberuehrt;
+# test/e2e/setup.js faehrt den Stack hoch, teardown.js entfernt ihn samt Daten.
+name: wahlassistent-e2e
+services:
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: e2e
+      MARIADB_DATABASE: wahlassistent_e2e
+      MARIADB_USER: wahlassistent
+      MARIADB_PASSWORD: e2e
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mariadb', '-h', '127.0.0.1', '-uwahlassistent', '-pe2e', '-e', 'SELECT 1', 'wahlassistent_e2e']
+      interval: 2s
+      timeout: 3s
+      retries: 40
+  wahlassistent:
+    build: ../..
+    image: wahlassistent-server
+    ports:
+      - '127.0.0.1:3100:80'
+    environment:
+      WAHL_DB_HOST: db
+      WAHL_DB_NAME: wahlassistent_e2e
+      WAHL_DB_USER: wahlassistent
+      WAHL_DB_PASSWORD: e2e
+      WAHL_BILDER_PATH: /data/bilder
+    volumes:
+      - ../..:/srv/wahlassistent:ro
+    tmpfs:
+      - /data/bilder:uid=33,gid=33
+    depends_on:
+      db:
+        condition: service_healthy
