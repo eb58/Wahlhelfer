@@ -5,7 +5,9 @@ import { defineConfig } from 'vite';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export const projectRoot = fileURLToPath(new URL('.', import.meta.url));
-const publicDir = resolve(projectRoot, 'public');
+// Erzeugtes Zwischenlager fuer Kalibrierungen und pdf.js - wie Vites eigener Cache unter node_modules,
+// damit es im Projekt nicht als Ordner auftaucht. Vite liefert es aus und kopiert es nach dist/.
+const publicDir = resolve(projectRoot, 'node_modules/.wahlassistent-public');
 const kalibrierungSource = resolve(projectRoot, 'Kalibrierungen');
 const pdfjsSource = resolve(projectRoot, 'node_modules/pdfjs-dist');
 
@@ -34,8 +36,14 @@ const proxy = { '/php-api': { target: 'http://localhost:3000', changeOrigin: fal
 export default defineConfig(({ mode }) => ({
   // Relativ, damit der Build auch in einem Unterordner beim Hoster laeuft.
   base: './',
+  publicDir,
   plugins: mode === 'lan' ? [basicSsl()] : [],
   server: { proxy },
   preview: { proxy },
-  build: { rollupOptions: { input: { erfassungsplatz: resolve(projectRoot, 'erfassungsplatz/index.html'), controlcenter: resolve(projectRoot, 'controlcenter/index.html') } } },
+  build: {
+    rollupOptions: { input: { erfassungsplatz: resolve(projectRoot, 'erfassungsplatz/index.html'), controlcenter: resolve(projectRoot, 'controlcenter/index.html') } },
+    // Das ControlCenter bringt AG Grid komplett mit (rund 1,1 MB). Die Groesse spielt hier kaum eine Rolle:
+    // Admins im Wahlamt am PC, Wahlhelfer laden nur den kleinen Erfassungsplatz.
+    chunkSizeWarningLimit: 2000,
+  },
 }));

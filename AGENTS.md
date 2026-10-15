@@ -136,9 +136,9 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 
 ## Externe Ressourcen
 
-- Zur Laufzeit wird nichts aus dem Netz geladen. Vite kopiert pdf.js und Kalibrierungen beim Start bzw. Build aus `node_modules` und `Kalibrierungen/` nach `public/`.
-  `dist/` und `public/` sind erzeugte, ignorierte Verzeichnisse und muessen nicht eingecheckt
-  werden.
+- Zur Laufzeit wird nichts aus dem Netz geladen. Vite kopiert pdf.js und Kalibrierungen beim Start bzw.
+  Build aus `node_modules` und `Kalibrierungen/` in sein `publicDir` (`node_modules/.wahlassistent-public`)
+  und von dort nach `dist/`. `dist/` ist erzeugt und ignoriert.
 
 ## Pruefen
 

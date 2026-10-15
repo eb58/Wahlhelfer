@@ -7,8 +7,6 @@ server/bilder/
 test/tools/phpunit.phar
 test/.cache/
 dist/
-public/Kalibrierungen/
-public/vendor/
 
 # Zwischenstaende, u. a. die Ausgabe von scripts/pruefeKalibrierung.py
 *-tmp.*
