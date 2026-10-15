@@ -30,7 +30,7 @@ for (const testCase of manifest.faelle) {
     let result;
 
     try {
-      result = await typ.recognize(image, { textjustierung: false });
+      result = await typ.recognize(image);
     } catch (error) {
       assert.ok(['beschnitten', 'gedreht'].includes(category),
         `${testCase.datei} darf nicht an der Rahmensuche scheitern: ${error.message}`);

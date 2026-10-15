@@ -6,21 +6,15 @@ prüfen lassen, Zweifelsfälle dem Wahlvorstand vorlegen. Das Papier bleibt das 
 ## Kalibrierung
 
 Je Zettelart liegt unter `Kalibrierungen/` eine Datei, die am leeren Musterzettel **von Hand
-vermessen** wurde: Rahmenlinien, Textmarken, Radius der Ankreuzfelder und je Stimme die Feldlagen samt
-Beschriftung. Die Anwendung sucht keine Ankreuzfelder – sie liest, wo sie stehen. Eine lokale
-OCR gleicht die Textmarken ab und korrigiert die Feldlage mit einer affinen Transformation.
-Dafür werden nur kleine, unverkleinerte Streifen um die erwarteten Textmarken verarbeitet.
+vermessen** wurde: Rahmenlinien, Radius der Ankreuzfelder und je Stimme die Feldlagen samt
+Beschriftung. Die Anwendung sucht keine Ankreuzfelder – sie liest, wo sie stehen. Bei Fotos
+richten die gedruckten Ankreuzringe die Feldlage aus; findet sich keine sichere Ringlage, wird
+die Aufnahme abgelehnt statt geraten.
 
 Eine Kalibrierung sichtbar prüfen (zeichnet die Feldlagen in den Musterzettel):
 
 ```powershell
 python scripts/pruefeKalibrierung.py Kalibrierungen/europawahl-sh-2024.json pruefung-tmp.png
-```
-
-Ob die lokale OCR alle Textmarken der Musterzettel findet:
-
-```powershell
-npm run pruefe:ocr
 ```
 
 Welche Kalibrierung im Einsatz gilt, steht in `configuration.js` – pro Wahl einmal setzen.

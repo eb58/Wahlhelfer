@@ -29,7 +29,7 @@ const typ = loadKalibrierung(readFileSync(new URL(KALIBRIERUNG, root), 'utf8'));
 const vorlagen = [];
 for (const fall of faelle) {
   const bytes = readFileSync(new URL(fall.datei, folder));
-  const result = await typ.recognize(await readImage(bytes), { textjustierung: false });
+  const result = await typ.recognize(await readImage(bytes));
   const hash = createHash('sha256').update(bytes).digest('hex');
   await send(`bilder/${hash}`, { method: 'PUT', headers: { 'Content-Type': 'image/png' }, body: bytes });
   vorlagen.push({ bild: { hash, type: 'image/png' },

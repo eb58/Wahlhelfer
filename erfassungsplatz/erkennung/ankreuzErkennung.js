@@ -1,13 +1,13 @@
 /**
  * Ankreuzerkennung: prueft je Ankreuzfeld, ob es markiert ist.
  *
- * Der perspektivische Druckrahmen liefert die grobe Lage. Mehrere gedruckte Ankreuzringe
- * bestimmen danach robust die Feinjustierung; OCR bleibt der Rueckfall fuer kontrastarme
- * Aufnahmen. Gemessen wird lokal normalisiert im Kreisinneren.
+ * Bei Fotos liefert der perspektivische Druckrahmen die grobe Lage, mehrere gedruckte Ankreuzringe
+ * bestimmen danach robust die Feinjustierung. Findet sich keine Ringlage, wird das Foto abgelehnt
+ * statt geraten. Scans richten sich nach dem geraden Rahmen. Gemessen wird lokal normalisiert im
+ * Kreisinneren.
  */
 import { toDarkness, darkRatio, ringDarkness } from './image.js';
 import { findFrame, findPerspectiveFrame, toAbsolute, frameWidth } from './frame.js';
-import { alignByText, transform, transformScale } from './ocr.js';
 import { findPaper } from './paper.js';
 import {
   determineRingTransformation, findRoughRingShift, normalizeField, scoreFrame, transformRing,
@@ -45,15 +45,14 @@ const classify = (fuellgrad, thresholds) =>
  * denselben Mindestabstand wie in den konfigurierten Schwellen - sonst faellt die Zweifelsfall-
  * Zone weg und blasse Markierungen werden ohne Vorlage fuer den Wahlvorstand durchgewinkt.
  */
-export const computeImageThresholds = (measuredFelder, thresholds, { ringAlignment, textAlignment } = {}) => {
-  if (!ringAlignment && !textAlignment) return thresholds;
+export const computeImageThresholds = (measuredFelder, thresholds, { ringAlignment } = {}) => {
+  if (!ringAlignment) return thresholds;
   const fuellgrade = measuredFelder.map(feld => feld.fuellgrad).sort((a, b) => a - b);
-  const [percentile, angekreuztGap, zweifelGap] = ringAlignment ? [0.65, 0.06, 0.045] : [0.8, 0.04, 0.025];
-  const baseline = fuellgrade[Math.floor(fuellgrade.length * percentile)];
+  const baseline = fuellgrade[Math.floor(fuellgrade.length * 0.65)];
   return {
     ...thresholds,
-    angekreuzt: Math.max(thresholds.angekreuzt, baseline + angekreuztGap),
-    zweifel: Math.max(thresholds.zweifel, baseline + zweifelGap),
+    angekreuzt: Math.max(thresholds.angekreuzt, baseline + 0.06),
+    zweifel: Math.max(thresholds.zweifel, baseline + 0.045),
   };
 };
 
@@ -79,8 +78,6 @@ const evaluateStimme = (felder, { id, auswahl }) => {
 export const recognizeAnkreuzungen = async (image, kalibrierung, {
   thresholds = kalibrierung.thresholds,
   adjust = true,
-  textjustierung = true,
-  ocr,
   ...options
 } = {}) => {
   const started = now();
@@ -138,24 +135,21 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   const quadAlignment = frameCandidates.reduce((found, { candidate }) => found ?? alignRings(candidate), undefined);
 
   // Die Linien-Suche ist teuer und nur noch Ersatz: gerechnet wird sie erst, wenn kein Viereck
-  // traegt - dann als weiterer Ringkandidat und als Lage fuer den OCR-Rueckfall.
+  // traegt - dann als weiterer Ringkandidat.
   const perspectiveStart = now();
   const perspectiveFrame = isPhoto && !quadAlignment ? findPerspectiveFrame(map, paper) : undefined;
   if (perspectiveFrame) logDuration('Perspektivischer Druckrahmen erkannt', perspectiveStart);
   const ringAlignment = quadAlignment ?? (perspectiveFrame && alignRings(perspectiveFrame));
   const ringFrame = ringAlignment?.frame;
-  const textAlignment = textjustierung && !ringAlignment
-    ? await alignByText(image, kalibrierung, { frame, paper, perspectiveFrame }, ocr)
-    : undefined;
-  if (!ringAlignment && !textAlignment && !frame) throw new Error('Kein Zettelrahmen erkannt - Aufnahme zeigt den Stimmzettel nicht vollstaendig.');
-  if (textAlignment) log(`Affine Feinjustierung ueber ${textAlignment.treffer.length} Textmarken`);
+  // Ohne Ringlage ist ein Foto nicht sicher zu werten: lieber ablehnen als raten.
+  if (!ringAlignment && isPhoto) throw new Error('Ankreuzfelder nicht sicher gefunden - Aufnahme bitte gerade, scharf und vollstaendig wiederholen.');
+  if (!ringAlignment && !frame) throw new Error('Kein Zettelrahmen erkannt - Aufnahme zeigt den Stimmzettel nicht vollstaendig.');
 
   const ringScale = ringAlignment && Math.sqrt(Math.abs(
     ringAlignment.transformation.a * ringAlignment.transformation.d - ringAlignment.transformation.b * ringAlignment.transformation.c,
   ));
   const radius = Math.max(3, Math.round(ringAlignment
     ? kalibrierung.referenzRadius * ringScale * frameWidth(ringFrame) / frameWidth(kalibrierung.frame)
-    : textAlignment ? kalibrierung.radius * frameWidth(kalibrierung.frame) * transformScale(textAlignment.transformation)
     : kalibrierung.radius * frameWidth(frame)));
   const measureRadius = innerRadius(radius);
 
@@ -167,15 +161,13 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
     );
     return { ...feld, ...measurement, ringReferenz };
   }) : kalibrierung.felder.map(feld => {
-    const rough = textAlignment ? transform(textAlignment.transformation, feld.referenz) : toAbsolute(frame, feld);
-    const { x, y } = adjust
-      ? adjustFeld(map, Math.round(rough.x), Math.round(rough.y), radius, isPhoto ? { x: 2, y: 2.5 } : 0.5)
-      : rough;
+    const rough = toAbsolute(frame, feld);
+    const { x, y } = adjust ? adjustFeld(map, Math.round(rough.x), Math.round(rough.y), radius) : rough;
     const fuellgrad = darkRatio(map, x, y, measureRadius);
     return { ...feld, x, y, fuellgrad };
   });
   logDuration(`Ankreuzfelder (${measuredFelder.length})`, felderStart);
-  const imageThresholds = computeImageThresholds(measuredFelder, thresholds, { ringAlignment, textAlignment });
+  const imageThresholds = computeImageThresholds(measuredFelder, thresholds, { ringAlignment });
   const felder = measuredFelder.map(feld => ({ ...feld, status: classify(feld.fuellgrad, imageThresholds) }));
 
   // Nur auffaellige Felder protokollieren - eine Zeile je Feld waere nicht mehr lesbar.
@@ -189,7 +181,6 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
 
   return {
     felder, frame, radius, stimmen,
-    transformation: ringAlignment?.transformation ?? textAlignment?.transformation,
-    textmarken: textAlignment?.treffer ?? [],
+    transformation: ringAlignment?.transformation,
   };
 };

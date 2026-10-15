@@ -61,13 +61,8 @@ for (const file of files) {
     assert.ok(typ.felder.every(feld => feld.beschriftung), 'jedes Feld braucht eine Beschriftung');
   });
 
-  test(`${file}: Textmarken sind ueber den Musterzettel verteilt`, () => {
-    assert.ok(typ.textmarken.length >= 3);
-    assert.ok(Math.max(...typ.textmarken.map(mark => mark.y)) - Math.min(...typ.textmarken.map(mark => mark.y)) > image.height * 0.4);
-  });
-
   test(`${file}: erkennt am eigenen Musterzettel keine Markierung`, async () => {
-    const result = await typ.recognize(image, { textjustierung: false });
+    const result = await typ.recognize(image);
     assert.ok(result.felder.every(feld => feld.status === 'leer'));
     assert.ok(result.stimmen.every(stimme => stimme.status === 'leer'));
   });
@@ -78,7 +73,7 @@ for (const file of files) {
     for (const stimme of typ.stimmen) {
       const own = typ.felder.filter(feld => feld.stimme === stimme.id);
       for (const feld of [own[0], own[Math.floor(own.length / 2)], own.at(-1)]) {
-        const result = await typ.recognize(kreuzeAn(image, typ, [feld.id]), { textjustierung: false });
+        const result = await typ.recognize(kreuzeAn(image, typ, [feld.id]));
         assert.deepEqual(result.felder.filter(f => f.status !== 'leer').map(f => f.id), [feld.id],
           `${feld.id} (${feld.beschriftung}) wurde nicht sauber getroffen`);
       }

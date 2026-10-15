@@ -1,6 +1,6 @@
 /**
- * Grobe Papierlage fuer Smartphone-Fotos. Sie dient nur zum Platzieren der OCR-Bereiche;
- * die genaue affine Ausrichtung liefern anschliessend die Textmarken.
+ * Grobe Papierlage fuer Smartphone-Fotos. Sie unterscheidet Foto und Scan und begrenzt die Suche
+ * nach dem Druckrahmen; die genaue Lage liefern anschliessend die Ankreuzringe.
  */
 
 const paperPixel = (r, g, b) => {
@@ -145,11 +145,3 @@ export const findPaper = ({ width, height, data }, minShare = 0.15) => {
     ? { ...paper, horizontalSlope: findHorizontalSlope(mask, width, height, paper) }
     : undefined;
 };
-
-/** Papierkante -> Lage des in der Kalibrierung vermessenen Druckrahmens. */
-export const paperToFrame = (paper, kalibrierung) => ({
-  left: paper.left + (paper.right - paper.left) * kalibrierung.frame.left / kalibrierung.referenz.breite,
-  right: paper.left + (paper.right - paper.left) * kalibrierung.frame.right / kalibrierung.referenz.breite,
-  top: paper.top + (paper.bottom - paper.top) * kalibrierung.frame.top / kalibrierung.referenz.hoehe,
-  bottom: paper.top + (paper.bottom - paper.top) * kalibrierung.frame.bottom / kalibrierung.referenz.hoehe,
-});

@@ -8,7 +8,7 @@ import { musterZettel, kreuzeAn } from './zettelWerkstatt.js';
 const read = file => readFileSync(new URL(`../Kalibrierungen/${file}`, import.meta.url), 'utf8');
 const muster = await musterZettel();
 const typ = loadKalibrierung(read('bundestagswahl-2017.json'));
-const recognize = image => typ.recognize(image, { textjustierung: false });
+const recognize = image => typ.recognize(image);
 
 test('eindeutiger Zettel wird als Wertung angezeigt', async () => {
   const result = await recognize(kreuzeAn(muster, typ, ['E2', 'Z4']));

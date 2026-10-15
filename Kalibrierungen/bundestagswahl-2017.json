@@ -5,16 +5,6 @@
   "vermessenAm": "2026-08-01",
   "referenz": { "breite": 1248, "hoehe": 1748 },
   "frame": { "left": 53.5, "right": 1194, "top": 56.5, "bottom": 1689 },
-  "textmarken": [
-    { "text": "Stimmzettel", "x": 623.5, "y": 162.5 },
-    { "text": "Zweitstimme", "x": 770.5, "y": 635.5 },
-    { "text": "Musterfrau", "x": 224.5, "y": 698 },
-    { "text": "Soundso", "x": 213.5, "y": 1025.5 },
-    { "text": "Musterherr", "x": 224, "y": 1132.5 },
-    { "text": "PARTEI", "x": 453, "y": 733 },
-    { "text": "PARTEI", "x": 771.5, "y": 729 },
-    { "text": "Jederfrau", "x": 216.5, "y": 1456 }
-  ],
   "radius": 25,
   "thresholds": { "angekreuzt": 0.18, "zweifel": 0.06 },
   "stimmen": [

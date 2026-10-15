@@ -17,14 +17,11 @@
     "test:php:db:up": "docker compose -f test/docker-compose.test.yml up -d --wait",
     "test:php:db:down": "docker compose -f test/docker-compose.test.yml down -v",
     "deploy": "powershell -ExecutionPolicy Bypass -File server/deploy.ps1",
-    "pruefe": "python scripts/pruefeKalibrierung.py",
-    "pruefe:ocr": "node scripts/pruefeTextmarken.js"
+    "pruefe": "python scripts/pruefeKalibrierung.py"
   },
   "dependencies": {
-    "@tesseract.js-data/deu": "^1.0.0",
     "ag-grid-community": "^35.3.1",
-    "pdfjs-dist": "^6.2.108",
-    "tesseract.js": "^7.0.0"
+    "pdfjs-dist": "^6.2.108"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "^2.3.0",

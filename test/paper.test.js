@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { findPaper, paperToFrame } from '../erfassungsplatz/erkennung/paper.js';
+import { findPaper } from '../erfassungsplatz/erkennung/paper.js';
 import { readFoto } from './fotoWerkstatt.js';
 
 const background = [30, 30, 80];
@@ -69,14 +69,4 @@ test('findPaper trennt das zweite Blatt im problematischen Foto ab', async () =>
   const paper = findPaper(image);
   assert.ok(paper);
   assert.ok(paper.right < 1300, `right ${paper.right}`);
-});
-
-test('paperToFrame skaliert die Kalibrierungs-Rahmenlage auf die gefundene Papierlage', () => {
-  const kalibrierung = { frame: { left: 100, right: 900, top: 50, bottom: 1450 }, referenz: { breite: 1000, hoehe: 1500 } };
-  const paper = { left: 20, right: 220, top: 10, bottom: 310 };
-  const frame = paperToFrame(paper, kalibrierung);
-  assert.deepEqual(frame, {
-    left: 20 + 200 * 0.1, right: 20 + 200 * 0.9,
-    top: 10 + 300 * (50 / 1500), bottom: 10 + 300 * (1450 / 1500),
-  });
 });

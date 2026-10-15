@@ -5,14 +5,6 @@
   "vermessenAm": "2026-08-04",
   "referenz": { "breite": 1125, "hoehe": 1375 },
   "frame": { "left": 42.5, "right": 1082.5, "top": 169, "bottom": 1328 },
-  "textmarken": [
-    { "text": "Horstmann", "x": 150, "y": 188 },
-    { "text": "Sozialdemokratische", "x": 875, "y": 188 },
-    { "text": "Linke", "x": 859, "y": 770 },
-    { "text": "Müller", "x": 140, "y": 959 },
-    { "text": "Härtling", "x": 150, "y": 1154 },
-    { "text": "Humanisten", "x": 929, "y": 1257 }
-  ],
   "radius": 27,
   "thresholds": { "angekreuzt": 0.18, "zweifel": 0.06 },
   "stimmen": [

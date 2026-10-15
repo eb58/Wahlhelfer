@@ -15,7 +15,6 @@ Eine Kalibrierung unter `Kalibrierungen/` enthält insbesondere:
 - `huelle` (optional): der äußere Rand aller Tabellen, nur wenn er von `frame` abweicht.
   Bei MV endet `frame` vor der Nummernspalte, die Tabellen reichen weiter nach rechts.
 - `radius`: Radius eines gedruckten Ankreuzrings in Musterzettel-Pixeln
-- `textmarken`: erwarteter Text und Mittelpunkt mehrerer verteilter Marken
 - `stimmen`: Stimmen, Auswahlzahl und die vermessenen Felder mit Nummer und Beschriftung
 - `thresholds`: die Grundschwellen für leer, unklar und angekreuzt
 
@@ -95,16 +94,16 @@ Ringausrichtung (Abschnitt 4) versucht; der erste, der sie besteht, trägt.
 Nur wenn kein Viereck zu einer Ausrichtung führt, sucht `findPerspectiveFrame()` innerhalb
 der Papierfläche die vier gedruckten Rahmenlinien einzeln (obere Linie mit Neigung, untere
 Linie bevorzugt aus den äußersten Randpunkten, linke und rechte Senkrechte, dann die
-Schnittpunkte). Diese Suche ist teuer und dient deshalb nur noch als weiterer Kandidat und
-als Lage für den OCR-Rückfall.
+Schnittpunkte). Diese Suche ist teuer und dient deshalb nur noch als weiterer Kandidat.
 
-Wenn auch sie keinen brauchbaren Rahmen liefert, verwendet der OCR-Rückfall die
-Papierlage, einen plausiblen geraden Rahmen oder als letzte grobe Schätzung die Lage aus
-Bildgröße und Kalibrierung.
+Führt auch sie zu keiner Ringausrichtung, wird das Foto abgelehnt („Aufnahme bitte gerade,
+scharf und vollständig wiederholen“). Einen OCR-Rückfall gibt es nicht mehr: Auf den 53 echten
+Fotos wertete er bei abgeschalteter Ringsuche 3 Aufnahmen falsch, ohne einen Zweifelsfall zu
+melden - eine davon als Stimme für den falschen Kandidaten.
 
 ## 4. Primärer Erkennungsweg: gedruckte Ankreuzringe
 
-Die Ringausrichtung ist der normale Weg für Smartphone-Fotos. Sie benötigt keine OCR.
+Die Ringausrichtung ist der einzige Weg für Smartphone-Fotos.
 
 ### 4.1 Grobe Verschiebung
 
@@ -157,48 +156,11 @@ genügen Zweierkombinationen.
 Danach werden alle kalibrierten Feldlagen mit dieser Transformation projiziert und lokal
 noch einmal auf ihren gedruckten Ring eingerastet.
 
-## 5. OCR-Rückfall
+## 5. Scans
 
-OCR wird nur gestartet, wenn keine ausreichende Ringausrichtung gefunden wurde und der
-OCR-Rückfall aktiviert ist. Die OCR ist damit eine Absicherung für kontrastarme,
-unvollständige oder ungewöhnliche Aufnahmen, nicht der normale Weg.
-
-### 5.1 BereichsOCR
-
-Für jede Kalibrierungs-Textmarke wird aus der groben Zettel- oder Rahmenlage ein kleiner
-Ausschnitt berechnet. Der gesamte Rückfall liegt in `ocr.js`. Die Ausschnitte bleiben in Originalauflösung und
-werden zu einem kompakten Streifenbild zusammengesetzt:
-
-- Breite: mindestens 180 Pixel, sonst etwa 18 % der Rahmenbreite
-- Höhe: mindestens 80 Pixel, sonst etwa 30 % der Ausschnittbreite
-- die weißen Zwischenräume werden entfernt
-- der Außenrahmen wird vor der OCR weiß maskiert
-
-Tesseract läuft lokal mit dem deutschen Sprachmodell. Erkannte Wörter mit einer
-Konfidenz unter 20 werden verworfen; die Bounding-Boxen werden aus dem Streifenbild in die
-ursprünglichen Aufnahme-Pixel zurückgerechnet.
-
-### 5.2 Zuordnung und affine Textlage
-
-Text und OCR-Wort werden normalisiert (Kleinbuchstaben, Diakritika und Satzzeichen werden
-entfernt). Eine Zuordnung wird ab einer Levenshtein-Ähnlichkeit von 0,75 akzeptiert. Die
-Zuordnung berücksichtigt außerdem die erwartete räumliche Lage und verwendet ein OCR-Wort
-nur einmal.
-
-Aus mindestens drei verteilten Treffern wird eine affine Transformation bestimmt. Bei einer
-perspektivischen Papierlage wird zunächst die Perspektivabbildung des Rahmens berücksichtigt
-und anschließend eine affine Korrektur berechnet. Die Lösung wird verworfen, wenn:
-
-- weniger als drei Textmarken erkannt wurden,
-- die Treffer nicht über den Zettel verteilt sind,
-- der maximale Lagefehler mehr als 6 % der Bilddiagonale beträgt oder
-- die Korrektur geometrisch unplausibel ist.
-
-### 5.3 Ganzseiten-OCR
-
-Wenn die BereichsOCR keine ausreichend genaue Lage liefert, wird als letzte OCR-Stufe der
-gesamte, vom Außenrahmen bereinigte Wahlzettel erkannt. Dieser Weg ist deutlich langsamer,
-verarbeitet mehr Fremdtext und bleibt deshalb bewusst ein Notfallback.
+Füllt das Papier das Bild (Scan oder PDF), gibt es keine Rahmenkandidaten und keine Ringausrichtung.
+Die Felder werden dann aus dem geraden Rahmen von `findFrame()` rahmenrelativ projiziert und mit
+`adjustFeld` im kleinen Umkreis auf ihren gedruckten Ring eingerastet.
 
 ## 6. Messung der Ankreuzfelder
 
@@ -210,7 +172,7 @@ Ausschnitt und liefert den `Fuellgrad` als Anteil dunkler Pixel.
 Die Statusschwellen werden bei ausgerichteten Aufnahmen an den Bildsockel angepasst:
 
 - Ringausrichtung: 65. Perzentil als Baseline, Mindestabstände +0,06 und +0,045
-- OCR-/Rahmen-Rückfall: 80. Perzentil als Baseline, Mindestabstände +0,04 und +0,025
+- Scans: die konfigurierten Grundschwellen unverändert
 
 Die berechneten Werte werden jeweils mindestens durch die konfigurierten Grundschwellen
 begrenzt. Daraus entsteht je Feld einer der drei Zustände:
@@ -236,15 +198,15 @@ bleiben eine Entscheidung des Wahlvorstands.
 
 ## 8. Fehler- und Diagnoseverhalten
 
-Die Verarbeitung bricht ab, wenn keine ausreichende Zettellage erkannt wird oder weder
-Ring- noch OCR-Ausrichtung eine belastbare Geometrie liefern. Ein Foto wird lieber
+Die Verarbeitung bricht ab, wenn keine ausreichende Zettellage erkannt wird oder bei einem
+Foto die Ringausrichtung keine belastbare Geometrie liefert. Ein Foto wird lieber
 abgelehnt als geraten gewertet. Die Protokollierung kann über `setLogging(true)`
 aktiviert werden und misst unter anderem:
 
 - Dunkelheitskarte
 - Papier- und Rahmensuche
 - Rahmenkandidaten und gegebenenfalls die Linien-Suche
-- Ring- oder OCR-Ausrichtung
+- Ringausrichtung
 - Feldmessung
 - gesamte Bildverarbeitung
 
@@ -253,10 +215,6 @@ Auf einem PC zeigt die Oberfläche die Aufnahme mit den Ankreuzfeldern als farbi
 Ausrichtung stimmt. Auf dem Smartphone entfällt die Vorschau, dort liegt der Zettel vor einem.
 
 Ein Foto von 1600 Pixel Breite braucht für die Erkennung am PC etwa 230 ms.
-
-Bei der OCR werden die erwarteten Textmarken einzeln mit einem Haken für erkannte Marken
-ausgegeben. So lässt sich unterscheiden, ob die Aufnahme unscharf ist oder ob eine
-Kalibrierungsmarke falsch vermessen wurde.
 
 ## 9. Tests und Nachvollziehbarkeit
 
@@ -268,7 +226,7 @@ Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Zettelar
 - `synthetisch/`: für jede Zettelart drei künstliche Fotos (gerade, leicht schräg,
   4 Grad gedreht), erzeugt mit `node scripts/erzeugeSynthetischeFotos.js`.
 
-Fotos und synthetische Fotos müssen **ohne OCR** richtig gewertet werden. Die Tests laden
+Fotos und synthetische Fotos werden über die Ankreuzringe gewertet. Die Tests laden
 JPEGs mit `sharp` und verkleinern sie wie der Browser auf 1600 Pixel Breite.
 
 ```powershell
@@ -281,11 +239,4 @@ Die Kalibrierung kann zusätzlich sichtbar geprüft werden:
 python scripts/pruefeKalibrierung.py Kalibrierungen/bundestagswahl-2017.json pruefung-tmp.png
 ```
 
-Die OCR-Textmarken der Musterzettel lassen sich separat prüfen:
-
-```powershell
-npm run pruefe:ocr
-```
-
-Alle Verarbeitungsschritte laufen lokal im Browser. Bilder und OCR-Daten werden nicht an
-einen Server übertragen.
+Die Erkennung läuft vollständig lokal im Browser; zum Server gehen nur Wertung und Beleg.

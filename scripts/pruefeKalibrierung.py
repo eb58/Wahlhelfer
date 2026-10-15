@@ -30,12 +30,6 @@ for i, stimme in enumerate(calibration['stimmen']):
         draw.line([(x, y - 6), (x, y + 6)], fill=color, width=1)
         draw.text((x + radius + 6, y - 7), field['id'], fill=color)
 
-for mark in calibration['textmarken']:
-    x, y = mark['x'], mark['y']
-    draw.line([(x - 10, y), (x + 10, y)], fill=(0, 150, 70), width=2)
-    draw.line([(x, y - 10), (x, y + 10)], fill=(0, 150, 70), width=2)
-    draw.text((x + 13, y - 7), mark['text'], fill=(0, 150, 70))
-
 huelle = calibration.get('huelle')
 if huelle:
     draw.rectangle([huelle['left'], huelle['top'], huelle['right'], huelle['bottom']], outline=(230, 0, 160), width=2)
@@ -44,4 +38,4 @@ if huelle:
 output = sys.argv[2] if len(sys.argv) > 2 else 'pruefung-tmp.png'
 image.save(output)
 field_count = sum(len(s['felder']) for s in calibration['stimmen'])
-print(f"{calibration['name']}: {len(calibration['stimmen'])} Stimmen, {field_count} Felder, {len(calibration['textmarken'])} Textmarken -> {output}")
+print(f"{calibration['name']}: {len(calibration['stimmen'])} Stimmen, {field_count} Felder -> {output}")

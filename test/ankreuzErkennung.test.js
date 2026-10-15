@@ -7,7 +7,7 @@ import { musterZettel, kreuzeAn, scale, crop } from './zettelWerkstatt.js';
 
 const muster = await musterZettel();
 const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
-const recognize = image => typ.recognize(image, { textjustierung: false });
+const recognize = image => typ.recognize(image);
 const status = (result, id) => result.felder.find(feld => feld.id === id).status;
 const wertung = (result, id) => result.stimmen.find(stimme => stimme.id === id);
 
@@ -76,7 +76,7 @@ test('meldet einen unbrauchbaren Bildausschnitt statt zu raten', async () => {
 
 const felderMit = fuellgrade => fuellgrade.map(fuellgrad => ({ fuellgrad }));
 
-test('computeImageThresholds laesst die Schwellen unveraendert ohne Ring- oder Textlage', () => {
+test('computeImageThresholds laesst die Schwellen unveraendert ohne Ringlage', () => {
   const thresholds = { angekreuzt: 0.18, zweifel: 0.06 };
   assert.deepEqual(computeImageThresholds(felderMit([0.9, 0.01]), thresholds, {}), thresholds);
 });
@@ -86,20 +86,34 @@ test('computeImageThresholds hebt beide Schwellen an, behaelt aber den Mindestab
   // Hoher Rauschsockel: alle Felder liegen weit ueber den konfigurierten Schwellen.
   const fuellgrade = Array.from({ length: 20 }, (_, i) => 0.3 + i * 0.01);
 
-  for (const alignment of [{ ringAlignment: true }, { textAlignment: true }]) {
-    const result = computeImageThresholds(felderMit(fuellgrade), thresholds, alignment);
-    assert.ok(result.angekreuzt > thresholds.angekreuzt, `${JSON.stringify(alignment)}: angekreuzt haette steigen muessen`);
-    assert.ok(result.zweifel > thresholds.zweifel, `${JSON.stringify(alignment)}: zweifel haette steigen muessen`);
-    // Regression: fruehere Fassung liess im Text-Fallback zweifel === angekreuzt werden und
-    // damit keinen Bereich mehr uebrig, in dem ein Feld als "unklar" statt "angekreuzt" gilt.
-    assert.ok(result.zweifel < result.angekreuzt,
-      `${JSON.stringify(alignment)}: zweifel (${result.zweifel}) muss unter angekreuzt (${result.angekreuzt}) bleiben`);
-  }
+  const result = computeImageThresholds(felderMit(fuellgrade), thresholds, { ringAlignment: true });
+  assert.ok(result.angekreuzt > thresholds.angekreuzt, 'angekreuzt haette steigen muessen');
+  assert.ok(result.zweifel > thresholds.zweifel, 'zweifel haette steigen muessen');
+  // Regression: eine fruehere Fassung liess zweifel === angekreuzt werden und damit keinen
+  // Bereich mehr uebrig, in dem ein Feld als "unklar" statt "angekreuzt" gilt.
+  assert.ok(result.zweifel < result.angekreuzt, `zweifel (${result.zweifel}) muss unter angekreuzt (${result.angekreuzt}) bleiben`);
 });
 
 test('computeImageThresholds greift nicht ein, wenn der Rauschsockel unter den Schwellen bleibt', () => {
   const thresholds = { angekreuzt: 0.18, zweifel: 0.06 };
   const fuellgrade = Array.from({ length: 20 }, () => 0.01);
-  for (const alignment of [{ ringAlignment: true }, { textAlignment: true }])
-    assert.deepEqual(computeImageThresholds(felderMit(fuellgrade), thresholds, alignment), thresholds);
+  assert.deepEqual(computeImageThresholds(felderMit(fuellgrade), thresholds, { ringAlignment: true }), thresholds);
+});
+
+test('ein Foto ohne erkennbare Ankreuzringe wird abgelehnt statt geraten', async () => {
+  // Musterzettel mit Rand auf dunklem Grund (also ein Foto), die Ringe weiss uebermalt.
+  const rand = 150, width = muster.width + 2 * rand, height = muster.height + 2 * rand;
+  const data = new Uint8ClampedArray(width * height * 4).fill(40);
+  for (let y = 0; y < muster.height; y++)
+    data.set(muster.data.subarray(y * muster.width * 4, (y + 1) * muster.width * 4), ((y + rand) * width + rand) * 4);
+  const r = typ.referenzRadius * 1.6;
+  for (const { referenz } of typ.felder)
+    for (let dy = -r; dy <= r; dy++)
+      for (let dx = -r; dx <= r; dx++) {
+        const i = ((Math.round(referenz.y + rand + dy)) * width + Math.round(referenz.x + rand + dx)) * 4;
+        data.fill(255, i, i + 3);
+      }
+  for (let i = 3; i < data.length; i += 4) data[i] = 255;
+  const foto = kreuzeAn({ width, height, data }, typ, ['E3']);
+  await assert.rejects(recognize(foto), /Ankreuzfelder nicht sicher gefunden/);
 });

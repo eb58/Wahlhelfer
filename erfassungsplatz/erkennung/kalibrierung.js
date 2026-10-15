@@ -23,7 +23,6 @@ const prepare = kalibrierung => ({
   referenz: kalibrierung.referenz,
   frame: kalibrierung.frame,
   huelle: kalibrierung.huelle,
-  textmarken: kalibrierung.textmarken,
   thresholds: kalibrierung.thresholds,
   radius: kalibrierung.radius / frameWidth(kalibrierung.frame),
   referenzRadius: kalibrierung.radius,
@@ -43,8 +42,6 @@ const validate = file => {
   if (file.huelle && ['left', 'right', 'top', 'bottom'].some(key => !Number.isFinite(file.huelle[key])))
     throw new Error('Kalibrierung mit unvollstaendiger Huelle');
   if (!file.referenz?.breite || !file.referenz?.hoehe) throw new Error('Kalibrierung ohne Referenzgroesse');
-  if (file.textmarken?.length < 3 || file.textmarken.some(mark => !mark.text || !Number.isFinite(mark.x) || !Number.isFinite(mark.y)))
-    throw new Error('Kalibrierung braucht mindestens drei vollstaendige Textmarken');
   if (!file.stimmen?.length) throw new Error('Kalibrierung ohne Stimmen');
   return file;
 };
