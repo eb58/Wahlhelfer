@@ -3,7 +3,7 @@
  * Die Zettelart steht in `configuration.js` fest; die Auswertung selbst steckt in erkennung/.
  */
 import { loadKalibrierung } from './erkennung/kalibrierung.js';
-import { toBeleg, toImageData } from './erkennung/browserImage.js';
+import { toBeleg, toImageData } from './browserImage.js';
 import { stimmRows, isUnambiguous, COLORS, drawFelder } from './wertungAnzeige.js';
 import { setLogging } from './erkennung/log.js';
 import { isPdf, pdfPageAsImage } from './pdf.js';

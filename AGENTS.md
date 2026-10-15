@@ -80,9 +80,11 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   (`erfassungsplatz/`) fuer Wahlhelfer und Wahlvorstand im Wahllokal, das **ControlCenter**
   (`controlcenter/`) fuer das Wahlamt, nur fuer Admins. Jeder Ordner hat `index.html`, `main.js` und
   `styles.css`; was nur eine Seite braucht, liegt in ihrem Ordner. Beim Erfassungsplatz sind das Stapel,
-  IndexedDB-Puffer, Wertungsanzeige, PDF-Aufnahme, Wahllokalauswahl, Wahldefinition und die Erkennung
-  (`erfassungsplatz/erkennung/`). Die Erkennung haengt an keiner Oberflaeche und laeuft auch in Node
-  (Skripte, Fototests); sie importiert nichts aus dem uebrigen Erfassungsplatz.
+  IndexedDB-Puffer, Wertungsanzeige, PDF-Aufnahme, Aufnahme und Beleg (`browserImage.js`),
+  Wahllokalauswahl, Wahldefinition und die Erkennung (`erfassungsplatz/erkennung/`). Die Erkennung
+  haengt an keiner Oberflaeche und laeuft auch in Node (Skripte, Fototests); sie importiert nichts aus
+  dem uebrigen Erfassungsplatz. In `erkennung/` liegt nur Code, der den Wahlzettel erkennt - Bilder
+  beschaffen, Belege erzeugen oder Dateien lesen gehoert nicht dorthin.
 - `shared/` enthaelt nur, was beide Seiten brauchen: `serverApi.js` (API und Anmeldung), `appUrl.js`
   und `wahllokalAnzeige.js` (Status eines Wahllokals). Neues kommt nur hinein, wenn beide Seiten es nutzen.
 - Die Seiten liegen eine Ebene unter dem App-Root und sagen das mit `<html data-app-base="../">`.
