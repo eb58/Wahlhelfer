@@ -9,6 +9,7 @@ export const ANSICHTEN = ['dashboard', 'wahllokale', 'ergebnisse', 'prueffaelle'
 
 /** Reihenfolge wie im Ablauf; `art` waehlt die Farbe in styles.css. */
 export const STATUS = [
+  { text: 'Stimmzettelzahl noch nicht gemeldet', art: 'ungemeldet' },
   { text: 'Noch nicht begonnen', art: 'offen' },
   { text: 'Erfassung läuft', art: 'laufend' },
   { text: 'Erfasst – Prüffälle offen', art: 'pruefen' },
@@ -31,13 +32,14 @@ const sum = (rows, get) => rows.reduce((total, row) => total + get(row), 0);
 export const getLetzterEingang = lokal => lokal.stapel[0]?.eingang;
 
 export const getKennzahlen = ({ gesamt, wahllokale }) => {
-  const erwartet = sum(wahllokale, lokal => lokal.erwartet);
+  const erwartet = sum(wahllokale, lokal => lokal.erwartet ?? 0);
   const proStatus = Object.fromEntries(STATUS.map(({ art }) => [art, 0]));
   wahllokale.forEach(lokal => proStatus[getStatusArt(lokal)]++);
   const eingaenge = wahllokale.map(getLetzterEingang).filter(Boolean).sort();
   return {
     wahllokale: wahllokale.length, mitEingang: wahllokale.filter(lokal => lokal.zettel > 0).length, proStatus,
-    zettel: gesamt.zettel, erwartet, anteil: erwartet ? gesamt.zettel / erwartet : 0, prueffaelle: gesamt.prueffaelle,
+    zettel: gesamt.zettel, erwartet, anteil: erwartet ? sum(wahllokale.filter(lokal => lokal.erwartet !== null), lokal => lokal.zettel) / erwartet : 0,
+    ungemeldet: wahllokale.filter(lokal => lokal.erwartet === null).length, prueffaelle: gesamt.prueffaelle,
     stapel: sum(wahllokale, lokal => lokal.stapel.length), letzterEingang: eingaenge.at(-1),
   };
 };
@@ -58,6 +60,7 @@ export const getEingaenge = (wahllokale, limit = Infinity) => wahllokale
 
 /** Wahllokale, um die sich das Wahlamt kuemmern sollte: ueber Soll oder ohne neue Stapel trotz laufender Erfassung. */
 export const getHandlungsbedarf = (wahllokale, now = Date.now()) => wahllokale.flatMap(lokal => {
+  if (lokal.erwartet === null) return [];
   if (lokal.zettel > lokal.erwartet) return [{ lokal, art: 'fehler', grund: `${lokal.zettel - lokal.erwartet} Zettel über Soll` }];
   const letzter = getLetzterEingang(lokal);
   const pause = letzter ? now - Date.parse(letzter) : 0;
@@ -102,14 +105,14 @@ export const toErgebnisCsv = ({ gesamt, wahllokale }) => {
   ]);
   return [
     csvZeile(['Wahllokal', 'Name', 'Erwartet', 'Erfasst', 'Prüffälle', ...spalten]),
-    ...wahllokale.map(lokal => csvZeile([lokal.nummer, lokal.name, lokal.erwartet, lokal.zettel, lokal.prueffaelle, ...werte(lokal)])),
+    ...wahllokale.map(lokal => csvZeile([lokal.nummer, lokal.name, lokal.erwartet ?? '', lokal.zettel, lokal.prueffaelle, ...werte(lokal)])),
     csvZeile(['Gesamt', '', sum(wahllokale, lokal => lokal.erwartet), gesamt.zettel, gesamt.prueffaelle, ...werte(gesamt)]),
   ].join('\r\n') + '\r\n';
 };
 
 /**
- * Wahllokale fuer die Registrierung aus CSV: Nummer;Name;Erwartet (auch Komma oder Tab).
- * Eine Kopfzeile wird erkannt, wenn ihre dritte Spalte keine Zahl ist.
+ * Wahllokale fuer die Registrierung aus CSV: Nummer;Name (auch Komma oder Tab).
+ * Eine Kopfzeile mit Nummer und Name wird erkannt.
  */
 export const parseWahllokalCsv = text => {
   const wahllokale = [];
@@ -118,16 +121,14 @@ export const parseWahllokalCsv = text => {
   text.split(/\r?\n/).forEach((line, index) => {
     if (!line.trim()) return;
     const trenner = [';', '\t', ','].find(zeichen => line.includes(zeichen)) ?? ';';
-    const [nummer = '', name = '', erwartet = ''] = line.split(trenner).map(value => value.trim().replace(/^"(.*)"$/, '$1'));
-    if (index === 0 && !/^\d+$/.test(erwartet)) return;
+    const [nummer = '', name = ''] = line.split(trenner).map(value => value.trim().replace(/^"(.*)"$/, '$1'));
+    if (!wahllokale.length && nummer.toLowerCase() === 'nummer' && name.toLowerCase() === 'name') return;
     const zeile = index + 1;
-    const anzahl = Number(erwartet);
     if (!nummer || !name) fehler.push(`Zeile ${zeile}: Nummer und Name fehlen.`);
-    else if (!/^\d+$/.test(erwartet) || anzahl < 1 || anzahl > 100000) fehler.push(`Zeile ${zeile}: Erwartete Stimmzettel müssen zwischen 1 und 100000 liegen.`);
     else if (nummern.has(nummer)) fehler.push(`Zeile ${zeile}: Wahllokal ${nummer} steht doppelt in der Datei.`);
     else {
       nummern.add(nummer);
-      wahllokale.push({ nummer, name, erwartet: anzahl });
+      wahllokale.push({ nummer, name });
     }
   });
   return { wahllokale, fehler };

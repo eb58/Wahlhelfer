@@ -126,7 +126,7 @@ final class ApiTest extends DatabaseTestCase
         $saved = $this->wahllokal('002', 'Bürgerhaus – Grüße');
         $this->assertApiError(409, '/bereits registriert/', fn() => $this->wahllokal('002', 'Doppeltes Wahllokal'));
         $this->assertSame([$saved + ['zettel' => 0, 'prueffaelle' => 0, 'stapel' => 0, 'letzterEingang' => null]], listWahllokale($this->admin));
-        $this->assertApiError(400, '/Zettelzahl/', static fn() => registerWahllokal(['nummer' => '3', 'name' => 'x', 'erwartet' => '20']));
+        $this->assertApiError(400, '/Stimmzettelzahl/', fn() => meldeStimmzettelzahl($this->admin, '002', '20'));
     }
 
     public function testErgebnisWirdAlsFachlichesJsonOhneTechnischeAngabenGespeichert(): void

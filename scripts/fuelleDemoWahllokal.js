@@ -38,7 +38,8 @@ for (const fall of faelle) {
 const klare = vorlagen.filter(row => row.stimmen.every(stimme => stimme.status === 'gueltig'));
 const prueffaelle = vorlagen.filter(row => row.stimmen.some(stimme => stimme.status !== 'gueltig'));
 if (!klare.length || !prueffaelle.length) throw new Error('Synthetische Vorlagen sind unvollständig.');
-const lokal = await api('wahllokale', { nummer: '518', name: 'Fiktives Testwahllokal 518 – synthetische Belege', erwartet: 500 });
+const lokal = await api('wahllokale', { nummer: '518', name: 'Fiktives Testwahllokal 518 – synthetische Belege' });
+await send('wahllokale/518/stimmzettelzahl', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ erwartet: 500 }) });
 for (let index = 0; index < 25; index++) {
   const zettel = Array.from({ length: 20 }, (_, offset) => {
     const nummer = index * 20 + offset;

@@ -23,8 +23,8 @@ export const metrik = (label, wert, unter, art) =>
   h('article', { class: `metrik${art ? ` metrik--${art}` : ''}` }, h('span', { class: 'metrik__label' }, label),
     h('strong', { class: 'metrik__wert' }, wert), unter && h('span', { class: 'metrik__unter' }, unter));
 
-export const fortschritt = (zettel, erwartet) => h('span', { class: 'fortschritt', role: 'img', 'aria-label': `${zettel} von ${erwartet} Stimmzetteln` },
-  h('span', { class: `fortschritt__wert${zettel > erwartet ? ' fortschritt__wert--ueber' : ''}`, style: `width: ${Math.min(1, erwartet ? zettel / erwartet : 0) * 100}%` }));
+export const fortschritt = (zettel, erwartet) => h('span', { class: 'fortschritt', role: 'img', 'aria-label': erwartet === null ? 'Stimmzettelzahl noch nicht gemeldet' : `${zettel} von ${erwartet} Stimmzetteln` },
+  h('span', { class: `fortschritt__wert${erwartet !== null && zettel > erwartet ? ' fortschritt__wert--ueber' : ''}`, style: `width: ${Math.min(1, erwartet ? zettel / erwartet : 0) * 100}%` }));
 
 export const statusBadge = lokal => h('span', { class: `badge badge--${getStatusArt(lokal)}` }, getWahllokalStatus(lokal));
 

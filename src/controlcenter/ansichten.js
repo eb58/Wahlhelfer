@@ -47,8 +47,8 @@ const statusVerteilung = (kennzahlen, state) => h('div', { class: 'verteilung' }
 /** Jedes Wahllokal als Kachel, gefuellt nach Fortschritt: der Ueberblick ueber 150 Wahllokale auf einen Blick. */
 const kachelKarte = wahllokale => h('div', { class: 'kacheln' }, wahllokale.map(lokal => h('a', {
   class: `kachel status--${getStatusArt(lokal)}`, href: `#wahllokal/${encodeURIComponent(lokal.nummer)}`,
-  title: `${lokal.nummer} · ${lokal.name}\n${getWahllokalStatus(lokal)} · ${lokal.zettel} / ${lokal.erwartet}`,
-}, h('span', { class: 'kachel__fuellung', style: `height: ${Math.min(1, lokal.zettel / lokal.erwartet) * 100}%` }),
+  title: `${lokal.nummer} · ${lokal.name}\n${getWahllokalStatus(lokal)} · ${lokal.zettel} / ${lokal.erwartet ?? 'noch nicht gemeldet'}`,
+}, h('span', { class: 'kachel__fuellung', style: `height: ${Math.min(1, lokal.erwartet ? lokal.zettel / lokal.erwartet : 0) * 100}%` }),
 h('span', { class: 'kachel__nummer' }, lokal.nummer))));
 
 const dashboard = ({ inhalt, state }) => ({
@@ -62,7 +62,7 @@ const dashboard = ({ inhalt, state }) => ({
         metrik('Wahllokale mit Eingang', `${kennzahlen.mitEingang} / ${kennzahlen.wahllokale}`,
           `${kennzahlen.proStatus.fertig + kennzahlen.proStatus.pruefen} vollständig erfasst`),
         metrik('Stimmzettel erfasst', formatZahl(kennzahlen.zettel),
-          `von ${formatZahl(kennzahlen.erwartet)} erwartet · ${formatProzent(kennzahlen.anteil)}`),
+          `${formatZahl(kennzahlen.erwartet)} gemeldet · ${kennzahlen.ungemeldet} Wahllokale ohne Meldung`),
         metrik('Prüffälle', formatZahl(kennzahlen.prueffaelle),
           kennzahlen.zettel ? `${formatProzent(kennzahlen.prueffaelle / kennzahlen.zettel)} der Zettel` : 'noch keine Zettel', kennzahlen.prueffaelle ? 'pruefen' : ''),
         metrik('Stapel', formatZahl(kennzahlen.stapel), `letzter ${formatSeit(kennzahlen.letzterEingang)}`),
@@ -70,7 +70,7 @@ const dashboard = ({ inhalt, state }) => ({
       h('div', { class: 'raster' },
         panel('Fortschritt der Erfassung',
           h('div', { class: 'gross-fortschritt' }, fortschritt(kennzahlen.zettel, kennzahlen.erwartet),
-            h('span', {}, `${formatProzent(kennzahlen.anteil)} der erwarteten Stimmzettel`)),
+            h('span', {}, kennzahlen.erwartet ? `${formatProzent(kennzahlen.anteil)} der gemeldeten Stimmzettel` : 'Noch keine Stimmzettelzahl gemeldet')),
           statusVerteilung(kennzahlen, state)),
         panel('Handlungsbedarf', bedarf.length
           ? h('ul', { class: 'liste' }, bedarf.map(({ lokal, art, grund }) => h('li', {}, h('span', { class: `punkt status--${art}` }), wahllokalLink(lokal), h('span', { class: 'liste__rechts' }, grund))))
@@ -102,8 +102,8 @@ const wahllokale = ({ inhalt, werkzeuge, state }) => {
       { colId: 'status', headerName: 'Status', minWidth: 200, valueGetter: ({ data }) => getWahllokalStatus(data), cellRenderer: ({ data }) => statusBadge(data) },
       {
         colId: 'fortschritt', headerName: 'Fortschritt', flex: 1, minWidth: 220, filter: false,
-        valueGetter: ({ data }) => data.zettel / data.erwartet,
-        cellRenderer: ({ data }) => h('span', { class: 'zelle-fortschritt' }, fortschritt(data.zettel, data.erwartet), `${formatZahl(data.zettel)} / ${formatZahl(data.erwartet)}`),
+        valueGetter: ({ data }) => data.erwartet ? data.zettel / data.erwartet : 0,
+        cellRenderer: ({ data }) => h('span', { class: 'zelle-fortschritt' }, fortschritt(data.zettel, data.erwartet), `${formatZahl(data.zettel)} / ${data.erwartet === null ? 'noch nicht gemeldet' : formatZahl(data.erwartet)}`),
       },
       { ...zahlSpalte('stapel', 'Stapel'), field: undefined, colId: 'stapel', valueGetter: ({ data }) => data.stapel.length },
       zahlSpalte('prueffaelle', 'Prüffälle'),
@@ -186,10 +186,10 @@ const wahllokal = ({ inhalt, state, showFehler, setTitel, zeigeBeleg }, { nummer
         h('div', { class: 'detail-kopf' }, h('a', { class: 'zurueck', href: '#wahllokale' }, '← Alle Wahllokale'),
           h('h2', {}, lokal.name), statusBadge(lokal)),
         h('div', { class: 'metriken' },
-          metrik('Erfasst', `${formatZahl(lokal.zettel)} / ${formatZahl(lokal.erwartet)}`, formatProzent(lokal.zettel / lokal.erwartet)),
+          metrik('Erfasst', `${formatZahl(lokal.zettel)} / ${lokal.erwartet === null ? 'noch nicht gemeldet' : formatZahl(lokal.erwartet)}`, lokal.erwartet === null ? undefined : formatProzent(lokal.zettel / lokal.erwartet)),
           metrik('Stapel', lokal.stapel.length, `letzter ${formatSeit(getLetzterEingang(lokal))}`),
           metrik('Prüffälle', formatZahl(lokal.prueffaelle), undefined, lokal.prueffaelle ? 'pruefen' : ''),
-          metrik('Fehlend', formatZahl(Math.max(0, lokal.erwartet - lokal.zettel)), lokal.zettel > lokal.erwartet ? `${lokal.zettel - lokal.erwartet} über Soll` : undefined, lokal.zettel > lokal.erwartet ? 'fehler' : '')),
+          metrik('Fehlend', lokal.erwartet === null ? '–' : formatZahl(Math.max(0, (lokal.erwartet ?? 0) - lokal.zettel)), lokal.erwartet !== null && lokal.zettel > lokal.erwartet ? `${lokal.zettel - lokal.erwartet} über Soll` : undefined, lokal.zettel > lokal.erwartet ? 'fehler' : '')),
         h('div', { class: 'gross-fortschritt' }, fortschritt(lokal.zettel, lokal.erwartet)));
       ergebnis.replaceChildren(...lokal.stimmen.map(stimme => panel(`${stimme.name} – vorläufig`, stimmZaehler(stimme), anteilListe(stimme))));
       stapelTabelle.setGridOption('rowData', lokal.stapel);
@@ -340,7 +340,7 @@ const verwaltung = ({ inhalt, state, refresh }) => {
       const values = new FormData(form);
       form.querySelector('button').disabled = true;
       try {
-        await api('wahllokale', { nummer: values.get('nummer'), name: values.get('name'), erwartet: Number(values.get('erwartet')) });
+        await api('wahllokale', { nummer: values.get('nummer'), name: values.get('name') });
         zeige(registrierMeldung, `Wahllokal ${values.get('nummer')} registriert.`);
         form.reset();
         await refresh();
@@ -350,14 +350,13 @@ const verwaltung = ({ inhalt, state, refresh }) => {
   },
   h('label', {}, 'Wahllokalnummer', h('input', { name: 'nummer', maxLength: 160, required: true })),
   h('label', {}, 'Name', h('input', { name: 'name', maxLength: 160, required: true })),
-  h('label', {}, 'Erwartete Stimmzettel', h('input', { name: 'erwartet', type: 'number', min: 1, max: 100000, required: true })),
   h('button', { class: 'knopf', type: 'submit' }, 'Wahllokal registrieren'));
 
   // Import: erst pruefen und zeigen, was neu ist, dann einzeln registrieren.
   let neu = [];
   const vorschau = h('div', { class: 'vorschau' });
   const importMeldung = meldung();
-  const textfeld = h('textarea', { rows: 8, spellcheck: false, placeholder: 'Nummer;Name;Erwartet\n001;Rathaus;600\n002;Grundschule am Park;550', oninput: () => pruefen() });
+  const textfeld = h('textarea', { rows: 8, spellcheck: false, placeholder: 'Nummer;Name\n001;Rathaus\n002;Grundschule am Park', oninput: () => pruefen() });
   const datei = h('input', { type: 'file', accept: '.csv,.txt,text/csv', onchange: async () => { textfeld.value = (await datei.files[0]?.text()) ?? ''; pruefen(); } });
   const importKnopf = h('button', { class: 'knopf', type: 'button', disabled: true, onclick: () => importieren() }, 'Importieren');
   const pruefen = () => {
@@ -385,7 +384,7 @@ const verwaltung = ({ inhalt, state, refresh }) => {
   inhalt.append(h('div', { class: 'raster' },
     panel('Wahllokal registrieren', form, registrierMeldung),
     panel('Wahllokale importieren',
-      h('p', { class: 'hinweis' }, 'CSV mit den Spalten Nummer, Name und erwartete Stimmzettel – getrennt durch Semikolon, Komma oder Tab. Eine Kopfzeile wird erkannt, bereits registrierte Wahllokale werden übersprungen.'),
+      h('p', { class: 'hinweis' }, 'CSV mit den Spalten Nummer und Name – getrennt durch Semikolon, Komma oder Tab. Eine Kopfzeile wird erkannt, bereits registrierte Wahllokale werden übersprungen.'),
       h('label', {}, 'Datei', datei), h('label', {}, 'oder Inhalt einfügen', textfeld), vorschau, importKnopf, importMeldung),
     panel('Konten',
       h('p', {}, 'Konten für Admins und Wahlvorstände legt vorerst das Skript server/create-user.php an. Ein Wahlvorstand ist an genau ein Wahllokal gebunden und arbeitet nur am Erfassungsplatz.'))));

@@ -144,8 +144,7 @@ dem **Erfassungsplatz** (`src/erfassungsplatz/`) für die Wahlhelfer im Wahlloka
 **ControlCenter** (`src/controlcenter/`) für das Wahlamt, nur für Admins. Beide sprechen über
 `src/api/` mit der PHP-API in `server/`.
 
-Im ControlCenter unter *Verwaltung* zuerst die Wahllokale mit erwarteter Stimmzettelzahl
-registrieren – einzeln oder als CSV (`Nummer;Name;Erwartet`). Jedes Wahllokal
+Im ControlCenter unter *Verwaltung* zuerst die Wahllokale registrieren – einzeln oder als CSV (`Nummer;Name`). Zunächst sortieren die Wahlhelfer alle Stimmzettel in Stapel und zählen sie. Erst danach trägt der Wahlvorsteher die ermittelte Gesamtzahl als `erwartet` am Erfassungsplatz ein und meldet sie an das ControlCenter. Anschließend beginnt die Erfassung der einzelnen Stapel. `erwartet` ist die tatsächlich vorab gezählte Gesamtzahl, keine Schätzung. Jedes Wahllokal
 bekommt einen eigenen Link, z. B. `…/erfassungsplatz/?wahllokal=518` – als Link oder QR-Code für die Wahlhelfer
 vor Ort. Am Erfassungsplatz wird kein Wahllokal ausgewählt; ohne Wahllokal im Link wird nicht
 erfasst. Nach der Anmeldung nur die Stapelgröße eintragen (Standard: 20), dann jede Aufnahme
@@ -154,7 +153,7 @@ Fehlern bleiben die Daten erhalten; derselbe Stapel kann ohne zusätzliche Zähl
 gesendet werden. Ein Browserprofil bearbeitet jeweils einen aktiven Stapel.
 
 Am Seitenende zeigt der Erfassungsplatz den Monitor des Wahllokals: Status,
-erfasste von erwarteten Zetteln, Stapel und Prüffälle über alle Erfassungsplätze, Aktualisierung
+erfasste von gemeldeten Zetteln, Stapel und Prüffälle über alle Erfassungsplätze, Aktualisierung
 alle 15 Sekunden. Stimmen und Belege zeigt er nicht.
 
 Das ControlCenter ist für das Monitoring von 100–150 Wahllokalen gebaut: links die Navigation,

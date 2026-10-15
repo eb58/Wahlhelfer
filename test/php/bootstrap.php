@@ -136,7 +136,8 @@ abstract class DatabaseTestCase extends TestCase
     protected function wahllokal(string $nummer = '001', string $name = 'Schule'): array
     {
         ensureWahl();
-        return registerWahllokal(['nummer' => $nummer, 'name' => $name, 'erwartet' => 20]);
+        registerWahllokal(['nummer' => $nummer, 'name' => $name]);
+        return meldeStimmzettelzahl($this->admin, $nummer, 20);
     }
 
     protected function zettel(string $status = 'gueltig', ?array $typ = null): array

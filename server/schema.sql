@@ -2,7 +2,7 @@
 
 CREATE TABLE IF NOT EXISTS wahllokal (
   nummer VARCHAR(160) PRIMARY KEY, name VARCHAR(160) NOT NULL,
-  erwartet INTEGER NOT NULL CHECK (erwartet BETWEEN 1 AND 100000)
+  erwartet INTEGER NULL DEFAULT NULL CHECK (erwartet BETWEEN 1 AND 100000)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- Admins sehen und verwalten alles, ein Wahlvorstand ist an genau ein Wahllokal gebunden.

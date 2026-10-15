@@ -466,3 +466,5 @@ input:focus, select:focus, textarea:focus {
 @media (prefers-reduced-motion: reduce) {
   .sidebar, .sidebar__toggle svg, .sidebar__label { transition: none; }
 }
+
+.status--ungemeldet, .badge--ungemeldet { --farbe: var(--status-offen); }

@@ -38,7 +38,7 @@ test('Kennzahlen fassen Wahllokale, Fortschritt und letzten Eingang zusammen', (
   assert.equal(kennzahlen.anteil, 0.52);
   assert.equal(kennzahlen.stapel, 2);
   assert.equal(kennzahlen.letzterEingang, '2026-10-14T18:40:00.000Z');
-  assert.deepEqual(kennzahlen.proStatus, { offen: 1, laufend: 1, pruefen: 1, fertig: 0, fehler: 0 });
+  assert.deepEqual(kennzahlen.proStatus, { ungemeldet: 0, offen: 1, laufend: 1, pruefen: 1, fertig: 0, fehler: 0 });
 });
 
 test('Anteile beziehen sich auf eindeutig erkannte Stimmen, stärkster Vorschlag zuerst', () => {
@@ -46,6 +46,16 @@ test('Anteile beziehen sich auf eindeutig erkannte Stimmen, stärkster Vorschlag
   assert.deepEqual(anteile.map(row => [row.nummer, row.anteil]), [[2, 0.75], [1, 0.25], [3, 0]]);
   assert.equal(getAnteile(stimme('Erststimme', [0, 0]))[0].anteil, 0);
   assert.equal(formatProzent(0.256), '25,6 %');
+});
+
+test('Fehlende Meldungen bleiben offen und verfälschen den gemeldeten Fortschritt nicht', () => {
+  const offen = lokal('4', 'Noch ohne Meldung', null, 0);
+  const kennzahlen = getKennzahlen({ ...daten, wahllokale: [...daten.wahllokale, offen] });
+  assert.equal(kennzahlen.ungemeldet, 1);
+  assert.equal(kennzahlen.erwartet, 1000);
+  assert.equal(kennzahlen.proStatus.ungemeldet, 1);
+  assert.equal(getStatusArt(offen), 'ungemeldet');
+  assert.deepEqual(getHandlungsbedarf([offen]), []);
 });
 
 test('Status eines Wahllokals als Art für Farbe und Filter', () => {
@@ -88,10 +98,10 @@ test('CSV-Export enthält je Wahllokal eine Zeile und die Gesamtsumme', () => {
 });
 
 test('CSV-Import erkennt Kopfzeile und Trenner und meldet fehlerhafte Zeilen', () => {
-  const { wahllokale, fehler } = parseWahllokalCsv('Nummer;Name;Erwartet\n001;Rathaus;600\n\n002,Schule,abc\n003\tKita\t450\n001;Doppelt;5\n;Ohne Nummer;5\n');
-  assert.deepEqual(wahllokale, [{ nummer: '001', name: 'Rathaus', erwartet: 600 }, { nummer: '003', name: 'Kita', erwartet: 450 }]);
+  const { wahllokale, fehler } = parseWahllokalCsv('Nummer;Name\n001;Rathaus\n\n002,\n003\tKita\n001;Doppelt\n;Ohne Nummer\n');
+  assert.deepEqual(wahllokale, [{ nummer: '001', name: 'Rathaus' }, { nummer: '003', name: 'Kita' }]);
   assert.deepEqual(fehler, [
-    'Zeile 4: Erwartete Stimmzettel müssen zwischen 1 und 100000 liegen.',
+    'Zeile 4: Nummer und Name fehlen.',
     'Zeile 6: Wahllokal 001 steht doppelt in der Datei.',
     'Zeile 7: Nummer und Name fehlen.',
   ]);

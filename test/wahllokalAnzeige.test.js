@@ -7,6 +7,7 @@ import { findWahllokal, getFortschritt } from '../src/erfassungsplatz/wahllokal.
 const readPage = name => readFileSync(new URL(`../src/${name}`, import.meta.url), 'utf8');
 
 test('Wahllokale ohne Eingang und laufende Erfassung sind unterscheidbar', () => {
+  assert.equal(getWahllokalStatus({ zettel: 0, erwartet: null, prueffaelle: 0 }), 'Stimmzettelzahl noch nicht gemeldet');
   assert.equal(getWahllokalStatus({ zettel: 0, erwartet: 500, prueffaelle: 0 }), 'Noch nicht begonnen');
   assert.equal(getWahllokalStatus({ zettel: 100, erwartet: 500, prueffaelle: 2 }), 'Erfassung läuft');
 });
@@ -18,6 +19,7 @@ test('Erreichte Sollzahl mit offenen Prüffällen gilt nicht als abschließend f
 });
 
 test('Monitor am Erfassungsplatz nennt Zettel, Stapel und Prüffälle', () => {
+  assert.equal(getFortschritt({ zettel: 0, erwartet: null, stapel: 0, prueffaelle: 0 }), '0 Stimmzettel · 0 Stapel · 0 Zettel mit Prüfbedarf');
   assert.equal(getFortschritt({ zettel: 40, erwartet: 500, stapel: 2, prueffaelle: 3 }), '40 von 500 Stimmzetteln · 2 Stapel · 3 Zettel mit Prüfbedarf');
 });
 

@@ -51,7 +51,6 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
     await admin.goto('controlcenter/#verwaltung');
     await admin.locator('form.formular [name=nummer]').fill(WAHLLOKAL);
     await admin.locator('form.formular [name=name]').fill('E2E-Wahllokal');
-    await admin.locator('form.formular [name=erwartet]').fill('2');
     await admin.getByRole('button', { name: 'Wahllokal registrieren' }).click();
     await expect(admin.getByText(`Wahllokal ${WAHLLOKAL} registriert.`)).toBeVisible();
     createWahlvorstand();
@@ -60,6 +59,10 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
   await test.step('Wahlvorstand erfasst und sendet einen Stapel', async () => {
     await vorstand.goto(`erfassungsplatz/?wahllokal=${WAHLLOKAL}`);
     await anmelden(vorstand, KONTEN.wahlvorstand);
+    await expect(vorstand.locator('#stapelStart')).toBeDisabled();
+    await vorstand.locator('#stimmzettelzahl').fill('2');
+    await vorstand.locator('#meldungSenden').click();
+    await expect(vorstand.locator('#meldungBereich')).toBeHidden();
     await expect(vorstand.locator('#stapelStart')).toBeEnabled();
     await vorstand.locator('#stapelSoll').fill('2');
     await vorstand.locator('#stapelStart').click();
@@ -85,7 +88,7 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
   await test.step('Dashboard zeigt den Eingang', async () => {
     await admin.goto('controlcenter/#dashboard');
     await admin.reload();
-    await expect(admin.locator('.metriken')).toContainText('von 2 erwartet');
+    await expect(admin.locator('.metriken')).toContainText('2 gemeldet');
     await expect(admin.locator('.metriken')).toContainText('1 / 1');
   });
 

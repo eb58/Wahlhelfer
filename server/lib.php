@@ -383,9 +383,7 @@ function registerWahllokal(mixed $value): array
 {
     $nummer = text($value['nummer'] ?? null, 'Wahllokalnummer');
     $name = text($value['name'] ?? null, 'Name');
-    $erwartet = $value['erwartet'] ?? null;
-    if (!is_int($erwartet) || $erwartet < 1 || $erwartet > 100000) throw new ApiError('Erwartete Zettelzahl muss zwischen 1 und 100000 liegen.');
-    $row = ['nummer' => $nummer, 'name' => $name, 'erwartet' => $erwartet];
+    $row = ['nummer' => $nummer, 'name' => $name, 'erwartet' => null];
     try {
         execute('INSERT INTO wahllokal (nummer, name, erwartet) VALUES (?, ?, ?)', array_values($row));
     } catch (PDOException $error) {
@@ -393,6 +391,21 @@ function registerWahllokal(mixed $value): array
         throw $error;
     }
     return $row;
+}
+
+/** Die Stimmzettelzahl wird vor dem ersten Stapel gemeldet, nicht bei der Registrierung geschaetzt. */
+function meldeStimmzettelzahl(array $user, string $nummer, mixed $anzahl): array
+{
+    if (!wahllokalErlaubt($user, $nummer)) throw new ApiError('Dieses Konto darf nur für sein eigenes Wahllokal melden.', 403);
+    if (!is_int($anzahl) || $anzahl < 1 || $anzahl > 100000) throw new ApiError('Stimmzettelzahl muss zwischen 1 und 100000 liegen.');
+    return transaction(static function () use ($nummer, $anzahl): array {
+        $lokal = query('SELECT nummer, name, erwartet FROM wahllokal WHERE nummer = ?', [$nummer])[0] ?? null;
+        if (!$lokal) throw new ApiError('Wahllokal ist nicht registriert.', 404);
+        if ($lokal['erwartet'] !== null && (int) $lokal['erwartet'] === $anzahl) return array_replace($lokal, ['erwartet' => $anzahl]);
+        if (query('SELECT id FROM stapel WHERE wahllokal = ? LIMIT 1', [$nummer])) throw new ApiError('Die Auszählung hat bereits begonnen. Stimmzettelzahl kann nicht mehr geändert werden.', 409);
+        execute('UPDATE wahllokal SET erwartet = ? WHERE nummer = ?', [$anzahl, $nummer]);
+        return array_replace($lokal, ['erwartet' => $anzahl]);
+    }, true);
 }
 
 function isList(mixed $value): bool
@@ -456,7 +469,9 @@ function receiveStapel(array $user, mixed $value): array
     // Wie bisher: Ergebnisse, Zuordnungen und Hash/Dateityp der Belege, keine technischen Zusatzangaben.
     $fingerprint = jsonHash($data);
     return transaction(static function () use ($data, $fingerprint, $user): array {
-        if (!query('SELECT nummer FROM wahllokal WHERE nummer = ?', [$data['wahllokal']])) throw new ApiError('Wahllokal ist nicht registriert.', 404);
+        $lokal = query('SELECT erwartet FROM wahllokal WHERE nummer = ?', [$data['wahllokal']])[0] ?? null;
+        if (!$lokal) throw new ApiError('Wahllokal ist nicht registriert.', 404);
+        if ($lokal['erwartet'] === null) throw new ApiError('Vor Beginn der Auszählung die Stimmzettelzahl melden.', 409);
         $existing = query('SELECT pruefsumme, eingang FROM stapel WHERE id = ?', [$data['id']])[0] ?? null;
         if ($existing) {
             if ($existing['pruefsumme'] !== $fingerprint) throw new ApiError('Stapelkennung wurde bereits mit anderen Daten verwendet.', 409);
@@ -530,7 +545,7 @@ function buildUebersicht(array $wahl, string $wahlHash, array $wahllokale, array
     foreach ($zettel as $row) $belege[$row['stapel']][] = toBeleg($row);
     $gesamt = leereSumme($wahl);
     $lokale = [];
-    foreach ($wahllokale as $row) $lokale[$row['nummer']] = array_replace($row, ['erwartet' => (int) $row['erwartet']]) + leereSumme($wahl) + ['stapel' => []];
+    foreach ($wahllokale as $row) $lokale[$row['nummer']] = array_replace($row, ['erwartet' => $row['erwartet'] === null ? null : (int) $row['erwartet']]) + leereSumme($wahl) + ['stapel' => []];
     foreach ($stapel as $row) {
         $data = $belege[$row['id']] ?? [];
         addBelege($lokale[$row['wahllokal']], $data);
@@ -678,6 +693,10 @@ function handleRequest(string $method, string $path): void
     if ($path === '/api/session/password' && $method === 'POST') jsonResponse(changePassword($user, readJsonBody()));
     if ($user['password_change_required']) throw new ApiError('Bitte zuerst das Passwort ändern.', 403);
     if ($path === '/api/wahllokale' && $method === 'GET') jsonResponse(['wahllokale' => listWahllokale($user), 'wahlHash' => wahlHash()]);
+    if (preg_match('#^/api/wahllokale/([^/]+)/stimmzettelzahl$#', $path, $match) && $method === 'PUT') {
+        $value = readJsonBody();
+        jsonResponse(meldeStimmzettelzahl($user, rawurldecode($match[1]), $value['erwartet'] ?? null));
+    }
     if ($path === '/api/wahllokale' && $method === 'POST') {
         requireAdmin($user);
         jsonResponse(registerWahllokal(readJsonBody()), 201);

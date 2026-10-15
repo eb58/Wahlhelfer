@@ -24,7 +24,8 @@ if (wahllokalNummer) $('kopfTitel').textContent = `Wahllokal ${wahllokalNummer}`
 const renderStapel = () => {
   const stapel = state.stapel;
   const complete = stapel && stapel.zettel.length === stapel.soll;
-  $('stapelForm').hidden = !!stapel || !state.lokal;
+  $('stapelForm').hidden = !!stapel || !state.lokal || state.lokal.erwartet === null;
+  $('meldungBereich').hidden = !state.lokal || state.lokal.erwartet !== null;
   $('stapelLeiste').hidden = !stapel;
   $('ansichtErfassen').hidden = !stapel || (complete && !state.pending);
   if (stapel) {
@@ -32,7 +33,7 @@ const renderStapel = () => {
     Object.assign($('stapelBalken'), { max: stapel.soll, value: stapel.zettel.length });
   }
   $('stapelSoll').disabled = !!stapel || state.busy;
-  $('stapelStart').disabled = !!stapel || !state.wahlHash || state.busy;
+  $('stapelStart').disabled = !!stapel || !state.wahlHash || state.busy || state.lokal?.erwartet == null;
   $('erfassenKnopf').disabled = !stapel || complete || state.busy || !!state.pending || !state.typ;
   $('dateiKnopf').disabled = $('erfassenKnopf').disabled;
   // Wartet eine Wertung auf Bestaetigung, steht sie direkt unter dem Fortschritt.
@@ -60,6 +61,7 @@ const renderMonitor = () => {
   kopf.className = 'monitor__kopf';
   kopf.append(node('strong', 'Wahllokal gesamt'), node('span', getWahllokalStatus(lokal)));
   $('monitor').replaceChildren(kopf, progress, node('p', getFortschritt(lokal)));
+  progress.hidden = lokal.erwartet === null;
 };
 
 const loadWahllokale = async () => {
@@ -67,6 +69,7 @@ const loadWahllokale = async () => {
   state.lokal = findWahllokal(data.wahllokale, wahllokalNummer);
   $('wahl').textContent = [state.lokal.name, state.typ?.name].filter(Boolean).join(' · ');
   renderMonitor();
+  renderStapel();
   return data;
 };
 
@@ -171,6 +174,19 @@ $('dateiKnopf').addEventListener('click', () => { clearWertung(); openInput($('d
 $('erfassenEingabe').addEventListener('change', handleFileSelection);
 $('dateiEingabe').addEventListener('change', handleFileSelection);
 
+$('meldungForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!state.lokal || state.busy) return;
+  $('meldungSenden').disabled = true;
+  try {
+    await api(`wahllokale/${encodeURIComponent(state.lokal.nummer)}/stimmzettelzahl`, {
+      erwartet: Number($('stimmzettelzahl').value),
+    }, 'PUT');
+    await loadWahllokale();
+  } catch (error) { showError($('meldungStatus'), error); }
+  finally { $('meldungSenden').disabled = false; }
+});
+
 $('stapelVerwerfen').addEventListener('click', async () => {
   if (!state.stapel || state.stapel.zettel.length || state.busy || state.pending) return;
   try { await storeStapel(undefined); renderStapel(); }
@@ -178,7 +194,7 @@ $('stapelVerwerfen').addEventListener('click', async () => {
 });
 $('stapelForm').addEventListener('submit', async event => {
   event.preventDefault();
-  if (state.stapel || state.busy) return;
+  if (state.stapel || state.busy || state.lokal?.erwartet == null) return;
   state.busy = true;
   renderStapel();
   try {

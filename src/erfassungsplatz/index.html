@@ -41,6 +41,14 @@
         <p class="status" id="anmeldeStatus" role="status" data-art="fehler" hidden></p>
       </section>
 
+      <section class="karte panel" id="meldungBereich" hidden>
+        <form id="meldungForm">
+          <label>Stimmzettel im Wahllokal <input id="stimmzettelzahl" type="number" inputmode="numeric" min="1" max="100000" required /></label>
+          <p class="hinweis">Vor Beginn der Auszählung die gezählte Anzahl an das Wahlamt melden.</p>
+          <button class="knopf" id="meldungSenden" type="submit">Stimmzettelzahl melden</button>
+          <p class="status" id="meldungStatus" role="status" hidden></p>
+        </form>
+      </section>
       <section class="karte panel" id="stapelBereich">
         <!-- Vor dem Stapel: nur die Stapelgroesse. Das Wahllokal steht im Link. -->
         <form id="stapelForm">

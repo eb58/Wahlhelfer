@@ -23,8 +23,8 @@ const send = async (path, options = {}) => {
   return result;
 };
 
-export const api = (path, data) => send(path, data === undefined ? {} : {
-  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+export const api = (path, data, method = 'POST') => send(path, data === undefined ? {} : {
+  method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
 });
 
 /** Belege einzeln und unveraendert hochladen; der Server prueft Hash und Dateityp. */
