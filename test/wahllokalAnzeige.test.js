@@ -22,10 +22,9 @@ test('Monitor am Erfassungsplatz nennt Zettel, Stapel und Prüffälle', () => {
 });
 
 test('Erfassungsplatz und ControlCenter liegen getrennt und verweisen nicht aufeinander', () => {
-  for (const page of ['index.html', 'erfassungsplatz/index.html']) assert.doesNotMatch(readPage(page), /controlcenter/i);
+  assert.doesNotMatch(readPage('erfassungsplatz/index.html'), /controlcenter/i);
   assert.doesNotMatch(readPage('controlcenter/index.html'), /erfassungsplatz/i);
   assert.match(readPage('erfassungsplatz/index.html'), /id="monitor"/);
-  assert.match(readPage('index.html'), /url=erfassungsplatz\//);
 });
 
 test('Das Wahllokal kommt aus dem Link; ohne oder mit fremder Nummer wird nicht erfasst', () => {

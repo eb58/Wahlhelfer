@@ -43,7 +43,7 @@ npm run dev:lan
 ipconfig
 ```
 
-Dann auf dem Smartphone `https://<IPv4-Adresse-des-PCs>:5173/?wahllokal=518` öffnen und die
+Dann auf dem Smartphone `https://<IPv4-Adresse-des-PCs>:5173/erfassungsplatz/?wahllokal=518` öffnen und die
 Warnung zum selbst signierten Zertifikat einmal bestätigen (Chrome: *Erweitert* → *Weiter zu …*).
 Die IPv4-Adresse steht bei `ipconfig` unter dem aktiven WLAN-Adapter – nicht die `172.…`-Adresse
 von WSL/Hyper-V. Falls Windows beim ersten Start nach der Firewall fragt, den Zugriff im privaten
@@ -145,12 +145,11 @@ nur an, wenn alle Belege vorliegen. Ein erneuter Upload derselben Datei ist harm
 
 Die Anwendung besteht aus zwei getrennten Teilen in eigenen Ordnern, ohne Verweise aufeinander:
 dem **Erfassungsplatz** (`erfassungsplatz/`) für die Wahlhelfer im Wahllokal und dem
-**ControlCenter** (`controlcenter/`) für das Wahlamt, nur für Admins. Die Startseite `index.html`
-leitet auf den Erfassungsplatz weiter.
+**ControlCenter** (`controlcenter/`) für das Wahlamt, nur für Admins.
 
 Im ControlCenter unter *Verwaltung* zuerst die Wahllokale mit erwarteter Stimmzettelzahl
 registrieren – einzeln oder als CSV (`Nummer;Name;Erwartet`). Jedes Wahllokal
-bekommt einen eigenen Link, z. B. `…/?wahllokal=518` – als Link oder QR-Code für die Wahlhelfer
+bekommt einen eigenen Link, z. B. `…/erfassungsplatz/?wahllokal=518` – als Link oder QR-Code für die Wahlhelfer
 vor Ort. Am Erfassungsplatz wird kein Wahllokal ausgewählt; ohne Wahllokal im Link wird nicht
 erfasst. Nach der Anmeldung nur die Stapelgröße eintragen (Standard: 20), dann jede Aufnahme
 prüfen und zum Stapel hinzufügen. Bei vollständigem Stapel den leeren Eingangsstapel bestätigen und übertragen. Bei
@@ -219,7 +218,7 @@ Belegordner benötigt.
 Docker Desktop mit Linux-Containern starten. `compose.yaml` betreibt drei Dienste:
 
 - `wahlassistent`: Apache mit PHP 8.4, erreichbar unter `http://localhost:3000/`
-  (Erfassungsplatz: `/erfassungsplatz/`, z. B. `/?wahllokal=518`; ControlCenter: `/controlcenter/`).
+  (Erfassungsplatz: z. B. `/erfassungsplatz/?wahllokal=518`; ControlCenter: `/controlcenter/`).
 - `db`: MariaDB 11.4, Daten im Volume `mariadb_daten`, nur im internen Docker-Netz erreichbar.
 - `phpmyadmin`: `http://localhost:8082/`, nur an `127.0.0.1` gebunden.
 
@@ -255,7 +254,7 @@ docker compose exec wahlassistent php /srv/wahlassistent/server/create-user.php 
 Die Tabellen legt die API beim ersten Aufruf selbst an. `npm run dev` und `npm run dev:source`
 leiten `php-api/` an den Container auf Port 3000 weiter. Über `npm run dev:lan` läuft die
 Vorschau per HTTPS mit selbst signiertem Zertifikat im WLAN – zum Testen auf dem Smartphone
-`https://<WLAN-IP des PCs>:5173/?wahllokal=518` öffnen und die Zertifikatswarnung einmal
+`https://<WLAN-IP des PCs>:5173/erfassungsplatz/?wahllokal=518` öffnen und die Zertifikatswarnung einmal
 bestätigen. HTTPS ist nötig, weil der Browser `crypto.subtle` (Wahlabgleich, Belege) nur auf
 sicheren Seiten bereitstellt.
 

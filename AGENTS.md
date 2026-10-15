@@ -103,10 +103,9 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 
 ## Veroeffentlichung
 
-- GitHub Pages liefert den Root von `main` **ungebuendelt** aus (eb58.github.io/Wahlhelfer/).
-  `index.html` (Weiterleitung), `configuration.js` und `Kalibrierungen/` bleiben deshalb im
-  Projekt-Root. Das ControlCenter braucht den Build (AG Grid kommt aus `node_modules`) und die
-  PHP-API; es laeuft nur gebaut beim Hoster oder lokal im Docker-Stack.
+- Beide Seiten brauchen den Build und die PHP-API; sie laufen nur gebaut beim Hoster oder lokal im
+  Docker-Stack. Eine Startseite im App-Root gibt es nicht, Links fuehren direkt auf
+  `erfassungsplatz/?wahllokal=518` bzw. `controlcenter/`.
 - Die vollstaendige Anwendung mit Server laeuft beim Hoster (Strato, wie Mitgliederverwaltung und
   Gratulationsdienst): nur PHP und MariaDB, kein Node. Die API steht in `server/` (PHP, `lib.php`),
   wird von `server/deploy.ps1` als `php-api/` neben `dist/` und `configuration.js` gelegt und liest

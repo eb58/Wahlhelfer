@@ -44,5 +44,5 @@ export default defineConfig(({ mode }) => ({
   plugins: mode === 'lan' ? [basicSsl()] : [],
   server: { proxy },
   preview: { proxy },
-  build: { rollupOptions: { input: { start: resolve(projectRoot, 'index.html'), erfassungsplatz: resolve(projectRoot, 'erfassungsplatz/index.html'), controlcenter: resolve(projectRoot, 'controlcenter/index.html') } } },
+  build: { rollupOptions: { input: { erfassungsplatz: resolve(projectRoot, 'erfassungsplatz/index.html'), controlcenter: resolve(projectRoot, 'controlcenter/index.html') } } },
 }));
