@@ -201,7 +201,7 @@ const wahllokal = ({ inhalt, state, showFehler, setTitel, zeigeBeleg }, { nummer
 /* --- Ergebnisse --------------------------------------------------------- */
 
 const ergebnisse = ({ inhalt, werkzeuge, state }) => {
-  const balken = h('div');
+  const balken = h('div', { class: 'raster ergebnis-stimmen' });
   const auswahl = h('div', { class: 'segmente', role: 'group', 'aria-label': 'Stimme' });
   const element = h('div', { class: 'tabelle' });
   let spaltenFuer;
@@ -241,7 +241,8 @@ const ergebnisse = ({ inhalt, werkzeuge, state }) => {
         onclick: () => { state.stimmeId = stimme.id; view.update(state.data); },
       }, stimme.name)));
       auswahl.hidden = data.gesamt.stimmen.length < 2;
-      balken.replaceChildren(panel(`${definition.name} – vorläufiges Ergebnis aller Wahllokale`, stimmZaehler(definition), anteilListe(definition)));
+      balken.replaceChildren(...data.gesamt.stimmen.map(stimme =>
+        panel(`${stimme.name} – vorläufiges Ergebnis aller Wahllokale`, stimmZaehler(stimme), anteilListe(stimme))));
       if (spaltenFuer !== definition.id) {
         tabelle.setGridOption('columnDefs', spalten(definition));
         spaltenFuer = definition.id;

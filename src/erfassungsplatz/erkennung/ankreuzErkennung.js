@@ -136,8 +136,11 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
 
   const measuredFelder = ringAlignment ? kalibrierung.felder.map(feld => {
     const point = transformRing(ringAlignment.transformation, feld.referenz);
+    // Papierwoelbung kann lokal staerker von der gemeinsamen affinen Lage abweichen.
+    // Wie bei den Ankern auf den gedruckten Ring einrasten, ohne das Kreisinnere zu bewerten.
     const { referenz: ringReferenz, ...measurement } = normalizeField(
       map, ringFrame, kalibrierung.frame, point, kalibrierung.referenzRadius * ringScale,
+      { search: Math.round(kalibrierung.referenzRadius * ringScale * 1.2) },
     );
     return { ...feld, ...measurement, ringReferenz };
   }) : kalibrierung.felder.map(feld => {

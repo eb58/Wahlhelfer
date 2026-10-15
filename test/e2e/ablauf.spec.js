@@ -110,6 +110,19 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
 
   await test.step('Ergebnisse, Prüffälle und Eingänge', async () => {
     await admin.goto('controlcenter/#ergebnisse');
+    const stimmen = admin.locator('.ergebnis-stimmen > .panel');
+    await expect(stimmen).toHaveCount(2);
+    await expect(stimmen.nth(0)).toContainText('Erststimme');
+    await expect(stimmen.nth(1)).toContainText('Zweitstimme');
+    await admin.setViewportSize({ width: 1600, height: 1000 });
+    const links = await stimmen.nth(0).boundingBox();
+    const rechts = await stimmen.nth(1).boundingBox();
+    expect(Math.abs(links.y - rechts.y)).toBeLessThan(2);
+    expect(rechts.x).toBeGreaterThan(links.x);
+    await admin.setViewportSize({ width: 600, height: 900 });
+    await expect.poll(async () => (await stimmen.nth(1).boundingBox()).y)
+      .toBeGreaterThan((await stimmen.nth(0).boundingBox()).y);
+    await admin.setViewportSize({ width: 1280, height: 720 });
     // Nummer und Name sind links angeheftet, AG Grid rendert sie in einem eigenen Container.
     await expect(admin.getByRole('row', { name: `${WAHLLOKAL} E2E-Wahllokal` })).toBeVisible();
     const zahlen = zeilen(admin).first().getByRole('gridcell');
