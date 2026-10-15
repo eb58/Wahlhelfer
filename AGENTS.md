@@ -152,8 +152,10 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   JS/JSON/HTML/CSS, Kalibrierungen oder Testdaten `npm test` und bei `server/` `npm run test:php` laufen.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
 - Die Fototests enthalten derzeit 20 Aufnahmen aus `bundestagswahl-2017/fotos-serie1` und 33 aus
-  `bundestagswahl-2017/fotos-serie2`; alle laufen ueber den Ringpfad, `npm test` dauert insgesamt rund 25 s.
-- Fuer die anderen Zettelarten gibt es keine echten Fotos; `synthetischeFotos.test.js` prueft sie
+  `bundestagswahl-2017/fotos-serie2`; alle laufen ueber den Ringpfad. Damit `node --test` sie parallel
+  rechnet, sind sie auf mehrere Dateien verteilt (`test/fotos/`, Ablauf in `test/fotoTests.js`); `npm test`
+  dauert so rund 9 s. Eine Datei laeuft in sich nacheinander - lange Testreihen also aufteilen.
+- Fuer die anderen Zettelarten gibt es keine echten Fotos; `test/fotos/synthetisch-*.test.js` prueft sie
   mit synthetischen Fotos. Bekannte Luecken stehen dort als `todo` mit Begruendung - sie muessen sicher abgelehnt,
   duerfen aber nie falsch gewertet werden.
 - Aenderungen an `server/` mit `npm run test:php` pruefen (PHPUnit, faehrt die Wegwerf-MariaDB

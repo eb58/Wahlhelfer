@@ -3,7 +3,7 @@
  *
  * Der Musterzettel bekommt je Stimme ein Kreuz und wird perspektivisch auf einen Holztisch mit
  * Helligkeitsverlauf und Rauschen gelegt. Die Ergebnisse liegen je Zettelart als JPEG mit Manifest
- * unter `Testdaten/<kalibrierung>/synthetisch/` und werden von `test/synthetischeFotos.test.js` gelesen.
+ * unter `Testdaten/<kalibrierung>/synthetisch/` und werden von `test/fotos/synthetisch-*.test.js` gelesen.
  * Neu erzeugen nur, wenn sich Musterzettel oder Kalibrierung aendern:
  *   node scripts/erzeugeSynthetischeFotos.js
  * Der Zufall ist fest geseedet - dieselben Eingaben ergeben dieselben Bilder.
