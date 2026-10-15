@@ -99,7 +99,8 @@ final class WahlTest extends TestCase
         $this->assertSame('image/png', detectBildType(base64_decode(TEST_PNG)));
         $this->assertSame('image/jpeg', detectBildType("\xff\xd8\xff\xe0"));
         $this->assertSame('image/webp', detectBildType('RIFF1234WEBPVP8 '));
-        $this->assertSame('application/pdf', detectBildType('%PDF-1.7'));
+        // PDFs nimmt der Server nicht mehr an; aeltere PDF-Belege liefert er weiter mit ihrem gespeicherten Typ aus.
+        $this->assertNull(detectBildType('%PDF-1.7'));
         $this->assertNull(detectBildType('<svg>'));
         $this->assertApiError(400, '/Belegkennung/', static fn() => bildPath('../config.local'));
     }

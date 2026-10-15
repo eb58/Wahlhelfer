@@ -597,7 +597,6 @@ function detectBildType(string $head): ?string
     if (str_starts_with($head, "\xff\xd8\xff")) return 'image/jpeg';
     if (substr($head, 0, 4) === 'RIFF' && substr($head, 8, 4) === 'WEBP') return 'image/webp';
     if (in_array(substr($head, 0, 6), ['GIF87a', 'GIF89a'], true)) return 'image/gif';
-    if (str_starts_with($head, '%PDF-')) return 'application/pdf';
     return null;
 }
 
@@ -633,7 +632,7 @@ function storeBild(string $hash, string $type, $stream): bool
         if (!$size || $size > BILD_MAX) throw new ApiError('Originalaufnahme fehlt oder ist zu groß (maximal 20 MB).', 413);
         if (hash_file('sha256', $temporary) !== $hash) throw new ApiError('Prüfsumme der Originalaufnahme stimmt nicht.');
         $detected = detectBildType((string) file_get_contents($temporary, false, null, 0, 16));
-        if ($detected === null) throw new ApiError('Beleg muss ein PNG-, JPEG-, WebP-, GIF-Bild oder PDF sein.');
+        if ($detected === null) throw new ApiError('Beleg muss ein PNG-, JPEG-, WebP- oder GIF-Bild sein.');
         if ($detected !== $type) throw new ApiError('Dateityp der Originalaufnahme stimmt nicht.');
         if (!rename($temporary, $path) && !is_file($path)) throw new RuntimeException('Beleg konnte nicht gespeichert werden: ' . $path);
         return true;
