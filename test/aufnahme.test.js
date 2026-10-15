@@ -6,5 +6,5 @@ const html = readFileSync(new URL('../src/erfassungsplatz/index.html', import.me
 
 test('Aufnahme-Knopf ist fuer die rueckseitige Kamera eingerichtet', () => {
   assert.match(html, /id="erfassenEingabe"[^>]*accept="image\/\*"[^>]*capture="environment"/);
-  assert.match(html, /id="dateiEingabe"[^>]*accept="image\/\*,application\/pdf"/);
+  assert.match(html, /id="dateiEingabe"[^>]*accept="image\/\*"/);
 });

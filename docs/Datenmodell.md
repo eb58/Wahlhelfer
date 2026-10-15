@@ -57,8 +57,7 @@ schrumpft von rund 3 MB auf rund 0,5 MB. An allen 53 echten Fotos geprüft: Selb
 und Dateityp. Der Hash bestimmt den Dateinamen, verbindet Aufnahme und Ergebnis und wird beim
 Abruf geprüft. Bilder sind ausschließlich über die authentifizierte Server-API zugänglich.
 Das ControlCenter zeigt pro Stapel die einzelnen Zettel mit Ergebnis und Beleg.
-Bei PDF-Eingaben wird die erste Seite erkannt und als Beleg-JPEG gespeichert. Ältere Belege aus der
-Zeit vor der Verkleinerung (PNG, Original-JPEG, PDF) bleiben gültig und abrufbar.
+Ältere Belege aus der Zeit vor der Verkleinerung (PNG, Original-JPEG, PDF) bleiben gültig und abrufbar.
 
 Auf dem Client bleiben Ergebnisse und Belege in IndexedDB erhalten, bis der Server
 die Übernahme des vollständigen Stapels bestätigt. Der Server legt die Dateien vor dem DB-Commit

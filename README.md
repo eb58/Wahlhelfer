@@ -182,9 +182,8 @@ selbst an und trägt die Wahlvorschläge ein. Enthält die Datenbank schon ander
 verweigert sie den Betrieb: **jede neue Wahl braucht eine eigene, leere Datenbank** (bei Strato
 zählt jede gegen das Datenbank-Kontingent des Pakets; alte Wahlen nach der Sicherung löschen).
 
-Aufnehmen lassen sich PNG, JPEG, WebP, GIF und PDF (erkannt wird die erste Seite). Gespeichert
-wird immer der verkleinerte Beleg als JPEG; die API nimmt bis 20 MB je Beleg an, auch ältere
-PNG- und PDF-Belege bleiben abrufbar.
+Aufnehmen lassen sich PNG, JPEG, WebP und GIF. Gespeichert wird immer der verkleinerte Beleg als
+JPEG; die API nimmt bis 20 MB je Beleg an, auch ältere PNG- und PDF-Belege bleiben abrufbar.
 
 ### Installation beim Hoster
 

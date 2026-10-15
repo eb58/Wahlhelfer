@@ -79,7 +79,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   dazu `src/api/`. Vite baut mit `src/` als Root, in `dist/` liegen die Seiten deshalb wieder auf
   oberster Ebene (`dist/erfassungsplatz/`, `dist/controlcenter/`). Jeder Seitenordner hat `index.html`, `main.js` und
   `styles.css`; was nur eine Seite braucht, liegt in ihrem Ordner. Beim Erfassungsplatz sind das Stapel,
-  IndexedDB-Puffer, Wertungsanzeige, PDF-Aufnahme, Aufnahme und Beleg (`browserImage.js`),
+  IndexedDB-Puffer, Wertungsanzeige, Aufnahme und Beleg (`browserImage.js`),
   Wahllokalauswahl, Wahldefinition und die Erkennung (`src/erfassungsplatz/erkennung/`). Die Erkennung
   haengt an keiner Oberflaeche und laeuft auch in Node (Skripte, Fototests); sie importiert nichts aus
   dem uebrigen Erfassungsplatz. In `erkennung/` liegt nur Code, der den Wahlzettel erkennt - Bilder
@@ -89,7 +89,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   und `wahllokalAnzeige.js` (was die Zaehler eines Wahllokals bedeuten). Was nur eine Seite braucht und
   nicht mit dem Server zu tun hat, gehoert in deren Ordner.
 - Die Seiten liegen eine Ebene unter dem App-Root und sagen das mit `<html data-app-base="../">`.
-  Alles, was im App-Root liegt (`php-api/`, `vendor/`, `Kalibrierungen/`), immer ueber
+  Alles, was im App-Root liegt (`php-api/`, `Kalibrierungen/`), immer ueber
   `appUrl()` aus `src/api/appUrl.js` ansprechen, nie relativ zur Seite.
 - Der Erfassungsplatz ist fuer das Smartphone gebaut: schmale Kopfzeile, je Phase nur das Noetige
   (vor dem Stapel die Stapelgroesse, waehrend des Stapels Fortschritt und Aufnahme, waehrend einer
@@ -140,8 +140,8 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 
 ## Externe Ressourcen
 
-- Zur Laufzeit wird nichts aus dem Netz geladen. Vite kopiert pdf.js und Kalibrierungen beim Start bzw.
-  Build aus `node_modules` und `Kalibrierungen/` in sein `publicDir` (`node_modules/.wahlassistent-public`)
+- Zur Laufzeit wird nichts aus dem Netz geladen. Vite kopiert die Kalibrierungen beim Start bzw.
+  Build aus `Kalibrierungen/` in sein `publicDir` (`node_modules/.wahlassistent-public`)
   und von dort nach `dist/`. `dist/` ist erzeugt und ignoriert.
 
 ## Pruefen

@@ -20,8 +20,7 @@
     "pruefe": "python scripts/pruefeKalibrierung.py"
   },
   "dependencies": {
-    "ag-grid-community": "^35.3.1",
-    "pdfjs-dist": "^6.2.108"
+    "ag-grid-community": "^35.3.1"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "^2.3.0",

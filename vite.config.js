@@ -5,11 +5,10 @@ import { defineConfig } from 'vite';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export const projectRoot = fileURLToPath(new URL('.', import.meta.url));
-// Erzeugtes Zwischenlager fuer Kalibrierungen und pdf.js - wie Vites eigener Cache unter node_modules,
+// Erzeugtes Zwischenlager fuer die Kalibrierungen - wie Vites eigener Cache unter node_modules,
 // damit es im Projekt nicht als Ordner auftaucht. Vite liefert es aus und kopiert es nach dist/.
 const publicDir = resolve(projectRoot, 'node_modules/.wahlassistent-public');
 const kalibrierungSource = resolve(projectRoot, 'Kalibrierungen');
-const pdfjsSource = resolve(projectRoot, 'node_modules/pdfjs-dist');
 
 const copyFiles = (source, destination, files = readdirSync(source)) => {
   mkdirSync(destination, { recursive: true });
@@ -21,8 +20,6 @@ const syncAssets = () => {
   rmSync(resolve(publicDir, 'Kalibrierungen'), { recursive: true, force: true });
   copyFiles(kalibrierungSource, resolve(publicDir, 'Kalibrierungen'),
     readdirSync(kalibrierungSource).filter(file => file.endsWith('.json')));
-  copyFiles(resolve(pdfjsSource, 'build'), resolve(publicDir, 'vendor/pdfjs'), ['pdf.worker.min.mjs']);
-  copyFiles(resolve(pdfjsSource, 'wasm'), resolve(publicDir, 'vendor/pdfjs/wasm'));
 };
 
 syncAssets();

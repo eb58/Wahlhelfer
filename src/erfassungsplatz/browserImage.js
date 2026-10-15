@@ -50,7 +50,7 @@ export const toImageData = async file => {
  * Der Beleg: die Aufnahme auf MAX_WIDTH verkleinert als JPEG. Erkannt und gespeichert wird genau
  * dieses Bild - so laesst sich die Wertung aus dem Beleg reproduzieren, und ein Handyfoto
  * schrumpft von rund 3 MB auf rund 0,5 MB.
- * @param {Blob|ImageData} source Kameraaufnahme, Bilddatei oder gerenderte PDF-Seite
+ * @param {Blob} source Kameraaufnahme oder Bilddatei
  */
 export const toBeleg = async source => {
   const { canvas } = await drawScaled(source);

@@ -158,7 +158,7 @@ noch einmal auf ihren gedruckten Ring eingerastet.
 
 ## 5. Scans
 
-Füllt das Papier das Bild (Scan oder PDF), gibt es keine Rahmenkandidaten und keine Ringausrichtung.
+Füllt das Papier das Bild (Scan), gibt es keine Rahmenkandidaten und keine Ringausrichtung.
 Die Felder werden dann aus dem geraden Rahmen von `findFrame()` rahmenrelativ projiziert und mit
 `adjustFeld` im kleinen Umkreis auf ihren gedruckten Ring eingerastet.
 

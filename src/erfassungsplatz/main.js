@@ -5,7 +5,6 @@
 import { loadKalibrierung } from './erkennung/kalibrierung.js';
 import { toBeleg, toImageData } from './browserImage.js';
 import { stimmRows, isUnambiguous, COLORS, drawFelder } from './wertungAnzeige.js';
-import { isPdf, pdfPageAsImage } from './pdf.js';
 import { KALIBRIERUNG } from '../../configuration.js';
 import { api, describeUser, putBild, setupAnmeldung, sha256 } from '../api/serverApi.js';
 import { appUrl } from '../api/appUrl.js';
@@ -126,9 +125,6 @@ const clearWertung = () => {
   $('aufnahmeBereich').hidden = true;
 };
 
-/** Aufnahmen kommen als Bild von der Kamera, koennen aber auch ein PDF-Scan sein (erste Seite). */
-const toBelegBild = async file => toBeleg(isPdf(file) ? (await pdfPageAsImage(file)).imageData : file);
-
 const capture = async file => {
   if (!state.stapel || state.busy || state.pending || state.stapel.zettel.length >= state.stapel.soll) return;
   state.busy = true;
@@ -139,10 +135,10 @@ const capture = async file => {
   delete status.dataset.art;
   let imageData;
   try {
-    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'application/pdf'].includes(file.type))
-      throw new Error('Aufnahme muss ein PNG-, JPEG-, WebP-, GIF-Bild oder PDF sein.');
+    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type))
+      throw new Error('Aufnahme muss ein PNG-, JPEG-, WebP- oder GIF-Bild sein.');
     // Erkannt wird der Beleg, nicht die Kameraaufnahme: so reproduziert der gespeicherte Beleg die Wertung.
-    const bild = await toBelegBild(file);
+    const bild = await toBeleg(file);
     imageData = await toImageData(bild);
     const result = await state.typ.recognize(imageData);
     state.pending = { result, bild };
