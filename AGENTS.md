@@ -64,7 +64,8 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 ## Werkzeuge
 
 - `python scripts/pruefeKalibrierung.py <datei.json> [ausgabe.png]` zeichnet die Felder in
-  den Musterzettel - die Sichtkontrolle nach jeder Aenderung an einer Kalibrierung.
+  den Musterzettel - die Sichtkontrolle nach jeder Aenderung an einer Kalibrierung. Braucht Pillow
+  (`pip install pillow`); sonst kommt im Projekt kein Python-Paket vor.
 - `node scripts/erzeugeSynthetischeFotos.js` erzeugt fuer jede Kalibrierung drei synthetische Fotos
   (gerade, leicht schraeg, 4 Grad gedreht) unter `Testdaten/<kalibrierung>/synthetisch/`. Nur neu
   erzeugen, wenn sich Musterzettel oder Kalibrierung aendern; der Zufall ist fest geseedet.

@@ -17,6 +17,8 @@ Eine Kalibrierung sichtbar prüfen (zeichnet die Feldlagen in den Musterzettel):
 python scripts/pruefeKalibrierung.py Kalibrierungen/europawahl-sh-2024.json pruefung-tmp.png
 ```
 
+Das Skript zeichnet mit der Python-Bildbibliothek Pillow; einmalig `pip install pillow`.
+
 Welche Kalibrierung im Einsatz gilt, steht in `configuration.js` – pro Wahl einmal setzen.
 Im Wahllokal selbst gibt es nichts auszuwählen.
 
