@@ -151,6 +151,9 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   und `synthetisch/`, jeweils mit `manifest.json`. Neue Zettelart = neuer Ordner.
 
 - Vor dem Abschluss die betroffenen Tests ausfuehren.
+- Der pre-commit-Hook (`.githooks/pre-commit`, aktiv nach `npm install` ueber `prepare`) prueft die
+  vorgemerkten Textdateien auf UTF-8 und Mojibake (`scripts/pruefeTextkodierung.js`), laesst bei
+  JS/JSON/HTML/CSS, Kalibrierungen oder Testdaten `npm test` und bei `server/` `npm run test:php` laufen.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
 - Die Fototests enthalten derzeit 20 Aufnahmen aus `bundestagswahl-2017/fotos-serie1` und 33 aus
   `bundestagswahl-2017/fotos-serie2`; alle laufen ueber den Ringpfad, `npm test` dauert insgesamt rund 25 s.

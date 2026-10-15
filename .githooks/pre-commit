@@ -1,0 +1,20 @@
+#!/bin/sh
+# Vor jedem Commit: Textkodierung der vorgemerkten Dateien, bei Bedarf die Tests.
+# Aktiviert ueber `npm install` (prepare setzt core.hooksPath). Im Notfall: git commit --no-verify
+# Die Tests laufen auf dem Arbeitsverzeichnis, nicht nur auf dem vorgemerkten Stand.
+set -e
+
+files=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$files" ] && exit 0
+
+node scripts/pruefeTextkodierung.js
+
+if echo "$files" | grep -qE '\.(js|mjs|json|html|css)$|^(Kalibrierungen|Testdaten)/'; then
+  echo 'pre-commit: npm test'
+  node --test --test-reporter=dot 'test/**/*.test.js'
+fi
+
+if echo "$files" | grep -qE '^(server|test/php)/'; then
+  echo 'pre-commit: npm run test:php'
+  npm run --silent test:php
+fi
