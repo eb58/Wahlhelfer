@@ -13,7 +13,6 @@ import {
   determineRingTransformation, findRoughRingShift, normalizeField, scoreFrame, transformRing,
 } from './feldNormalisierung.js';
 import { findFrameCandidates, reframe } from './frameQuad.js';
-import { log, logDuration, now, round } from './log.js';
 
 /** Innenradius, auf dem der Fuellgrad gemessen wird - haelt Abstand zum gedruckten Ring. */
 export const innerRadius = radius => Math.max(2, Math.round(radius * 0.68));
@@ -80,26 +79,15 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   adjust = true,
   ...options
 } = {}) => {
-  const started = now();
-  log(`Bildverarbeitung gestartet: ${image.width}x${image.height} Pixel`);
-  const darknessStart = now();
   const map = toDarkness(image);
-  logDuration('Dunkelheitskarte', darknessStart);
-  const frameStart = now();
   const frame = findFrame(map, options);
-  logDuration('Rahmensuche', frameStart);
-  if (frame) log(`Grobe Ausrichtung ueber Rahmen: x ${round(frame.left)}..${round(frame.right)}, y ${round(frame.top)}..${round(frame.bottom)}`);
-  const paperStart = now();
   const paper = findPaper(image);
-  logDuration('Papierlage', paperStart);
   const isPhoto = paper && (paper.right - paper.left < image.width * 0.96
     || paper.bottom - paper.top < image.height * 0.96);
-  if (paper) log(`Grobe Papierlage: x ${round(paper.left)}..${round(paper.right)}, y ${round(paper.top)}..${round(paper.bottom)}`);
 
   const referenzen = kalibrierung.felder.map(feld => feld.referenz);
   const alignRings = candidate => {
     try {
-      const ringStart = now();
       const shift = findRoughRingShift(map, candidate, kalibrierung.frame, referenzen, kalibrierung.referenzRadius);
       const anchors = kalibrierung.felder.map(feld => {
         const base = {
@@ -112,11 +100,8 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
         );
         return { source: feld.referenz, target: measurement.referenz, ringScore: measurement.ringScore };
       });
-      const alignment = determineRingTransformation(anchors);
-      logDuration(`Ausrichtung ueber ${alignment.treffer.length} Ankreuzringe`, ringStart);
-      return { ...alignment, frame: candidate };
-    } catch (error) {
-      log(`Ringbasierte Ausrichtung nicht ausreichend: ${error.message}`);
+      return { ...determineRingTransformation(anchors), frame: candidate };
+    } catch {
       return undefined;
     }
   };
@@ -124,21 +109,17 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   // Wie im Sudoku-Scanner: mehrere Rahmenkandidaten, bestaetigt am Musterzettel. Der Rahmen als
   // geschlossene Komponente ist meist am genauesten. Mit Huelle in der Kalibrierung kann jedes
   // Viereck auch deren Rand sein; welche Deutung passt, entscheidet ebenfalls scoreFrame.
-  const candidateStart = now();
   const quads = isPhoto ? findFrameCandidates(map, kalibrierung.frame, { paper }) : [];
   const huellen = kalibrierung.huelle ? quads.map(quad => reframe(quad, kalibrierung.huelle, kalibrierung.frame)) : [];
   const frameCandidates = [...quads, ...huellen]
     .map(candidate => ({ candidate, score: scoreFrame(map, candidate, kalibrierung.frame, referenzen, kalibrierung.referenzRadius) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
-  logDuration(`Rahmenkandidaten (${frameCandidates.length})`, candidateStart);
   const quadAlignment = frameCandidates.reduce((found, { candidate }) => found ?? alignRings(candidate), undefined);
 
   // Die Linien-Suche ist teuer und nur noch Ersatz: gerechnet wird sie erst, wenn kein Viereck
   // traegt - dann als weiterer Ringkandidat.
-  const perspectiveStart = now();
   const perspectiveFrame = isPhoto && !quadAlignment ? findPerspectiveFrame(map, paper) : undefined;
-  if (perspectiveFrame) logDuration('Perspektivischer Druckrahmen erkannt', perspectiveStart);
   const ringAlignment = quadAlignment ?? (perspectiveFrame && alignRings(perspectiveFrame));
   const ringFrame = ringAlignment?.frame;
   // Ohne Ringlage ist ein Foto nicht sicher zu werten: lieber ablehnen als raten.
@@ -153,7 +134,6 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
     : kalibrierung.radius * frameWidth(frame)));
   const measureRadius = innerRadius(radius);
 
-  const felderStart = now();
   const measuredFelder = ringAlignment ? kalibrierung.felder.map(feld => {
     const point = transformRing(ringAlignment.transformation, feld.referenz);
     const { referenz: ringReferenz, ...measurement } = normalizeField(
@@ -166,18 +146,9 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
     const fuellgrad = darkRatio(map, x, y, measureRadius);
     return { ...feld, x, y, fuellgrad };
   });
-  logDuration(`Ankreuzfelder (${measuredFelder.length})`, felderStart);
   const imageThresholds = computeImageThresholds(measuredFelder, thresholds, { ringAlignment });
   const felder = measuredFelder.map(feld => ({ ...feld, status: classify(feld.fuellgrad, imageThresholds) }));
-
-  // Nur auffaellige Felder protokollieren - eine Zeile je Feld waere nicht mehr lesbar.
-  const notable = felder.filter(feld => feld.status !== 'leer').map(feld => `${feld.id} ${round(feld.fuellgrad)} (${feld.status})`);
-  log(`Markierungen: ${notable.join(', ') || 'keine'}`);
-
   const stimmen = kalibrierung.stimmen.map(stimme => ({ ...stimme, ...evaluateStimme(felder, stimme) }));
-  const wertung = stimmen.map(stimme => [stimme.name, stimme.status, stimme.treffer.join('+') || '-'].join(' '));
-  log(`Wertung: ${wertung.join(', ')}`);
-  logDuration('Bildverarbeitung gesamt', started);
 
   return {
     felder, frame, radius, stimmen,

@@ -200,15 +200,8 @@ bleiben eine Entscheidung des Wahlvorstands.
 
 Die Verarbeitung bricht ab, wenn keine ausreichende Zettellage erkannt wird oder bei einem
 Foto die Ringausrichtung keine belastbare Geometrie liefert. Ein Foto wird lieber
-abgelehnt als geraten gewertet. Die Protokollierung kann über `setLogging(true)`
-aktiviert werden und misst unter anderem:
-
-- Dunkelheitskarte
-- Papier- und Rahmensuche
-- Rahmenkandidaten und gegebenenfalls die Linien-Suche
-- Ringausrichtung
-- Feldmessung
-- gesamte Bildverarbeitung
+abgelehnt als geraten gewertet. Ein Ablaufprotokoll gibt es nicht: Erkannt wird genau der
+gespeicherte Beleg, jede Wertung lässt sich deshalb in Node an diesem Beleg nachrechnen.
 
 Auf einem PC zeigt die Oberfläche die Aufnahme mit den Ankreuzfeldern als farbige Ringe
 (`drawFelder`: grün angekreuzt, ocker unklar, grau leer). Daran sieht man sofort, ob die

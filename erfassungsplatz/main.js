@@ -5,7 +5,6 @@
 import { loadKalibrierung } from './erkennung/kalibrierung.js';
 import { toBeleg, toImageData } from './browserImage.js';
 import { stimmRows, isUnambiguous, COLORS, drawFelder } from './wertungAnzeige.js';
-import { setLogging } from './erkennung/log.js';
 import { isPdf, pdfPageAsImage } from './pdf.js';
 import { KALIBRIERUNG } from '../configuration.js';
 import { api, describeUser, putBild, setupAnmeldung, sha256 } from '../shared/serverApi.js';
@@ -15,9 +14,6 @@ import { loadStapel, saveStapel, toUpload } from './stapelStorage.js';
 import { getWahlDefinition } from './wahl.js';
 import { getWahllokalStatus } from '../shared/wahllokalAnzeige.js';
 import { findWahllokal, getFortschritt } from './wahllokal.js';
-
-// Der Ablauf ist in der Browser-Konsole mitzulesen (Praefix "[Wahl]").
-setLogging(true);
 
 const $ = id => document.querySelector(`#${id}`);
 // Das Wahllokal steht im Link (?wahllokal=518); jedes Wahllokal bekommt seinen eigenen Link.
