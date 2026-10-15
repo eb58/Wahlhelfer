@@ -7,9 +7,8 @@
  */
 import { toDarkness, darkRatio, ringDarkness } from './image.js';
 import { findFrame, findPerspectiveFrame, toAbsolute, frameWidth } from './frame.js';
-import { determineTextTransformation, transform, transformScale } from './textJustierung.js';
-import { computeOcrRegions } from './ocrRegions.js';
-import { findPaper, paperToFrame } from './paper.js';
+import { alignByText, transform, transformScale } from './ocr.js';
+import { findPaper } from './paper.js';
 import {
   determineRingTransformation, findRoughRingShift, normalizeField, scoreFrame, transformRing,
 } from './feldNormalisierung.js';
@@ -60,43 +59,6 @@ export const computeImageThresholds = (measuredFelder, thresholds, { ringAlignme
     zweifel: Math.max(thresholds.zweifel, baseline + zweifelGap),
   };
 };
-
-const describeTextMarks = (textmarken, treffer = []) => [
-  'Erwartete Textmarken:',
-  ...textmarken.map((mark, index) => {
-    const found = treffer.some(treffer => treffer.muster.x === mark.x && treffer.muster.y === mark.y);
-    return `  ${found ? '✓' : '–'} ${index + 1}. ${mark.text} (${round(mark.x)}/${round(mark.y)})`;
-  }),
-].join('\n');
-
-const plausiblePerspectiveCorrection = ({ correction }, image) => correction
-  && Math.abs(correction.a - 1) <= 0.25
-  && Math.abs(correction.d - 1) <= 0.25
-  && Math.abs(correction.b) <= 0.08
-  && Math.abs(correction.c) <= 0.08
-  && Math.abs(correction.e) <= image.width * 0.1
-  && Math.abs(correction.f) <= image.height * 0.1;
-
-// Bei Aufnahmen mit viel Umgebung kann die Rahmensuche eine innere Linie als
-// Unterkante waehlen. Fuer OCR und die affine Feinjustierung ist dann die
-// bildgroessenbasierte Lagevermutung verlaesslicher.
-const usableFrame = (frame, kalibrierung, image) => {
-  if (!frame) return undefined;
-  const width = (frame.right - frame.left) / image.width;
-  const height = (frame.bottom - frame.top) / image.height;
-  const referenceWidth = (kalibrierung.frame.right - kalibrierung.frame.left) / kalibrierung.referenz.breite;
-  const referenceHeight = (kalibrierung.frame.bottom - kalibrierung.frame.top) / kalibrierung.referenz.hoehe;
-  return height >= referenceHeight * 0.78 && height <= referenceHeight * 1.25
-    && width >= referenceWidth * 0.72 && width <= referenceWidth * 1.2
-    ? frame : undefined;
-};
-
-const frameForImage = (kalibrierung, image) => ({
-  left: image.width * kalibrierung.frame.left / kalibrierung.referenz.breite,
-  right: image.width * kalibrierung.frame.right / kalibrierung.referenz.breite,
-  top: image.height * kalibrierung.frame.top / kalibrierung.referenz.hoehe,
-  bottom: image.height * kalibrierung.frame.bottom / kalibrierung.referenz.hoehe,
-});
 
 /** Genau `auswahl` Markierungen sind gueltig; alles andere muss der Wahlvorstand entscheiden. */
 const evaluateStimme = (felder, { id, auswahl }) => {
@@ -185,71 +147,9 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   if (perspectiveFrame) logDuration('Perspektivischer Druckrahmen erkannt', perspectiveStart);
   const ringAlignment = quadAlignment ?? (perspectiveFrame && alignRings(perspectiveFrame));
   const ringFrame = ringAlignment?.frame;
-  const textFrame = perspectiveFrame ?? (paper
-    ? paperToFrame(paper, kalibrierung)
-    : usableFrame(frame, kalibrierung, image) ?? frameForImage(kalibrierung, image));
-  if (!perspectiveFrame && !ringAlignment && frame && textFrame !== frame) log('Rahmen fuer OCR verworfen: unplausible Ausdehnung');
-
-  const textAlignment = textjustierung && !ringAlignment ? await (async () => {
-    log('OCR-Rueckfall: Aussenrahmen wird maskiert');
-    const recognize = ocr ?? (await import('./ocr.js')).recognizeWords;
-    const determine = words => {
-      const alignment = determineTextTransformation(
-        kalibrierung.textmarken, words, kalibrierung.frame, textFrame,
-        { horizontalSlope: perspectiveFrame?.horizontalSlope ?? paper?.horizontalSlope, perspectiveFrame },
-      );
-      if (!perspectiveFrame || plausiblePerspectiveCorrection(alignment.transformation, image)) return alignment;
-      log('Perspektivischer Druckrahmen unplausibel: affine OCR-Transformation wird verwendet');
-      return determineTextTransformation(
-        kalibrierung.textmarken, words, kalibrierung.frame, textFrame,
-        { horizontalSlope: paper?.horizontalSlope },
-      );
-    };
-    const logTextMarks = treffer => log(`OCR-Textmarken:\n${describeTextMarks(kalibrierung.textmarken, treffer)}`);
-    const regions = computeOcrRegions(kalibrierung, image, textFrame, { perspectiveFrame });
-    const regionAlignment = await (async () => {
-      try {
-        const ocrStart = now();
-        const words = await recognize(image, regions, textFrame);
-        logDuration(`OCR in ${regions.length} Bereichen`, ocrStart);
-        try {
-          const alignment = determine(words);
-          logTextMarks(alignment.treffer);
-          return alignment;
-        } catch (error) {
-          log(`OCR-Bereiche reichen nicht aus: ${error.message}`);
-          logTextMarks(error.treffer);
-          return undefined;
-        }
-      } catch (error) {
-        log(`OCR-Bereiche reichen nicht aus: ${error.message}`);
-        return undefined;
-      }
-    })();
-    const alignmentError = regionAlignment && Math.max(...regionAlignment.treffer.map(treffer => {
-      const expected = transform(regionAlignment.transformation, treffer.muster);
-      return Math.hypot(expected.x - treffer.aufnahme.x, expected.y - treffer.aufnahme.y);
-    }));
-    const distributed = regionAlignment && (() => {
-      const xs = regionAlignment.treffer.map(treffer => treffer.muster.x);
-      const ys = regionAlignment.treffer.map(treffer => treffer.muster.y);
-      return Math.max(...xs) - Math.min(...xs) >= frameWidth(kalibrierung.frame) * 0.2
-        && Math.max(...ys) - Math.min(...ys) >= (kalibrierung.frame.bottom - kalibrierung.frame.top) * 0.2;
-    })();
-    if (regionAlignment && distributed && alignmentError <= Math.hypot(image.width, image.height) * 0.06) return regionAlignment;
-    log(`OCR-Fallback auf Gesamtbild${alignmentError ? `: Lagefehler ${round(alignmentError)} px` : ''}`);
-    const ocrStart = now();
-    const words = await recognize(image, undefined, textFrame);
-    logDuration('OCR im Gesamtbild', ocrStart);
-    try {
-      const alignment = determine(words);
-      logTextMarks(alignment.treffer);
-      return alignment;
-    } catch (error) {
-      logTextMarks(error.treffer);
-      throw error;
-    }
-  })() : undefined;
+  const textAlignment = textjustierung && !ringAlignment
+    ? await alignByText(image, kalibrierung, { frame, paper, perspectiveFrame }, ocr)
+    : undefined;
   if (!ringAlignment && !textAlignment && !frame) throw new Error('Kein Zettelrahmen erkannt - Aufnahme zeigt den Stimmzettel nicht vollstaendig.');
   if (textAlignment) log(`Affine Feinjustierung ueber ${textAlignment.treffer.length} Textmarken`);
 

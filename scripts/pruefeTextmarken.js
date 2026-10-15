@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createWorker } from 'tesseract.js';
-import { determineTextTransformation, transform } from '../erfassungsplatz/erkennung/textJustierung.js';
+import { determineTextTransformation, readWords, transform } from '../erfassungsplatz/erkennung/ocr.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const calibrationFolder = resolve(root, 'Kalibrierungen');
@@ -20,11 +20,7 @@ try {
   for (const file of files) {
     const kalibrierung = JSON.parse(readFileSync(file, 'utf8'));
     const { data } = await worker.recognize(resolve(root, kalibrierung.quelle), {}, { text: false, blocks: true });
-    const words = (data.blocks ?? [])
-      .flatMap(block => block.paragraphs)
-      .flatMap(paragraph => paragraph.lines)
-      .flatMap(line => line.words);
-    const { transformation, treffer } = determineTextTransformation(kalibrierung.textmarken, words, kalibrierung.frame, kalibrierung.frame);
+    const { transformation, treffer } = determineTextTransformation(kalibrierung.textmarken, readWords(data.blocks), kalibrierung.frame, kalibrierung.frame);
     if (treffer.length !== kalibrierung.textmarken.length)
       throw new Error(`${kalibrierung.name}: nur ${treffer.length}/${kalibrierung.textmarken.length} Textmarken erkannt`);
     const error = Math.sqrt(treffer.reduce((sum, treffer) => {

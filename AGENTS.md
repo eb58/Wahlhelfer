@@ -48,6 +48,8 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   Rahmenaufnahmen erhalten. Dafuer werden nur unverkleinerte Streifen um die erwarteten Marken
   zusammengesetzt; weniger als drei erkannte, nicht kollineare Marken fuehren zum Abbruch statt
   zu einer geratenen Wertung. Die OCR-Boxen werden danach in Aufnahme-Pixel zurueckgerechnet.
+  Der gesamte OCR-Rueckfall (Bereiche, Tesseract, Textmarken-Zuordnung, Ablauf `alignByText`)
+  liegt in genau einer Datei, `ocr.js`; OCR-Code gehoert nirgends sonst hin.
 - Jedes Feld wird im ringbasierten Pfad perspektivisch normalisiert (`feldNormalisierung.js`).
   Bewertet wird nur der Bereich innerhalb des gedruckten Rings, nicht der Ring selbst und nicht
   das weitere Umfeld - so stoert ein Kreuz weder die Ringsuche noch die Fuellgradmessung.

@@ -1,9 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { determineTextTransformation, transform } from '../erfassungsplatz/erkennung/textJustierung.js';
+import { computeOcrRegions, determineTextTransformation, transform } from '../erfassungsplatz/erkennung/ocr.js';
 import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
-import { computeOcrRegions } from '../erfassungsplatz/erkennung/ocrRegions.js';
 import { musterZettel, kreuzeAn, rotate } from './zettelWerkstatt.js';
 
 const wordAt = (text, { x, y }) => ({ text, confidence: 95, bbox: { x0: x - 5, y0: y - 4, x1: x + 5, y1: y + 4 } });

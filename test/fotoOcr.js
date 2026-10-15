@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { createWorker } from 'tesseract.js';
 import { writePng } from '../erfassungsplatz/erkennung/png.js';
+import { readWords, moveBbox } from '../erfassungsplatz/erkennung/ocr.js';
 
 const gap = 20;
 
@@ -20,27 +21,6 @@ const packRegions = (image, regions) => {
     top += region.height + gap;
   }
   return { image: { width, height, data }, offsets };
-};
-
-const readWords = blocks => (blocks ?? [])
-  .flatMap(block => block.paragraphs)
-  .flatMap(paragraph => paragraph.lines)
-  .flatMap(line => line.words)
-  .map(({ text, confidence, bbox }) => ({ text, confidence, bbox }));
-
-const moveBbox = (word, offsets) => {
-  const y = (word.bbox.y0 + word.bbox.y1) / 2;
-  const offset = offsets.find(region => y >= region.top && y < region.top + region.height);
-  return offset && {
-    ...word,
-    textmarke: offset.textmarke,
-    bbox: {
-      x0: word.bbox.x0 + offset.left,
-      x1: word.bbox.x1 + offset.left,
-      y0: word.bbox.y0 - offset.top + offset.sourceTop,
-      y1: word.bbox.y1 - offset.top + offset.sourceTop,
-    },
-  };
 };
 
 export const createFotoOcr = async root => {

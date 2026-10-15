@@ -166,7 +166,7 @@ unvollständige oder ungewöhnliche Aufnahmen, nicht der normale Weg.
 ### 5.1 BereichsOCR
 
 Für jede Kalibrierungs-Textmarke wird aus der groben Zettel- oder Rahmenlage ein kleiner
-Ausschnitt berechnet (`ocrRegions.js`). Die Ausschnitte bleiben in Originalauflösung und
+Ausschnitt berechnet. Der gesamte Rückfall liegt in `ocr.js`. Die Ausschnitte bleiben in Originalauflösung und
 werden zu einem kompakten Streifenbild zusammengesetzt:
 
 - Breite: mindestens 180 Pixel, sonst etwa 18 % der Rahmenbreite
