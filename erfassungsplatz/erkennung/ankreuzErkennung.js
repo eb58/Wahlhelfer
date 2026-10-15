@@ -13,10 +13,7 @@ import {
   determineRingTransformation, findRoughRingShift, normalizeField, scoreFrame, transformRing,
 } from './feldNormalisierung.js';
 import { findFrameCandidates, reframe } from './frameQuad.js';
-import { log, round } from './log.js';
-
-const now = () => globalThis.performance?.now?.() ?? Date.now();
-const logDuration = (text, start) => log(`${text}: ${round(now() - start)} ms`);
+import { log, logDuration, now, round } from './log.js';
 
 /** Innenradius, auf dem der Fuellgrad gemessen wird - haelt Abstand zum gedruckten Ring. */
 export const innerRadius = radius => Math.max(2, Math.round(radius * 0.68));

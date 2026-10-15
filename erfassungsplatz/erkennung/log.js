@@ -13,3 +13,8 @@ export const log = (...args) => { if (enabled) console.log('[Wahl]', ...args); }
 
 /** Zahlen im Protokoll kurz halten - drei Nachkommastellen sagen hier nichts mehr. */
 export const round = value => Math.round(value * 100) / 100;
+
+export const now = () => globalThis.performance?.now?.() ?? Date.now();
+
+/** Protokolliert die Dauer eines Schritts seit `start` (aus `now()`). */
+export const logDuration = (text, start) => log(`${text}: ${round(now() - start)} ms`);

@@ -10,11 +10,9 @@
 import { toAbsolute, toRelative, frameWidth, perspectivePoint } from './frame.js';
 import { paperToFrame } from './paper.js';
 import { regressPlane } from './leastSquares.js';
-import { log, round } from './log.js';
+import { log, logDuration, now, round } from './log.js';
 import { appUrl } from '../../shared/appUrl.js';
 
-const now = () => globalThis.performance?.now?.() ?? Date.now();
-const logDuration = (text, start) => log(`${text}: ${round(now() - start)} ms`);
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 
 // --- Zuordnung der Textmarken und affine Textlage -------------------------------------------
