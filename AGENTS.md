@@ -147,7 +147,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 ## Pruefen
 
 - Testdaten liegen je Zettelart unter `Testdaten/<kalibrierung>/` (Name wie die Datei in
-  `Kalibrierungen/`): `musterzettel.png` (+ PDF), dazu je nach Bestand `scans/`, `fotos-serie<n>/`
+  `Kalibrierungen/`): `musterzettel.png`, dazu je nach Bestand `scans/`, `fotos-serie<n>/`
   und `synthetisch/`, jeweils mit `manifest.json`. Neue Zettelart = neuer Ordner.
 
 - Vor dem Abschluss die betroffenen Tests ausfuehren.
