@@ -11,7 +11,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
-import { readPng } from '../erfassungsplatz/erkennung/png.js';
+import { readImage } from '../test/fotoWerkstatt.js';
 import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
 
 const root = new URL('../', import.meta.url);
@@ -116,7 +116,7 @@ const writeJpeg = ({ width, height, data }, url) =>
 for (const kalibrierung of zettelarten) {
   const json = readFileSync(new URL(`Kalibrierungen/${kalibrierung}`, root), 'utf8');
   const typ = loadKalibrierung(json);
-  const muster = readPng(readFileSync(new URL(JSON.parse(json).quelle, root)));
+  const muster = await readImage(readFileSync(new URL(JSON.parse(json).quelle, root)));
   const folder = new URL(`Testdaten/${kalibrierung.replace('.json', '')}/synthetisch/`, root);
   mkdirSync(folder, { recursive: true });
   const width = 1200, height = Math.round(width * muster.height / muster.width * 1.25);

@@ -6,7 +6,7 @@ import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
 import { musterZettel, kreuzeAn } from './zettelWerkstatt.js';
 
 const read = file => readFileSync(new URL(`../Kalibrierungen/${file}`, import.meta.url), 'utf8');
-const muster = musterZettel();
+const muster = await musterZettel();
 const typ = loadKalibrierung(read('bundestagswahl-2017.json'));
 const recognize = image => typ.recognize(image, { textjustierung: false });
 

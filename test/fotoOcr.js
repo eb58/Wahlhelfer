@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { createWorker } from 'tesseract.js';
-import { writePng } from '../erfassungsplatz/erkennung/png.js';
+import { writePng } from './fotoWerkstatt.js';
 import { readWords, moveBbox } from '../erfassungsplatz/erkennung/ocr.js';
 
 const gap = 20;
@@ -34,7 +34,7 @@ export const createFotoOcr = async root => {
         ? packRegions(image, regions)
         : { image };
       const { data } = await worker.recognize(
-        writePng(strip),
+        await writePng(strip),
         { tessedit_pageseg_mode: '11' },
         { text: false, blocks: true },
       );

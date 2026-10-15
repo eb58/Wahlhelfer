@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
 import { KALIBRIERUNG } from '../configuration.js';
 import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
-import { readPng } from '../erfassungsplatz/erkennung/png.js';
+import { readImage } from '../test/fotoWerkstatt.js';
 
 const root = new URL('../', import.meta.url);
 if (!KALIBRIERUNG.endsWith('/bundestagswahl-2017.json')) throw new Error('Demo benötigt den vorhandenen Bundestags-Musterzettel.');
@@ -29,7 +29,7 @@ const typ = loadKalibrierung(readFileSync(new URL(KALIBRIERUNG, root), 'utf8'));
 const vorlagen = [];
 for (const fall of faelle) {
   const bytes = readFileSync(new URL(fall.datei, folder));
-  const result = await typ.recognize(readPng(bytes), { textjustierung: false });
+  const result = await typ.recognize(await readImage(bytes), { textjustierung: false });
   const hash = createHash('sha256').update(bytes).digest('hex');
   await send(`bilder/${hash}`, { method: 'PUT', headers: { 'Content-Type': 'image/png' }, body: bytes });
   vorlagen.push({ bild: { hash, type: 'image/png' },

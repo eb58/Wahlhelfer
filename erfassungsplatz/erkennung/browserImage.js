@@ -1,6 +1,6 @@
 /**
  * Bildbeschaffung im Browser: Datei oder Kameraaufnahme -> ImageData.
- * Das Gegenstueck zu png.js, das dieselbe Struktur in Node liefert.
+ * Das Gegenstueck zu readImage() in test/fotoWerkstatt.js, das dieselbe Struktur in Node liefert.
  */
 
 /**

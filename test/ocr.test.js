@@ -41,7 +41,7 @@ test('bricht bei weniger als drei erkannten Textmarken ab', () => {
 });
 
 test('erkennt einen leicht gedrehten Zettel ueber gemockte OCR-Lagen', async () => {
-  const image = musterZettel();
+  const image = await musterZettel();
   const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
   const angle = 2 * Math.PI / 180, cos = Math.cos(angle), sin = Math.sin(angle);
   const mx = image.width / 2, my = image.height / 2;

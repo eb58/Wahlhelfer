@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
-import { readPng } from '../erfassungsplatz/erkennung/png.js';
+import { readImage } from './fotoWerkstatt.js';
 
 const fixtureFolder = new URL('../Testdaten/bundestagswahl-2017/scans/', import.meta.url);
 const manifest = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder), 'utf8'));
@@ -24,7 +24,7 @@ test('Manifest und Fixture-Ordner enthalten dieselben 100 Fälle', () => {
 
 for (const testCase of manifest.faelle) {
   test(`Fixture ${testCase.datei} entspricht dem Manifest`, async () => {
-    const image = readPng(readFileSync(new URL(testCase.datei, fixtureFolder)));
+    const image = await readImage(readFileSync(new URL(testCase.datei, fixtureFolder)));
     const expected = sorted(testCase.markierungen);
     const category = testCase.kategorie.split('-')[0];
     let result;

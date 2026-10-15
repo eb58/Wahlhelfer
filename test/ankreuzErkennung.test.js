@@ -5,7 +5,7 @@ import { loadKalibrierung } from '../erfassungsplatz/erkennung/kalibrierung.js';
 import { computeImageThresholds } from '../erfassungsplatz/erkennung/ankreuzErkennung.js';
 import { musterZettel, kreuzeAn, scale, crop } from './zettelWerkstatt.js';
 
-const muster = musterZettel();
+const muster = await musterZettel();
 const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
 const recognize = image => typ.recognize(image, { textjustierung: false });
 const status = (result, id) => result.felder.find(feld => feld.id === id).status;

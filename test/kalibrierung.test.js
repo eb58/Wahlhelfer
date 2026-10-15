@@ -7,10 +7,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { loadKalibrierung, FORMAT_VERSION } from '../erfassungsplatz/erkennung/kalibrierung.js';
-import { readPng } from '../erfassungsplatz/erkennung/png.js';
 import { toDarkness, ringDarkness, darkRatio } from '../erfassungsplatz/erkennung/image.js';
 import { innerRadius } from '../erfassungsplatz/erkennung/ankreuzErkennung.js';
 import { kreuzeAn } from './zettelWerkstatt.js';
+import { readImage } from './fotoWerkstatt.js';
 
 const folder = new URL('../Kalibrierungen/', import.meta.url);
 const read = file => JSON.parse(readFileSync(new URL(file, folder), 'utf8'));
@@ -24,7 +24,7 @@ test('die eingestellte Kalibrierung ist vorhanden', async () => {
 for (const file of files) {
   const content = read(file);
   const typ = loadKalibrierung(content);
-  const image = readPng(readFileSync(new URL(`../${content.quelle}`, folder)));
+  const image = await readImage(readFileSync(new URL(`../${content.quelle}`, folder)));
   const map = toDarkness(image);
 
   test(`${file}: passt zum hinterlegten Musterzettel`, () => {

@@ -3,11 +3,11 @@
  * Die Kreuze werden ins Bild gezeichnet - so sind Sollwerte im Test bekannt.
  */
 import { readFileSync } from 'node:fs';
-import { readPng } from '../erfassungsplatz/erkennung/png.js';
+import { readImage } from './fotoWerkstatt.js';
 import { toDarkness } from '../erfassungsplatz/erkennung/image.js';
 import { findFrame, toAbsolute, frameWidth } from '../erfassungsplatz/erkennung/frame.js';
 
-export const musterZettel = () => readPng(readFileSync(new URL('../Testdaten/bundestagswahl-2017/musterzettel.png', import.meta.url)));
+export const musterZettel = () => readImage(readFileSync(new URL('../Testdaten/bundestagswahl-2017/musterzettel.png', import.meta.url)));
 
 export const copy = ({ width, height, data }) => ({ width, height, data: new Uint8ClampedArray(data) });
 
