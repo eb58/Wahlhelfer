@@ -12,8 +12,12 @@ const STIMM_TEXT = {
   leer: 'Keine Markierung',
 };
 
-/** Nur eine eindeutige Wertung darf ohne Rueckfrage weiterlaufen. */
-export const isUnambiguous = result => result.stimmen.every(stimme => stimme.status === 'gueltig');
+/** Nur ein eindeutig erkannter Zettel darf auf den Stapel: mindestens eine Stimme gueltig, die
+ *  uebrigen gueltig oder sicher ohne Markierung. Ein ganz leerer Zettel sowie Mehrfach- und unklare
+ *  Markierungen entscheidet der Wahlvorstand am Papierzettel. */
+export const isUnambiguous = result =>
+  result.stimmen.some(stimme => stimme.status === 'gueltig')
+  && result.stimmen.every(stimme => ['gueltig', 'leer'].includes(stimme.status));
 
 const feldName = (felder, id) => felder.find(f => f.id === id)?.beschriftung ?? id;
 
@@ -31,7 +35,7 @@ export const stimmRows = result =>
 /** Kurzfassung fuer die Statuszeile. */
 export const summary = result =>
   isUnambiguous(result)
-    ? stimmRows(result).map(row => `${row.title}: ${row.treffer[0]}`).join(' | ')
+    ? stimmRows(result).map(row => `${row.title}: ${row.treffer[0] ?? row.text}`).join(' | ')
     : 'Zettel muss dem Wahlvorstand vorgelegt werden.';
 
 /** Zeichnet die Feldlagen als Ringe auf einen 2D-Kontext - macht die Kalibrierung sichtbar. */

@@ -41,7 +41,8 @@ const renderStapel = () => {
   $('stapelKontrolle').hidden = !complete;
   $('stapelSenden').hidden = !complete;
   $('stapelSenden').disabled = state.busy || !$('eingangLeer').checked;
-  $('zettelBestaetigen').hidden = !state.pending;
+  // Nur ein eindeutig erkannter Zettel kommt auf den Stapel; alle anderen legt der Wahlhelfer beiseite.
+  $('zettelBestaetigen').hidden = !state.pending || !isUnambiguous(state.pending.result);
   $('zettelVerwerfen').hidden = !state.pending;
   $('zettelBestaetigen').disabled = state.busy;
   $('zettelVerwerfen').disabled = state.busy;
@@ -85,16 +86,20 @@ const showError = (field, error) => {
   field.hidden = false;
 };
 
+const FARBE = { gueltig: COLORS.angekreuzt, leer: COLORS.leer };
+
 const showWertung = result => {
   $('wertungBereich').hidden = false;
   const field = $('wertung');
-  field.dataset.eindeutig = String(isUnambiguous(result));
+  const eindeutig = isUnambiguous(result);
+  field.dataset.eindeutig = String(eindeutig);
   field.innerHTML = stimmRows(result).map(row => `
-    <span class="wertung-zeile" style="--farbe: ${COLORS[row.status === 'gueltig' ? 'angekreuzt' : 'unklar']}">
+    <span class="wertung-zeile" style="--farbe: ${FARBE[row.status] ?? COLORS.unklar}">
       <strong>${row.title}</strong>
       <span>${row.treffer.length ? row.treffer.join(', ') : row.text}</span>
       ${row.treffer.length && row.status !== 'gueltig' ? `<em>${row.text}</em>` : ''}
-    </span>`).join('');
+    </span>`).join('')
+    + (eindeutig ? '' : '<span class="wertung-hinweis">Nicht eindeutig – Zettel beiseitelegen, der Wahlvorstand entscheidet.</span>');
   field.hidden = false;
 };
 

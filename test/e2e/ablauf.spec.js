@@ -1,6 +1,6 @@
 /**
  * Der ganze Weg einmal durch: Admin legt auf der leeren Datenbank sein Konto und das Wahllokal an, der Wahlvorstand erfasst am Smartphone
- * einen Stapel aus zwei echten Fotos (ein eindeutiger Zettel, ein Prueffall) und sendet ihn, das
+ * einen Stapel aus zwei echten Fotos (beide Stimmen bzw. nur die Erststimme angekreuzt) und sendet ihn, das
  * ControlCenter zeigt ihn in allen Ansichten. Keine Seite darf dabei Fehler in die Konsole schreiben.
  */
 import { test, expect, devices } from '@playwright/test';
@@ -9,7 +9,8 @@ import { KONTEN, PASSWORT, STARTPASSWORT, WAHLLOKAL, createWahlvorstand } from '
 
 const foto = datei => fileURLToPath(new URL(`../../Testdaten/bundestagswahl-2017/fotos/${datei}`, import.meta.url));
 const EINDEUTIG = foto('original/PXL_20260803_190650402.jpg'); // E1 + Z4
-const PRUEFFALL = foto('PXL_20260803_190656590.jpg'); // nur E1, Zweitstimme leer
+const PRUEFFALL = foto('PXL_20260803_190656590.jpg'); // nur E1, Zweitstimme leer: eindeutig, aber Prueffall im ControlCenter
+const MEHRFACH = fileURLToPath(new URL('../../Testdaten/bundestagswahl-2017/synthetisch/048-mehrfach-048.png', import.meta.url));
 const QUER = fileURLToPath(new URL('../../Testdaten/bundestagswahl-2017/fotos/gedreht-e4-z4.jpg', import.meta.url)); // E4 + Z4
 
 const sammleKonsolenfehler = page => {
@@ -86,8 +87,15 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
     await vorstand.locator('#zettelBestaetigen').click();
     await expect(vorstand.locator('#stapelFortschritt')).toHaveText('1 / 2');
 
-    await aufnehmen(vorstand, PRUEFFALL);
+    // Nicht eindeutig: kommt nicht auf den Stapel, der Zettel wird beiseitegelegt.
+    await aufnehmen(vorstand, MEHRFACH);
     await expect(vorstand.locator('#wertung')).toHaveAttribute('data-eindeutig', 'false');
+    await expect(vorstand.locator('#zettelBestaetigen')).toBeHidden();
+    await vorstand.locator('#zettelVerwerfen').click();
+    await expect(vorstand.locator('#stapelFortschritt')).toHaveText('1 / 2');
+
+    await aufnehmen(vorstand, PRUEFFALL);
+    await expect(vorstand.locator('#wertung')).toHaveAttribute('data-eindeutig', 'true');
     await vorstand.locator('#zettelBestaetigen').click();
     await expect(vorstand.locator('#stapelFortschritt')).toHaveText('2 / 2');
 

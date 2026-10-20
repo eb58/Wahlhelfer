@@ -223,8 +223,11 @@ angegebene `auswahl`:
 - genau die erlaubte Anzahl klarer Kreuze: `gueltig`
 - weniger klare Kreuze ohne unklare Felder: `leer`
 
-Nur der Status `gueltig` wird als eindeutige Wertung angezeigt. Alle anderen Zustände
-bleiben eine Entscheidung des Wahlvorstands.
+Ein Zettel ist eindeutig erkannt, wenn mindestens eine Stimme `gueltig` und jede weitere
+`gueltig` oder sicher `leer` ist. Nur solche Zettel kommen im Erfassungsplatz auf den Stapel
+(`isUnambiguous()`, `addZettel()`). Ein ganz leerer Zettel und jeder mit `mehrfach` oder
+`zweifelsfall` wird beiseitegelegt; darüber entscheidet der
+Wahlvorstand am Papierzettel.
 
 ## 8. Fehler- und Diagnoseverhalten
 

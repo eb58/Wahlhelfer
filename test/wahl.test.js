@@ -24,10 +24,13 @@ test('Die Wahl-Definition enthält nur Namen, Auswahlzahlen und Wahlvorschläge'
 test('Stapelmodell begrenzt Sollzahl und gibt Speicherfehler weiter', () => {
   assert.throws(() => createStapel('lokal', 0, 'hash', 'typ'), /Stapelgröße/);
   const stapel = createStapel('lokal', 1, 'hash', 'typ');
-  const filled = addZettel(stapel, { stimmen: [{ id: 'stimme', status: 'leer', treffer: [] }] });
+  const filled = addZettel(stapel, { stimmen: [{ id: 'stimme', status: 'gueltig', treffer: ['A'] }] });
   assert.equal(stapel.zettel.length, 0);
   assert.equal(filled.zettel.length, 1);
   assert.throws(() => addZettel(filled, { stimmen: [] }), /vollständig/);
+  assert.throws(() => addZettel(stapel, { stimmen: [{ id: 'stimme', status: 'leer', treffer: [] }] }), /eindeutig/);
+  assert.throws(() => addZettel(stapel, { stimmen: [{ id: 'stimme', status: 'zweifelsfall', treffer: [] }] }), /eindeutig/);
+  assert.throws(() => addZettel(stapel, { stimmen: [{ id: 'stimme', status: 'mehrfach', treffer: ['A', 'B'] }] }), /eindeutig/);
   const values = new Map();
   const storage = { setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
   saveStapel(storage, filled);
@@ -35,7 +38,7 @@ test('Stapelmodell begrenzt Sollzahl und gibt Speicherfehler weiter', () => {
   saveStapel(storage, undefined);
   assert.equal(values.size, 0);
   assert.throws(() => saveStapel({ setItem: () => { throw new Error('voll'); } }, filled), /voll/);
-  const measured = addZettel(stapel, { stimmen: [], felder: [{ id: 'E1', stimme: 'erststimme', fuellgrad: 0.3, status: 'angekreuzt', x: 15 }] });
+  const measured = addZettel(stapel, { stimmen: [{ id: 'stimme', status: 'gueltig', treffer: ['A'] }], felder: [{ id: 'E1', stimme: 'erststimme', fuellgrad: 0.3, status: 'angekreuzt', x: 15 }] });
   assert.equal('felder' in measured.zettel[0], false);
   assert.equal('kalibrierung' in measured, false);
 });

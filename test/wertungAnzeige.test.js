@@ -22,8 +22,18 @@ test('Zweifelsfall wird nicht als Wertung ausgegeben', async () => {
   assert.match(summary(result), /Wahlvorstand/);
 });
 
-test('leerer Zettel gilt nicht als eindeutig', async () => {
+test('eine sicher leere Stimme gilt als eindeutig', async () => {
+  const result = await recognize(kreuzeAn(muster, typ, ['E3']));
+  assert.ok(isUnambiguous(result));
+  assert.equal(summary(result), 'Erststimme: Mustermann, Manuel (PARTEI C) | Zweitstimme: Keine Markierung');
+});
+
+test('ganz leerer Zettel gilt nicht als eindeutig', async () => {
   assert.equal(isUnambiguous(await recognize(muster)), false);
+});
+
+test('Mehrfachmarkierung gilt nicht als eindeutig', async () => {
+  assert.equal(isUnambiguous(await recognize(kreuzeAn(muster, typ, ['E1', 'E2', 'Z1']))), false);
 });
 
 test('Zeilen nennen Stimme, Wertung und Treffer', async () => {
