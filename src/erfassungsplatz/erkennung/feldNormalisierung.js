@@ -203,6 +203,12 @@ const paperPlane = (crop, cx, cy, radius) => {
  * rund 0,1 ueber dem Papier, leere Felder auf allen echten Fotos erst ab 0,03 ueberhaupt darueber.
  */
 const PAPER_CONTRAST = 0.07;
+/**
+ * Mindestdunkelheit eines Strichs, falls das Papier sehr hell gemessen wird. Duenner Bleistift
+ * erreicht auf dem Foto nur rund 0,15 - frueher lag die Grenze bei 0,22 und solche Kreuze wurden
+ * ohne Zweifelsfall als leer gewertet.
+ */
+const MIN_STRICH_DARKNESS = 0.12;
 
 /** Anteil der Pixel im Kreisinneren, die deutlich dunkler sind als das Papier an ihrer Stelle. */
 const measureFuellgrad = (crop, cx, cy, ringRadius) => {
@@ -212,7 +218,7 @@ const measureFuellgrad = (crop, cx, cy, ringRadius) => {
   for (let dy = -r; dy <= r; dy++)
     for (let dx = -r; dx <= r; dx++) {
       if (dx * dx + dy * dy > r * r) continue;
-      const threshold = Math.max(0.22, Math.min(0.7, paper(cx + dx, cy + dy) + PAPER_CONTRAST));
+      const threshold = Math.max(MIN_STRICH_DARKNESS, Math.min(0.7, paper(cx + dx, cy + dy) + PAPER_CONTRAST));
       hits += darknessAt(crop, cx + dx, cy + dy) > threshold ? 1 : 0;
       count++;
     }

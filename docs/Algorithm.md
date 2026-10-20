@@ -188,7 +188,7 @@ Die Felder werden dann aus dem geraden Rahmen von `findFrame()` rahmenrelativ pr
 Für jedes Feld wird ein Innenkreis mit ungefähr 68 % des Ringradius ausgewertet. Der Ring
 selbst wird nicht als Markierung gezählt, weil er auf jedem leeren Musterzettel vorhanden
 ist. Der `Fuellgrad` ist der Anteil der Pixel, die mindestens 0,07 dunkler sind als das Papier
-an ihrer Stelle (absolut mindestens 0,22).
+an ihrer Stelle (absolut mindestens 0,12 - dünner Bleistift erreicht auf dem Foto nur rund 0,15).
 
 Das Papier wird bei Fotos als schräge Ebene geschätzt: auf einem Kranz zwischen 115 % und 140 %
 des Ringradius, also außerhalb des gedruckten Rings, je Achtelsektor das 30. Perzentil. Tabellenlinien
@@ -205,7 +205,9 @@ Die Statusschwellen werden bei ausgerichteten Aufnahmen an den Bildsockel angepa
 - Scans: die konfigurierten Grundschwellen unverändert
 
 Die berechneten Werte werden jeweils mindestens durch die konfigurierten Grundschwellen
-begrenzt. Daraus entsteht je Feld einer der drei Zustände:
+begrenzt (in allen Kalibrierungen `angekreuzt` 0,10 und `zweifel` 0,03). Leere Felder messen
+auf den echten Fotos höchstens 0,001, das blasseste Bleistiftkreuz 0,124
+(`fotos/PXL_20261020_094857790.MP.jpg`). Daraus entsteht je Feld einer der drei Zustände:
 
 ```text
 Fuellgrad >= angekreuzt  -> angekreuzt
@@ -247,8 +249,8 @@ Ein Foto von 1600 Pixel Breite braucht für die Erkennung am PC etwa 230 ms.
 Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Zettelart unter
 `Testdaten/<kalibrierung>/`:
 
-- `fotos/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (58 Stück aus drei
-  Aufnahmeserien und ein gespeicherter Beleg, im Manifest als `serie`; eines davon quer gespeichert),
+- `fotos/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (66 Stück aus vier
+  Aufnahmeserien und ein gespeicherter Beleg, im Manifest als `serie`; einige davon quer aufgenommen),
 - `synthetisch/`: alle künstlich erzeugten Fälle mit einem gemeinsamen Manifest, je Fall `art`:
   `scan` sind aus dem Musterzettel erzeugte PNG-Fälle, bei denen das Papier das Bild füllt (Kreuze,
   Mehrfach, Rauschen, Drehung; bisher nur Bundestagszettel, geprüft in `test/fixtures.test.js`),

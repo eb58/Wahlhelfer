@@ -6,7 +6,7 @@
   "referenz": { "breite": 1248, "hoehe": 1748 },
   "frame": { "left": 53.5, "right": 1194, "top": 56.5, "bottom": 1689 },
   "radius": 25,
-  "thresholds": { "angekreuzt": 0.18, "zweifel": 0.06 },
+  "thresholds": { "angekreuzt": 0.10, "zweifel": 0.03 },
   "stimmen": [
     {
       "id": "erststimme",

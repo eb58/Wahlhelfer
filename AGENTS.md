@@ -162,10 +162,10 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   vorgemerkten Textdateien auf UTF-8 und Mojibake (`scripts/pruefeTextkodierung.js`), laesst bei
   JS/JSON/HTML/CSS, Kalibrierungen oder Testdaten `npm test` und bei `server/` `npm run test:php` laufen.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
-- Die Fototests enthalten derzeit 58 Aufnahmen aus `bundestagswahl-2017/fotos` (drei Serien und ein
-  gespeicherter Beleg, u. a. blasse Kreuze auf getoentem Papier, ein quer gespeichertes Foto); alle
-  laufen ueber den Ringpfad. Bekannte Luecken stuenden im Manifest
-  als `todo` mit Begruendung. Damit `node --test` sie parallel
+- Die Fototests enthalten derzeit 66 Aufnahmen aus `bundestagswahl-2017/fotos` (vier Serien und ein
+  gespeicherter Beleg, u. a. blasse Kreuze auf getoentem Papier, Graustufendrucke, quer gespeicherte
+  Fotos, sehr blasse Bleistiftkreuze); alle laufen ueber den Ringpfad. Bekannte Luecken stuenden
+  im Manifest als `todo` mit Begruendung. Damit `node --test` sie parallel
   rechnet, sind sie auf mehrere Dateien verteilt (`test/fotos/`, Ablauf in `test/fotoTests.js`); `npm test`
   dauert so rund 9 s. Eine Datei laeuft in sich nacheinander - lange Testreihen also aufteilen.
 - Fuer die anderen Zettelarten gibt es keine echten Fotos; `test/fotos/synthetisch-*.test.js` prueft sie

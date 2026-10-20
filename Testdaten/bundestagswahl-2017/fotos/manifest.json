@@ -1,561 +1,404 @@
 {
   "vorlage": "../musterzettel.png",
-  "bildgroesse_vorlage": [
-    1248,
-    1748
-  ],
-  "anzahl": 58,
+  "bildgroesse_vorlage": [1248, 1748],
+  "anzahl": 66,
   "faelle": [
     {
       "datei": "PXL_20260803_190650402.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_190656590.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_190712146.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201211628.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201213232.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201218520.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201219309.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201219960.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201220577.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201221193.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201221988.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201222525.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201232140.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201232863.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201237792.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201240025.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201240937.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201241401.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201241637.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260803_201241819.jpg",
       "serie": 1,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050053865.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050057388.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050059828.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050104223.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050106424.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050108474.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050111930.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050114711.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050117380.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050119862.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050121908.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050125408.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050130117.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050132176.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050134160.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050136423.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050138222.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050140393.MP.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050144180.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050153587.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050155714.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050200484.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050203731.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050206329.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050211887.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050214673.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050218256.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050222919.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050225299.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050227180.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050403565.MP.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z4"
-      ],
+      "markierungen": ["E1", "Z4"],
       "kategorie": "foto-e1-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050408298.MP.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1",
-        "Z1"
-      ],
+      "markierungen": ["E1", "Z1"],
       "kategorie": "foto-e1-z1",
       "verarbeitung": "robust"
     },
     {
       "datei": "PXL_20260804_050413550.MP.jpg",
       "serie": 2,
-      "markierungen": [
-        "E1"
-      ],
+      "markierungen": ["E1"],
       "kategorie": "foto-e1",
       "verarbeitung": "robust"
     },
     {
       "datei": "blau-e4-z4.jpg",
       "serie": 3,
-      "markierungen": [
-        "E4",
-        "Z4"
-      ],
+      "markierungen": ["E4", "Z4"],
       "kategorie": "foto-e4-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "schraeg-e4-z6.jpg",
       "serie": 3,
-      "markierungen": [
-        "E4",
-        "Z6"
-      ],
+      "markierungen": ["E4", "Z6"],
       "kategorie": "foto-e4-z6",
       "verarbeitung": "robust"
     },
     {
       "datei": "quer-e4-z4.jpg",
       "serie": 3,
-      "markierungen": [
-        "E4",
-        "Z4"
-      ],
+      "markierungen": ["E4", "Z4"],
       "kategorie": "foto-e4-z4",
       "verarbeitung": "robust"
     },
     {
       "datei": "gedreht-e4-z4.jpg",
       "serie": 3,
-      "markierungen": [
-        "E4",
-        "Z4"
-      ],
+      "markierungen": ["E4", "Z4"],
       "kategorie": "foto-e4-z4",
       "verarbeitung": "robust",
       "beschreibung": "Flach liegender Zettel, vom Smartphone quer gespeichert (EXIF-Orientierung 1): wird automatisch um 90 Grad gedreht."
@@ -563,11 +406,70 @@
     {
       "datei": "eaa5ff69-161b-4d49-ab0b-3cf68baf0d2b.jpg",
       "serie": 4,
-      "markierungen": [
-        "E1",
-        "Z7"
-      ],
+      "markierungen": ["E1", "Z7"],
       "beschreibung": "Am Erfassungsplatz gespeicherter Beleg (bereits 1600 px breit): lokale Ringlage im oberen Bereich weicht von der gemeinsamen affinen Ausrichtung ab. Erststimme wurde zuvor ohne Zweifelsfall als leer gewertet."
+    },
+    {
+      "datei": "PXL_20261020_094838387.MP.jpg",
+      "serie": 5,
+      "markierungen": ["E5", "Z7"],
+      "kategorie": "foto-e5-z7",
+      "verarbeitung": "robust",
+      "beschreibung": "Sehr blasse, duenne Bleistiftkreuze: wurden mit der frueheren Strichgrenze 0,22 nur als Zweifelsfall oder gar als leer gewertet."
+    },
+    {
+      "datei": "PXL_20261020_094844075.MP.jpg",
+      "serie": 5,
+      "markierungen": ["E5", "Z7"],
+      "kategorie": "foto-e5-z7",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20261020_094846576.jpg",
+      "serie": 5,
+      "markierungen": ["E5", "Z7"],
+      "kategorie": "foto-e5-z7",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "PXL_20261020_094857790.MP.jpg",
+      "serie": 5,
+      "markierungen": ["E1", "Z1"],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust",
+      "beschreibung": "Sehr blasse, duenne Bleistiftkreuze: wurden mit der frueheren Strichgrenze 0,22 nur als Zweifelsfall oder gar als leer gewertet."
+    },
+    {
+      "datei": "PXL_20261020_094901223.MP.jpg",
+      "serie": 5,
+      "markierungen": ["E1", "Z1"],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust",
+      "beschreibung": "Sehr blasse, duenne Bleistiftkreuze: wurden mit der frueheren Strichgrenze 0,22 nur als Zweifelsfall oder gar als leer gewertet."
+    },
+    {
+      "datei": "PXL_20261020_094902994.MP.jpg",
+      "serie": 5,
+      "markierungen": ["E1", "Z1"],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust",
+      "beschreibung": "Sehr blasse, duenne Bleistiftkreuze: wurden mit der frueheren Strichgrenze 0,22 nur als Zweifelsfall oder gar als leer gewertet."
+    },
+    {
+      "datei": "PXL_20261020_095011942.MP.jpg",
+      "serie": 5,
+      "markierungen": ["E7", "Z7"],
+      "kategorie": "foto-e7-z7",
+      "verarbeitung": "robust",
+      "beschreibung": "Graustufendruck auf einem Zettelstapel, quer aufgenommen: der Beleg ist bereits aufgerichtet."
+    },
+    {
+      "datei": "PXL_20261020_095030082.MP.jpg",
+      "serie": 5,
+      "markierungen": ["E2", "Z7"],
+      "kategorie": "foto-e2-z7",
+      "verarbeitung": "robust",
+      "beschreibung": "Graustufendruck, quer aufgenommen (andere Richtung): der Beleg ist bereits aufgerichtet."
     }
   ]
 }

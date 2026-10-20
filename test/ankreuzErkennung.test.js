@@ -46,8 +46,8 @@ test('zwei Kreuze in einer Spalte gelten als mehrfach', async () => {
 });
 
 test('blasse Markierung wird zum Zweifelsfall statt zur stillen Wertung', async () => {
-  // Ein kleines, graues Kreuz: Fuellgrad rund 0,12 - deutlich zwischen beiden Schwellen.
-  const result = await recognize(kreuzeAn(muster, typ, ['E2'], { strength: 150, size: 0.2, thickness: 1 }));
+  // Ein winziges, graues Kreuz: Fuellgrad rund 0,06 - deutlich zwischen beiden Schwellen.
+  const result = await recognize(kreuzeAn(muster, typ, ['E2'], { strength: 150, size: 0.1, thickness: 1 }));
   assert.equal(status(result, 'E2'), 'unklar');
   assert.equal(wertung(result, 'erststimme').status, 'zweifelsfall');
 });

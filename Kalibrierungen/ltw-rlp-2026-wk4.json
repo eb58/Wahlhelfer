@@ -6,7 +6,7 @@
   "referenz": { "breite": 1125, "hoehe": 1375 },
   "frame": { "left": 42.5, "right": 1082.5, "top": 169, "bottom": 1328 },
   "radius": 27,
-  "thresholds": { "angekreuzt": 0.18, "zweifel": 0.06 },
+  "thresholds": { "angekreuzt": 0.10, "zweifel": 0.03 },
   "stimmen": [
     {
       "id": "wahlkreisstimme",
