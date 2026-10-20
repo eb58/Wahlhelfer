@@ -5,11 +5,19 @@
 
 /**
  * Sehr grosse Aufnahmen kosten nur Rechenzeit; die Ankreuzerkennung braucht sie nicht.
- * Begrenzt wird bewusst die Breite und nicht die laengste Kante: die Groesse eines
+ * Begrenzt wird bewusst die kuerzere Kante und nicht die laengste: die Groesse eines
  * Ankreuzfelds haengt an der Zettelbreite. Ein sehr langer Zettel (Europawahl) wuerde
  * ueber die laengste Kante so stark verkleinert, dass die Kreise zu klein zum Messen waeren.
+ * Bei hochkant gespeicherten Fotos ist das die Breite; ein quer gespeichertes Foto bleibt so gross
+ * genug, um seine Lage zu erkennen, und der aufgerichtete Beleg ist wieder MAX_WIDTH breit.
  */
 export const MAX_WIDTH = 1600;
+
+/** Groesse des Belegs: kuerzere Kante hoechstens MAX_WIDTH, nie vergroessert. */
+export const belegSize = (width, height) => {
+  const factor = Math.min(1, MAX_WIDTH / Math.min(width, height));
+  return { width: Math.round(width * factor), height: Math.round(height * factor) };
+};
 
 /** JPEG-Qualitaet des Belegs; die Fototests erkennen genau dieses Beleg-JPEG. */
 export const BELEG_QUALITY = 0.85;
@@ -20,16 +28,15 @@ const createCanvas = (width, height) =>
     : Object.assign(document.createElement('canvas'), { width, height });
 
 /**
- * Zeichnet Datei, Blob oder ImageData auf hoechstens MAX_WIDTH Pixel Breite, auf Wunsch um
- * `rotation` Vierteldrehungen im Uhrzeigersinn gedreht (MAX_WIDTH gilt fuer das gedrehte Bild).
+ * Zeichnet Datei, Blob oder ImageData in Belegsgroesse (`belegSize`), auf Wunsch um `rotation`
+ * Vierteldrehungen im Uhrzeigersinn gedreht.
  */
 const drawScaled = async (source, rotation = 0) => {
   const bitmap = await createImageBitmap(source);
   try {
     const swap = rotation % 2 === 1;
     const [sourceWidth, sourceHeight] = swap ? [bitmap.height, bitmap.width] : [bitmap.width, bitmap.height];
-    const factor = Math.min(1, MAX_WIDTH / sourceWidth);
-    const width = Math.round(sourceWidth * factor), height = Math.round(sourceHeight * factor);
+    const { width, height } = belegSize(sourceWidth, sourceHeight);
     const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d', { willReadFrequently: true });
     // Papierweiss als Untergrund: sonst kaemen durchsichtige Bildbereiche als Schwarz an.
@@ -55,7 +62,7 @@ export const toImageData = async file => {
 };
 
 /**
- * Der Beleg: die Aufnahme auf MAX_WIDTH verkleinert als JPEG. Erkannt und gespeichert wird genau
+ * Der Beleg: die Aufnahme auf `belegSize` verkleinert als JPEG. Erkannt und gespeichert wird genau
  * dieses Bild - so laesst sich die Wertung aus dem Beleg reproduzieren, und ein Handyfoto
  * schrumpft von rund 3 MB auf rund 0,5 MB.
  * @param {Blob} source Kameraaufnahme oder Bilddatei

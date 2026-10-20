@@ -1,7 +1,7 @@
 {
   "vorlage": "../musterzettel.png",
   "bildgroesse_vorlage": [1248, 1748],
-  "anzahl": 66,
+  "anzahl": 69,
   "faelle": [
     {
       "datei": "PXL_20260803_190650402.jpg",
@@ -470,6 +470,30 @@
       "kategorie": "foto-e2-z7",
       "verarbeitung": "robust",
       "beschreibung": "Graustufendruck, quer aufgenommen (andere Richtung): der Beleg ist bereits aufgerichtet."
+    },
+    {
+      "datei": "PXL_20261020_111146432.MP.jpg",
+      "serie": 6,
+      "markierungen": ["E1", "Z1"],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust",
+      "beschreibung": "Zettel mit Haftnotiz auf dem Holztisch, leicht von schraeg oben."
+    },
+    {
+      "datei": "PXL_20261020_111156508.MP.jpg",
+      "serie": 6,
+      "markierungen": ["E1", "Z1"],
+      "kategorie": "foto-e1-z1",
+      "verarbeitung": "robust",
+      "beschreibung": "Stark perspektivisch von unten aufgenommen, blasse Haekchen statt Kreuzen."
+    },
+    {
+      "datei": "PXL_20261020_114225384.MP.jpg",
+      "serie": 6,
+      "markierungen": ["E6", "Z7"],
+      "kategorie": "foto-e6-z7",
+      "verarbeitung": "robust",
+      "beschreibung": "Quer gespeichert, Zettel klein und in warmem Licht: findPaper findet kein Papier. Lief frueher als Scan durch und wertete alle Felder als angekreuzt; der quer gespeicherte Beleg war zu klein zum Aufrichten."
     }
   ]
 }

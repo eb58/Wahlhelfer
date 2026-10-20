@@ -24,9 +24,11 @@ Auflösung oder einem anderen Bildausschnitt verwendet werden.
 
 ## 2. Bildvorbereitung
 
-Im Browser wird eine Aufnahme in `browserImage.js` höchstens auf 1600 Pixel Breite
-verkleinert. Die Höhe wird dabei proportional angepasst; bei langen Europawahlzetteln
-wird also nicht die lange Kante begrenzt. Transparente Pixel werden vor der Auswertung
+Im Browser wird eine Aufnahme in `browserImage.js` so verkleinert, dass die kürzere Kante
+höchstens 1600 Pixel misst (`belegSize()`). Bei hochkant gespeicherten Fotos ist das die Breite;
+bei langen Europawahlzetteln wird also nicht die lange Kante begrenzt. Ein quer gespeichertes
+Foto bleibt dadurch groß genug, um seine Lage zu erkennen; der aufgerichtete Beleg ist wieder
+1600 Pixel breit. Transparente Pixel werden vor der Auswertung
 mit Weiß hinterlegt.
 
 `toDarkness()` erzeugt aus den RGBA-Daten eine Dunkelheitskarte:
@@ -249,7 +251,7 @@ Ein Foto von 1600 Pixel Breite braucht für die Erkennung am PC etwa 230 ms.
 Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Zettelart unter
 `Testdaten/<kalibrierung>/`:
 
-- `fotos/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (66 Stück aus vier
+- `fotos/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (69 Stück aus fünf
   Aufnahmeserien und ein gespeicherter Beleg, im Manifest als `serie`; einige davon quer aufgenommen),
 - `synthetisch/`: alle künstlich erzeugten Fälle mit einem gemeinsamen Manifest, je Fall `art`:
   `scan` sind aus dem Musterzettel erzeugte PNG-Fälle, bei denen das Papier das Bild füllt (Kreuze,
@@ -258,7 +260,7 @@ Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Zettelar
   mit `node scripts/erzeugeSynthetischeFotos.js`, das die Scan-Fälle im Manifest stehen lässt.
 
 Fotos und synthetische Fotos werden über die Ankreuzringe gewertet. Die Tests laden
-JPEGs mit `sharp` und verkleinern sie wie der Browser auf 1600 Pixel Breite.
+JPEGs mit `sharp` und verkleinern sie wie der Browser (kürzere Kante 1600 Pixel).
 
 ```powershell
 npm test

@@ -27,7 +27,7 @@ const pruefeWertung = async (typ, datei) => {
 };
 
 const fotoFolder = new URL('../Testdaten/bundestagswahl-2017/fotos/', import.meta.url);
-const ANZAHL_FOTOS = 66;
+const ANZAHL_FOTOS = 69;
 
 /**
  * Echte Smartphone-Fotos vom Bundestagszettel (`serie` im Manifest nennt die Aufnahmeserie). Das

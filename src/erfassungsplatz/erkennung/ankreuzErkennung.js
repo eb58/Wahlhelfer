@@ -86,8 +86,10 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
 } = {}) => {
   const map = toDarkness(image);
   const paper = findPaper(image);
-  const isPhoto = paper && (paper.right - paper.left < image.width * 0.96
-    || paper.bottom - paper.top < image.height * 0.96);
+  // Scan heisst: das Papier fuellt das Bild. Ohne gefundenes Papier (kleiner Zettel, warmes Licht)
+  // ist es ein Foto - der Scan-Pfad prueft keine Ringe und wertete sonst einen verrutschten Rahmen.
+  const isPhoto = !paper || paper.right - paper.left < image.width * 0.96
+    || paper.bottom - paper.top < image.height * 0.96;
   // Den geraden Rahmen braucht nur der Scan-Pfad; Fotos tragen Rahmenkandidaten und Ringe.
   const frame = isPhoto ? undefined : findFrame(map, options);
 

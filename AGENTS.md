@@ -61,7 +61,8 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - Bilddaten immer ueber `toDarkness()` einlesen: es rechnet Transparenz ueber Weiss. Sonst
   liefert `canvas.getImageData()` durchsichtige Bereiche als Schwarz und der Rahmen verrutscht.
 - Stimmzettel sind heute oft sehr lang (Europawahl rund 1:4). Deshalb begrenzt `browserImage.js`
-  die **Breite** der Aufnahme, nicht die laengste Kante. Am PC zeigt die Oberflaeche die Aufnahme
+  die **kuerzere Kante** der Aufnahme (`belegSize`), nicht die laengste - bei hochkant
+  gespeicherten Fotos die Breite; quer gespeicherte bleiben so gross genug zum Aufrichten. Am PC zeigt die Oberflaeche die Aufnahme
   mit den erkannten Ankreuzfeldern (`drawFelder`); auf dem Smartphone (`pointer: coarse`) nicht -
   dort liegt der Zettel vor einem, die Oberflaeche konzentriert sich auf die Wertung.
 
@@ -127,7 +128,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - `getWahlDefinition()` gibt es zweimal (`src/erfassungsplatz/wahl.js`, `server/lib.php`); der Browser vergleicht den
   SHA-256 des JSON. Beide muessen byteweise dasselbe JSON liefern - `test/wahl.test.js` und
   `test/php/WahlTest.php` pruefen dieselben Hashwerte. Aendert sich eine Kalibrierung, beide anpassen.
-- Der Beleg ist nicht das Kamera-Original, sondern die auf `MAX_WIDTH` (1600 px) verkleinerte Aufnahme
+- Der Beleg ist nicht das Kamera-Original, sondern die verkleinerte Aufnahme (kuerzere Kante `MAX_WIDTH`, 1600 px)
   als JPEG (`BELEG_QUALITY` 0.85, `toBeleg()` in `browserImage.js`). Erkannt wird genau dieser Beleg,
   damit er die Wertung reproduziert; `test/fotoWerkstatt.js` geht in den Fototests denselben Weg.
 - Anmeldung wie in Mitgliederverwaltung und Gratulationsdienst: Konten in `app_user` (Rolle `admin`
@@ -162,9 +163,9 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   vorgemerkten Textdateien auf UTF-8 und Mojibake (`scripts/pruefeTextkodierung.js`), laesst bei
   JS/JSON/HTML/CSS, Kalibrierungen oder Testdaten `npm test` und bei `server/` `npm run test:php` laufen.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
-- Die Fototests enthalten derzeit 66 Aufnahmen aus `bundestagswahl-2017/fotos` (vier Serien und ein
+- Die Fototests enthalten derzeit 69 Aufnahmen aus `bundestagswahl-2017/fotos` (fuenf Serien und ein
   gespeicherter Beleg, u. a. blasse Kreuze auf getoentem Papier, Graustufendrucke, quer gespeicherte
-  Fotos, sehr blasse Bleistiftkreuze); alle laufen ueber den Ringpfad. Bekannte Luecken stuenden
+  Fotos, sehr blasse Bleistiftkreuze, ein kleiner Zettel ohne erkennbares Papier); alle laufen ueber den Ringpfad. Bekannte Luecken stuenden
   im Manifest als `todo` mit Begruendung. Damit `node --test` sie parallel
   rechnet, sind sie auf mehrere Dateien verteilt (`test/fotos/`, Ablauf in `test/fotoTests.js`); `npm test`
   dauert so rund 9 s. Eine Datei laeuft in sich nacheinander - lange Testreihen also aufteilen.
