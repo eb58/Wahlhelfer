@@ -1,5 +1,5 @@
 /**
- * Der ganze Weg einmal durch: Admin legt das Wahllokal an, der Wahlvorstand erfasst am Smartphone
+ * Der ganze Weg einmal durch: Admin legt auf der leeren Datenbank sein Konto und das Wahllokal an, der Wahlvorstand erfasst am Smartphone
  * einen Stapel aus zwei echten Fotos (ein eindeutiger Zettel, ein Prueffall) und sendet ihn, das
  * ControlCenter zeigt ihn in allen Ansichten. Keine Seite darf dabei Fehler in die Konsole schreiben.
  */
@@ -45,9 +45,13 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
   const vorstand = await (await browser.newContext({ ...devices['Pixel 7'] })).newPage();
   const vorstandFehler = sammleKonsolenfehler(vorstand);
 
-  await test.step('Admin registriert das Wahllokal', async () => {
+  await test.step('Admin legt das erste Konto an und registriert das Wahllokal', async () => {
     await admin.goto('controlcenter/');
-    await anmelden(admin, KONTEN.admin);
+    await admin.locator('#einrichtenForm [name=username]').fill(KONTEN.admin);
+    await admin.locator('#einrichtenForm [name=password]').fill(PASSWORT);
+    await admin.locator('#einrichtenForm [name=passwordWiederholung]').fill(PASSWORT);
+    await admin.locator('#einrichtenForm button').click();
+    await expect(admin.locator('body[data-angemeldet]')).toBeAttached();
     await admin.goto('controlcenter/#verwaltung');
     await admin.locator('form.formular [name=nummer]').fill(WAHLLOKAL);
     await admin.locator('form.formular [name=name]').fill('E2E-Wahllokal');

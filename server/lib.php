@@ -42,6 +42,20 @@ final class ApiResponse extends RuntimeException
 
 /* --- Infrastruktur ------------------------------------------------------ */
 
+/**
+ * Aufruf von der Kommandozeile statt ueber den Webserver. Bei Strato ist "php" in der Shell die
+ * CGI-Variante: PHP_SAPI ist dann nicht 'cli', und STDERR und $argv fehlen.
+ */
+function isCommandLine(): bool
+{
+    return PHP_SAPI === 'cli' || !isset($_SERVER['REQUEST_METHOD']);
+}
+
+function printError(string $message): void
+{
+    file_put_contents('php://stderr', $message . "\n");
+}
+
 /** Ohne Argument die Konfiguration, mit Argument setzen (fuer Tests). */
 function config(?array $override = null): array
 {
@@ -247,10 +261,39 @@ function login(mixed $value): array
         throw new ApiError('Anmeldung fehlgeschlagen.', 401);
     }
     execute('DELETE FROM app_login_attempt WHERE username = ?', [$username]);
+    return startSession($user);
+}
+
+function startSession(array $user): array
+{
     execute('DELETE FROM app_session WHERE expires_at <= NOW()');
     $token = bin2hex(random_bytes(32));
     execute('INSERT INTO app_session (token_hash, user_id, expires_at) VALUES (?, ?, NOW() + INTERVAL ' . SESSION_TTL_HOURS . ' HOUR)', [tokenHash($token), $user['id']]);
     return ['token' => $token, 'user' => publicUser($user)];
+}
+
+/** Noch kein einziges Konto: die Oberflaeche bietet an, das erste Admin-Konto anzulegen. */
+function setupRequired(): bool
+{
+    return !query('SELECT id FROM app_user LIMIT 1');
+}
+
+/**
+ * Legt das erste Admin-Konto an und meldet es gleich an. Wer es anlegt, hat das Passwort selbst
+ * gewaehlt; ein Wechsel ist deshalb nicht noetig. Gibt es schon ein Konto, geht das nicht mehr.
+ */
+function setupAdmin(mixed $value): array
+{
+    $username = text($value['username'] ?? null, 'Benutzername');
+    if (mb_strlen($username) > 80) throw new ApiError('Benutzername ist zu lang (maximal 80 Zeichen).');
+    $password = validatePassword($value['password'] ?? null);
+    return transaction(static function () use ($username, $password): array {
+        if (!setupRequired()) throw new ApiError('Es gibt schon ein Konto. Bitte anmelden.', 409);
+        execute("INSERT INTO app_user (username, password_hash, role, wahllokal, password_change_required, active) VALUES (?, ?, 'admin', NULL, 0, 1)",
+            [$username, password_hash($password, PASSWORD_DEFAULT)]);
+        $user = ['id' => (int) db()->lastInsertId(), 'username' => $username, 'role' => 'admin', 'wahllokal' => null, 'password_change_required' => 0];
+        return startSession($user);
+    }, true);
 }
 
 function logout(): void
@@ -684,6 +727,8 @@ function handleRequest(string $method, string $path): void
     if ($method !== 'GET') requireSameOrigin();
     ensureWahl();
     if ($path === '/api/session' && $method === 'POST') jsonResponse(login(readJsonBody()));
+    if ($path === '/api/setup' && $method === 'GET') jsonResponse(['required' => setupRequired()]);
+    if ($path === '/api/setup' && $method === 'POST') jsonResponse(setupAdmin(readJsonBody()), 201);
     $user = requireUser();
     if ($path === '/api/session' && $method === 'GET') jsonResponse(publicUser($user));
     if ($path === '/api/session' && $method === 'DELETE') {

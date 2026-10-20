@@ -5,7 +5,8 @@ declare(strict_types=1);
 require __DIR__ . '/lib.php';
 require __DIR__ . '/wahllokalImport.php';
 
-if (PHP_SAPI !== 'cli') exit(1);
+if (!isCommandLine()) exit(1);
+$argv = $_SERVER['argv'] ?? [];
 try {
     [, $path] = array_pad($argv, 2, null);
     if ($path === null || count($argv) !== 2)
@@ -15,6 +16,6 @@ try {
     $result = importWahllokale($data['wahllokale'] ?? []);
     echo json_encode($result, JSON_FLAGS) . "\n";
 } catch (Throwable $error) {
-    fwrite(STDERR, $error->getMessage() . "\n");
+    printError($error->getMessage());
     exit(1);
 }

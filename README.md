@@ -119,8 +119,11 @@ Jede Person hat ein eigenes Konto, wie bei Mitgliederverwaltung und Gratulations
 | `admin` | ControlCenter: Wahllokale registrieren, alle Ergebnisse und Belege sehen; Erfassungsplatz für jedes Wahllokal |
 | `wahlvorstand` | nur Erfassungsplatz, nur im eigenen Wahllokal; sieht dort den Fortschritt, aber keine Ergebnisse oder Belege |
 
-Jeder Stapel merkt sich, mit welchem Konto er übertragen wurde (`stapel.erfasst_von`). Konten legt
-vorerst ein Skript an; eine Kontenverwaltung im ControlCenter kann später folgen:
+Jeder Stapel merkt sich, mit welchem Konto er übertragen wurde (`stapel.erfasst_von`). Solange
+die Datenbank noch kein einziges Konto hat, bietet das ControlCenter an, das erste Admin-Konto
+anzulegen; wer das tut, ist gleich angemeldet. Deshalb das ControlCenter direkt nach dem ersten
+Deploy aufrufen. Alle weiteren Konten legt vorerst ein Skript an; eine Kontenverwaltung im
+ControlCenter kann später folgen:
 
 ```text
 php create-user.php <name> <passwort> admin
@@ -133,6 +136,10 @@ Zeichen). Derselbe Aufruf setzt ein vergessenes Passwort zurück oder entsperrt 
 enden alle Sitzungen des Kontos. Eine Sitzung gilt 12 Stunden, also einen Wahlabend lang. Nach
 10 Fehlversuchen je Name bzw. 20 je IP innerhalb von 15 Minuten ist die Anmeldung gesperrt. Die
 Fehlermeldung verrät nicht, ob es den Namen gibt.
+
+Bei Strato ist `php` in der Shell die CGI-Variante. Sie gibt ohne `-q` HTTP-Kopfzeilen aus und
+reicht die Argumente nur mit `-d register_argc_argv=1` weiter, also z. B.
+`php -q -d register_argc_argv=1 create-user.php <name> <passwort> wahlvorstand <wahllokal>`.
 
 Belege gehen bewusst einzeln und nicht als Base64 im Stapel an den Server: ein Stapel mit 20
 Handyfotos wäre sonst über 100 MB JSON und sprengte das Speicherlimit von PHP. Der Server
@@ -192,12 +199,15 @@ JPEG; die API nimmt bis 20 MB je Beleg an, auch ältere PNG- und PDF-Belege blei
 2. `npm run deploy` baut und lädt per SSH hoch (`server/deploy.ps1`). Die Standardziele
    (Strato-Zugang, `-Webroot Seniorenclub`, `-AppPath wahlassistent`) stammen aus der
    Mitgliederverwaltung; andere Ziele z. B. mit `npm run deploy -- -Webroot <ordner>`. Mit
-   `-SkipUpload` entsteht nur das Paket unter `.deploy/`. `config.local.php` und `bilder/` beim
-   Hoster bleiben dabei unangetastet.
-3. Beim ersten Mal `server/config.local.example.php` als `php-api/config.local.php` ablegen und
-   die DB-Zugangsdaten eintragen.
-4. Per SSH im Ordner `php-api/` das erste Admin-Konto anlegen:
-   `php create-user.php <name> <startpasswort> admin`. Die Tabellen entstehen dabei gleich mit.
+   `-SkipUpload` entsteht nur das Paket unter `.deploy/`. `bilder/` beim Hoster bleibt dabei
+   unangetastet.
+3. Die DB-Zugangsdaten stehen als `STRATO_DB_HOST`, `STRATO_DB_NAME`, `STRATO_DB_USER` und
+   `STRATO_DB_PASSWORD` in der `.env` (siehe `.env.example`). Daraus erzeugt das Deploy jedes Mal
+   `php-api/config.local.php`. Ohne diese Einträge bleibt die Datei beim Hoster, wie sie ist.
+4. Gleich danach `https://<domain>/<app>/controlcenter/` aufrufen und dort das erste
+   Admin-Konto anlegen. Die Tabellen entstehen dabei gleich mit.
+   Die Wahllokale per SSH im Ordner `php-api/` einspielen:
+   `php -q -d register_argc_argv=1 import-wahllokale.php daten/reinickendorf-2026.json`.
 5. Prüfen:
    `curl -H "Authorization: Bearer test" https://<domain>/<app>/php-api/index.php/health`
    muss `{"status":"ok","tokenReceived":true}` liefern. Steht dort `false`, reicht der Hoster den

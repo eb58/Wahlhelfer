@@ -128,7 +128,8 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   damit er die Wertung reproduziert; `test/fotoWerkstatt.js` geht in den Fototests denselben Weg.
 - Anmeldung wie in Mitgliederverwaltung und Gratulationsdienst: Konten in `app_user` (Rolle `admin`
   oder `wahlvorstand` mit festem Wahllokal), Sitzungen als SHA-256 in `app_session`, Konten per
-  `server/create-user.php`. Jede Route bekommt den Benutzer aus `requireUser()`; ControlCenter-Routen verlangen
+  `server/create-user.php`. Nur solange `app_user` leer ist, legt das ControlCenter ueber
+  `POST /api/setup` (ohne Anmeldung) das erste Admin-Konto an. Jede Route bekommt den Benutzer aus `requireUser()`; ControlCenter-Routen verlangen
   `requireAdmin()`, fuer welches Wahllokal ein Wahlvorstand erfassen darf, entscheidet
   `wahllokalErlaubt()`. Neue Routen muessen das ebenfalls tun.
 - `server/schema.sql` wird an Semikolons zerlegt: keine Semikolons in Kommentaren oder Texten.

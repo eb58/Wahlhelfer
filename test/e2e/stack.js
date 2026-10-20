@@ -1,4 +1,7 @@
-/** Auf- und Abbau des Wegwerf-Stacks fuer den E2E-Test; Konten wie beim Hoster per create-user.php. */
+/**
+ * Auf- und Abbau des Wegwerf-Stacks fuer den E2E-Test. Das erste Admin-Konto legt der Test im
+ * ControlCenter an, den Wahlvorstand per create-user.php.
+ */
 import { execFileSync, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -17,7 +20,6 @@ export const setup = () => {
   execSync('npm run build', { cwd: root, stdio: 'inherit' });
   docker(['down', '-v']);
   docker(['up', '-d', '--build', '--wait']);
-  createUser(KONTEN.admin, STARTPASSWORT, 'admin');
 };
 
 /** Ein Wahlvorstand braucht ein registriertes Wahllokal - wie beim Hoster erst danach anlegen. */

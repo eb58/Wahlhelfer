@@ -48,14 +48,16 @@ export const abmelden = async () => {
  * Anmeldung, Pflicht-Passwortwechsel und Abmelden (Abschnitt #anmeldung auf beiden Seiten).
  * Liefert den angemeldeten Benutzer oder undefined; erst danach laedt die Seite Daten.
  * `nurAdmin` (ControlCenter): andere Konten bleiben angemeldet, sehen aber nur die Abweisung.
+ * Hat die Seite ein #einrichtenForm (ControlCenter) und gibt es noch kein Konto, legt sie damit
+ * das erste Admin-Konto an.
  */
 export const setupAnmeldung = async ({ nurAdmin = false } = {}) => {
-  const show = id => ['anmeldeForm', 'passwortForm', 'angemeldet'].forEach(key => { $(key).hidden = key !== id; });
+  const show = id => ['anmeldeForm', 'passwortForm', 'einrichtenForm', 'angemeldet'].filter($).forEach(key => { $(key).hidden = key !== id; });
   const fail = error => {
     $('anmeldeStatus').textContent = error.message;
     $('anmeldeStatus').hidden = false;
   };
-  const submit = (id, action) => $(id).addEventListener('submit', async event => {
+  const submit = (id, action) => $(id)?.addEventListener('submit', async event => {
     event.preventDefault();
     const button = event.target.querySelector('button');
     button.disabled = true;
@@ -67,9 +69,14 @@ export const setupAnmeldung = async ({ nurAdmin = false } = {}) => {
   });
   submit('anmeldeForm', async form => sessionStorage.setItem(TOKEN_KEY, (await api('session', form)).token));
   submit('passwortForm', form => api('session/password', form));
+  submit('einrichtenForm', async ({ username, password, passwordWiederholung }) => {
+    if (password !== passwordWiederholung) throw new Error('Die Passwörter stimmen nicht überein.');
+    sessionStorage.setItem(TOKEN_KEY, (await api('setup', { username, password })).token);
+  });
   $('abmelden').addEventListener('click', abmelden);
 
-  if (!token()) return show('anmeldeForm');
+  const setupRequired = async () => Boolean($('einrichtenForm') && (await api('setup').catch(() => ({}))).required);
+  if (!token()) return show(await setupRequired() ? 'einrichtenForm' : 'anmeldeForm');
   const user = await api('session').catch(error => { fail(error); });
   if (!user) return show('anmeldeForm');
   if (user.passwordChangeRequired) return show('passwortForm');

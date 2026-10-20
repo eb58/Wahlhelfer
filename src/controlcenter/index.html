@@ -20,6 +20,14 @@
           <label>Passwort <input name="password" type="password" autocomplete="current-password" required /></label>
           <button class="knopf" type="submit">Anmelden</button>
         </form>
+        <!-- Nur solange es noch kein einziges Konto gibt (frisch eingerichtete Datenbank). -->
+        <form id="einrichtenForm" hidden>
+          <p class="hinweis">Es gibt noch kein Konto. Lege jetzt das erste Admin-Konto an (Passwort mindestens 12 Zeichen).</p>
+          <label>Benutzername <input name="username" autocomplete="username" autocapitalize="none" required /></label>
+          <label>Passwort <input name="password" type="password" autocomplete="new-password" minlength="12" required /></label>
+          <label>Passwort wiederholen <input name="passwordWiederholung" type="password" autocomplete="new-password" minlength="12" required /></label>
+          <button class="knopf" type="submit">Admin-Konto anlegen</button>
+        </form>
         <form id="passwortForm" hidden>
           <p class="hinweis">Bitte jetzt ein eigenes Passwort festlegen (mindestens 12 Zeichen).</p>
           <label>Bisheriges Passwort <input name="currentPassword" type="password" autocomplete="current-password" required /></label>

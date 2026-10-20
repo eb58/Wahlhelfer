@@ -21,6 +21,27 @@ final class AnmeldungTest extends DatabaseTestCase
         $this->assertSame([], $this->sql('SELECT token_hash FROM app_session WHERE token_hash = ?', [$response->payload['token']]), 'Token nur als Hash gespeichert');
     }
 
+    public function testErstesAdminKontoNurOhneKonten(): void
+    {
+        $this->anmelden(null);
+        $this->assertSame(['required' => false], $this->request('GET', '/api/setup')->payload);
+        $response = $this->request('POST', '/api/setup', ['username' => 'eindringling', 'password' => 'irgendein-passwort']);
+        $this->assertSame([409, 'Es gibt schon ein Konto. Bitte anmelden.'], [$response->statusCode, $response->payload['error']]);
+
+        execute('DELETE FROM app_session');
+        execute('DELETE FROM app_user');
+        $this->assertSame(['required' => true], $this->request('GET', '/api/setup')->payload);
+        $this->assertSame(400, $this->request('POST', '/api/setup', ['username' => 'wahlamt', 'password' => 'kurz'])->statusCode);
+        $response = $this->request('POST', '/api/setup', ['username' => ' wahlamt ', 'password' => 'erstes-passwort-1']);
+        $this->assertSame(201, $response->statusCode);
+        $this->assertSame(['username' => 'wahlamt', 'role' => 'admin', 'wahllokal' => null, 'passwordChangeRequired' => false], $response->payload['user']);
+        $this->anmelden($response->payload['token']);
+        $this->assertSame(200, $this->request('GET', '/api/ergebnisse')->statusCode, 'gleich als Admin angemeldet');
+        $this->assertSame(['required' => false], $this->request('GET', '/api/setup')->payload);
+        $this->assertSame(409, $this->request('POST', '/api/setup', ['username' => 'zweiter', 'password' => 'zweites-passwort'])->statusCode);
+        $this->assertSame(200, $this->login('wahlamt', 'erstes-passwort-1')->statusCode);
+    }
+
     public function testFalschesPasswortUnbekannterNameUndGesperrtesKontoSehenGleichAus(): void
     {
         $this->wahllokal('518');
