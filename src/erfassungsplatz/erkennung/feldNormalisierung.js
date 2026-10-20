@@ -81,14 +81,24 @@ const perspectiveRingDarkness = (map, perspectiveFrame, kalibrierungsFrame, poin
   return sum / samples;
 };
 
-const perspectiveRingScore = (map, perspectiveFrame, kalibrierungsFrame, point, radius) => {
-  const ring = perspectiveRingDarkness(map, perspectiveFrame, kalibrierungsFrame, point, radius, 48);
-  const background = (perspectiveRingDarkness(map, perspectiveFrame, kalibrierungsFrame, point, radius * 0.7, 48)
-    + perspectiveRingDarkness(map, perspectiveFrame, kalibrierungsFrame, point, radius * 1.3, 48)) / 2;
+/**
+ * Grobe Suchen tasten jeden Kreis mit weniger Punkten ab; verglichen wird danach immer mit allen.
+ * Beide Werte haben etwa doppelten Abstand zur Bruchstelle an den Testfotos (dann Ablehnung, nie
+ * Fehlwertung): Die Verschiebungssuche hielt bis 16 Punkte und brach bei 12 - unterhalb davon
+ * zufaellig, je nachdem, wie die Punkte auf die Ringlinie fallen. Die Ringsuche je Feld hielt bis 30
+ * und brach bei 24 am gewoelbten Beleg (fotos/eaa5ff69-...): ein Anker rastete auf dem falschen Ring ein.
+ */
+const COARSE_SAMPLES = 32;
+const RING_COARSE_SAMPLES = 48;
+
+const perspectiveRingScore = (map, perspectiveFrame, kalibrierungsFrame, point, radius, samples = 48) => {
+  const ring = perspectiveRingDarkness(map, perspectiveFrame, kalibrierungsFrame, point, radius, samples);
+  const background = (perspectiveRingDarkness(map, perspectiveFrame, kalibrierungsFrame, point, radius * 0.7, samples)
+    + perspectiveRingDarkness(map, perspectiveFrame, kalibrierungsFrame, point, radius * 1.3, samples)) / 2;
   return ring - background * 0.55;
 };
 
-const scoreShift = (map, perspectiveFrame, kalibrierungsFrame, points, radius, dx, dy) => {
+const scoreShift = (map, perspectiveFrame, kalibrierungsFrame, points, radius, dx, dy, samples) => {
   const ys = points.map(point => point.y), minY = Math.min(...ys), maxY = Math.max(...ys);
   const weighted = points.map(point => ({
     point,
@@ -96,7 +106,7 @@ const scoreShift = (map, perspectiveFrame, kalibrierungsFrame, points, radius, d
   }));
   const weight = weighted.reduce((sum, entry) => sum + entry.weight, 0);
   return weighted.reduce((sum, { point, weight }) => sum + weight * perspectiveRingScore(
-    map, perspectiveFrame, kalibrierungsFrame, { x: point.x + dx, y: point.y + dy }, radius,
+    map, perspectiveFrame, kalibrierungsFrame, { x: point.x + dx, y: point.y + dy }, radius, samples,
   ), 0) / weight;
 };
 
@@ -104,14 +114,14 @@ const scoreShift = (map, perspectiveFrame, kalibrierungsFrame, points, radius, d
 export const scoreFrame = (map, perspectiveFrame, kalibrierungsFrame, points, radius) =>
   scoreShift(map, perspectiveFrame, kalibrierungsFrame, points, radius, 0, 0);
 
-export const findRoughRingShift =(map, perspectiveFrame, kalibrierungsFrame, points, radius) => {
-  let best;
+export const findRoughRingShift = (map, perspectiveFrame, kalibrierungsFrame, points, radius) => {
+  let rough;
   for (let dy = -radius * 4; dy <= radius; dy += 6)
     for (let dx = -90; dx <= 90; dx += 6) {
-      const score = scoreShift(map, perspectiveFrame, kalibrierungsFrame, points, radius, dx, dy);
-      if (!best || score > best.score) best = { dx, dy, score };
+      const score = scoreShift(map, perspectiveFrame, kalibrierungsFrame, points, radius, dx, dy, COARSE_SAMPLES);
+      if (!rough || score > rough.score) rough = { dx, dy, score };
     }
-  const rough = best;
+  let best = { ...rough, score: scoreShift(map, perspectiveFrame, kalibrierungsFrame, points, radius, rough.dx, rough.dy) };
   for (let dy = rough.dy - 6; dy <= rough.dy + 6; dy++)
     for (let dx = rough.dx - 6; dx <= rough.dx + 6; dx++) {
       const score = scoreShift(map, perspectiveFrame, kalibrierungsFrame, points, radius, dx, dy);
@@ -122,7 +132,8 @@ export const findRoughRingShift =(map, perspectiveFrame, kalibrierungsFrame, poi
 };
 
 const normalizeCrop = (map, perspectiveFrame, kalibrierungsFrame, point, radius, search) => {
-  const margin = radius + search + 2, width = margin * 2 + 1, height = width;
+  // Mindestens 1,5 Radien: so viel braucht der Papierkranz von measureFuellgrad (bis 1,4 Radien).
+  const margin = Math.max(radius + search, Math.ceil(radius * 1.5)) + 2, width = margin * 2 + 1, height = width;
   const values = new Float32Array(width * height);
   for (let y = 0; y < height; y++)
     for (let x = 0; x < width; x++) {
@@ -136,23 +147,25 @@ const normalizeCrop = (map, perspectiveFrame, kalibrierungsFrame, point, radius,
 };
 
 const findRing = (map, center, radius, search) => {
-  const scoreAt = (x, y) => {
-    const ring = ringDarkness(map, x, y, radius, 72);
-    const background = (ringDarkness(map, x, y, radius * 0.7, 72)
-      + ringDarkness(map, x, y, radius * 1.3, 72)) / 2;
+  const scoreAt = (x, y, samples = 72) => {
+    const ring = ringDarkness(map, x, y, radius, samples);
+    const background = (ringDarkness(map, x, y, radius * 0.7, samples)
+      + ringDarkness(map, x, y, radius * 1.3, samples)) / 2;
     return { ring, score: ring - background * 0.55 };
   };
-  const start = scoreAt(center, center);
-  let best = { x: center, y: center, ...start };
+  // Grob nach fein: erst jeder zweite Punkt im ganzen Fenster mit wenigen Abtastpunkten, dann
+  // pixelgenau und mit allen Abtastpunkten um den besten. Gleich weites Fenster, ein Bruchteil der Rechenschritte.
+  let coarse = { x: center, y: center, score: scoreAt(center, center, RING_COARSE_SAMPLES).score };
+  for (let dy = -search; dy <= search; dy += 2)
+    for (let dx = -search; dx <= search; dx += 2) {
+      const { score } = scoreAt(center + dx, center + dy, RING_COARSE_SAMPLES);
+      if (score > coarse.score) coarse = { x: center + dx, y: center + dy, score };
+    }
+  let best = { x: coarse.x, y: coarse.y, ...scoreAt(coarse.x, coarse.y) };
   const probe = (x, y) => {
     const rating = scoreAt(x, y);
     if (rating.score > best.score) best = { x, y, ...rating };
   };
-  // Grob nach fein: erst jeder zweite Punkt im ganzen Fenster, dann pixelgenau um den besten.
-  // Gleich weites Fenster, aber nur gut ein Viertel der Rechenschritte.
-  for (let dy = -search; dy <= search; dy += 2)
-    for (let dx = -search; dx <= search; dx += 2) probe(center + dx, center + dy);
-  const coarse = best;
   for (let dy = -1; dy <= 1; dy++)
     for (let dx = -1; dx <= 1; dx++)
       if (Math.abs(coarse.x + dx - center) <= search && Math.abs(coarse.y + dy - center) <= search) probe(coarse.x + dx, coarse.y + dy);

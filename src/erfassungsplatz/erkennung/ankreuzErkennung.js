@@ -16,6 +16,8 @@ import { findFrameCandidates, reframe } from './frameQuad.js';
 
 /** So deutlich muss sich an jedem Feld ein gedruckter Ring abzeichnen (normalizeField). */
 const MIN_RING_SCORE = 0.3;
+/** Ab diesem ringScore genuegt die enge Ringsuche bei der Messung; darunter wird weit gesucht. */
+const SICHERER_RING_SCORE = 0.45;
 
 /** Innenradius, auf dem der Fuellgrad gemessen wird - haelt Abstand zum gedruckten Ring. */
 export const innerRadius = radius => Math.max(2, Math.round(radius * 0.68));
@@ -83,10 +85,11 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   ...options
 } = {}) => {
   const map = toDarkness(image);
-  const frame = findFrame(map, options);
   const paper = findPaper(image);
   const isPhoto = paper && (paper.right - paper.left < image.width * 0.96
     || paper.bottom - paper.top < image.height * 0.96);
+  // Den geraden Rahmen braucht nur der Scan-Pfad; Fotos tragen Rahmenkandidaten und Ringe.
+  const frame = isPhoto ? undefined : findFrame(map, options);
 
   const referenzen = kalibrierung.felder.map(feld => feld.referenz);
   const alignRings = candidate => {
@@ -139,13 +142,21 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
 
   const measuredFelder = ringAlignment ? kalibrierung.felder.map(feld => {
     const point = transformRing(ringAlignment.transformation, feld.referenz);
-    // Papierwoelbung kann lokal staerker von der gemeinsamen affinen Lage abweichen.
-    // Wie bei den Ankern auf den gedruckten Ring einrasten, ohne das Kreisinnere zu bewerten.
-    const { referenz: ringReferenz, ...measurement } = normalizeField(
-      map, ringFrame, kalibrierung.frame, point, kalibrierung.referenzRadius * ringScale,
-      { search: Math.round(kalibrierung.referenzRadius * ringScale * 1.2) },
-    );
-    return { ...feld, ...measurement, ringReferenz };
+    // Wie bei den Ankern auf den gedruckten Ring einrasten, ohne das Kreisinnere zu bewerten. Meist
+    // liegt er nach der Ausrichtung schon fast genau dort (99 % innerhalb von 0,14 Radien), deshalb
+    // erst eng suchen. Papierwoelbung kann ihn lokal aber um mehr als einen Radius verschieben: Liegt
+    // der beste Ring am Rand des engen Fensters oder ist er schwach, wird weit gesucht.
+    const ringRadius = kalibrierung.referenzRadius * ringScale;
+    const measure = factor => {
+      const search = Math.max(2, Math.round(ringRadius * factor));
+      const { referenz: ringReferenz, ...measurement } = normalizeField(map, ringFrame, kalibrierung.frame, point, ringRadius, { search });
+      const amRand = Math.max(Math.abs(ringReferenz.x - point.x), Math.abs(ringReferenz.y - point.y)) >= search - 1;
+      return { ...feld, ...measurement, ringReferenz, sicher: !amRand && measurement.ringScore >= SICHERER_RING_SCORE };
+    };
+    const { sicher, ...eng } = measure(0.3);
+    if (sicher) return eng;
+    const { sicher: _, ...weit } = measure(1.2);
+    return weit;
   }) : kalibrierung.felder.map(feld => {
     const rough = toAbsolute(frame, feld);
     const { x, y } = adjust ? adjustFeld(map, Math.round(rough.x), Math.round(rough.y), radius) : rough;

@@ -128,7 +128,8 @@ Ringwert = Ringdunkelheit - 0,55 * mittlere Umfeld-Dunkelheit
 ```
 
 Zuerst wird ein Raster durchsucht (`dx` ungefähr -90 bis +90 Pixel, `dy` abhängig vom
-Ringradius), anschließend die beste Stelle lokal verfeinert. Oberer und unterer Bereich
+Ringradius) mit 32 Punkten je Kreis, anschließend die beste Stelle mit 48 Punkten lokal
+verfeinert. Oberer und unterer Bereich
 werden dabei stärker gewichtet, weil sie für eine globale Verschiebung besonders
 informativ sind.
 
@@ -139,9 +140,17 @@ Für jedes Feld wird ein kleiner, perspektivisch normalisierter Ausschnitt erzeu
 verschoben und mit 72 Messpunkten bewertet. Die Messung berücksichtigt den Ring und sein
 Umfeld, nicht nur die Mitte des Feldes.
 
-Gesucht wird grob nach fein: zuerst jede zweite Position im ganzen Fenster, danach
-pixelgenau um die beste. Das Fenster bleibt so weit wie vorher, braucht aber nur gut ein
-Viertel der Rechenschritte.
+Gesucht wird grob nach fein: zuerst jede zweite Position im ganzen Fenster mit 48 Punkten
+je Kreis, danach pixelgenau und mit allen 72 Punkten um die beste.
+
+Bei der Messung, nach der gemeinsamen Ausrichtung, liegt der Ring meist schon fast genau an
+der erwarteten Stelle (99 % innerhalb von 0,14 Ringradien). Gesucht wird deshalb erst nur im
+Umkreis von 0,3 Ringradien; liegt der beste Ring dort am Fensterrand oder ist er schwach
+(`ringScore` unter 0,45), wie bei den Ankern im Umkreis von 1,2 Ringradien. Papierwölbung kann
+den Ring lokal um mehr als einen Radius verschieben (`fotos/eaa5ff69-...`). An künstlich um
+0,2 bis 1,1 Radien verschobenen Feldern liefert das genau dieselben Wertungen wie die stets
+weite Suche. Die Grob-Punktzahlen haben etwa doppelten Abstand zur Bruchstelle an den
+Testfotos; brechen sie, wird das Foto abgelehnt, nicht falsch gewertet.
 
 ### 4.3 Robuste affine Ringtransformation
 
