@@ -12,7 +12,7 @@
     "watch": "vite build --watch",
     "preview": "vite preview",
     "prepare": "git config core.hooksPath .githooks",
-    "test": "node --test \"test/**/*.test.js\"",
+    "test": "node --test --test-reporter=./test/tools/specReporter.mjs \"test/**/*.test.js\"",
     "test:e2e": "playwright test -c test/e2e",
     "test:php": "node test/tools/ensure-phpunit.mjs && node test/tools/ensure-test-db.mjs && php test/tools/phpunit.phar --configuration test/phpunit.xml",
     "test:php:db:up": "docker compose -f test/docker-compose.test.yml up -d --wait",
