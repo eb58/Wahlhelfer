@@ -44,3 +44,17 @@ export const darkRatio = (map, cx, cy, r, threshold = 0.3) => {
       if (dx * dx + dy * dy <= r * r) { hits += darknessAt(map, cx + dx, cy + dy) > threshold ? 1 : 0; count++; }
   return count ? hits / count : 0;
 };
+
+/** Dreht ein RGBA-Bild um `turns` Vierteldrehungen im Uhrzeigersinn. */
+export const rotateImage = ({ width, height, data }, turns) => {
+  const quarter = ((turns % 4) + 4) % 4;
+  const swap = quarter % 2 === 1;
+  const target = { width: swap ? height : width, height: swap ? width : height };
+  const rotated = new Uint8ClampedArray(data.length);
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const [tx, ty] = [[x, y], [height - 1 - y, x], [width - 1 - x, height - 1 - y], [y, width - 1 - x]][quarter];
+      rotated.set(data.subarray((y * width + x) * 4, (y * width + x) * 4 + 4), (ty * target.width + tx) * 4);
+    }
+  return { ...target, data: rotated };
+};

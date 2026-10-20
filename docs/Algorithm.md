@@ -101,6 +101,18 @@ scharf und vollständig wiederholen“). Einen OCR-Rückfall gibt es nicht mehr:
 Fotos wertete er bei abgeschalteter Ringsuche 3 Aufnahmen falsch, ohne einen Zweifelsfall zu
 melden - eine davon als Stimme für den falschen Kandidaten.
 
+Nach der gemeinsamen Ausrichtung muss jedes einzelne Feld auf einem gedruckten Ring liegen
+(`ringScore` mindestens 0,3). Die Ausrichtung selbst braucht nur 6 passende Ringe; kopfüber liegen
+beim Bundestagszettel 8 bis 10 von 14 Ringen fast symmetrisch auf anderen, und ohne diese Prüfung
+wurde ein kopfüber liegendes Foto ohne Meldung falsch gewertet. Aufrecht liegt der schwächste Ring
+auf allen echten Fotos bei mindestens 0,4, kopfüber bei höchstens 0,2.
+
+Liegt der Zettel flach, speichert das Smartphone das Foto oft quer (EXIF-Orientierung 1, also
+wirklich quer). Trägt die Aufnahme nicht, versucht `recognizeInAnyRotation()` beide
+Vierteldrehungen und nimmt eine nur, wenn genau eine trägt. Das Ergebnis nennt die Drehung
+(`rotation`); der Erfassungsplatz erzeugt den Beleg dann aus der Aufnahme aufrecht neu und
+erkennt genau diesen erneut, damit der gespeicherte Beleg die Wertung reproduziert.
+
 ## 4. Primärer Erkennungsweg: gedruckte Ankreuzringe
 
 Die Ringausrichtung ist der einzige Weg für Smartphone-Fotos.
@@ -166,8 +178,17 @@ Die Felder werden dann aus dem geraden Rahmen von `findFrame()` rahmenrelativ pr
 
 Für jedes Feld wird ein Innenkreis mit ungefähr 68 % des Ringradius ausgewertet. Der Ring
 selbst wird nicht als Markierung gezählt, weil er auf jedem leeren Musterzettel vorhanden
-ist. Die lokale Messung verwendet einen adaptiven Helligkeitsschwellwert aus dem jeweiligen
-Ausschnitt und liefert den `Fuellgrad` als Anteil dunkler Pixel.
+ist. Der `Fuellgrad` ist der Anteil der Pixel, die mindestens 0,07 dunkler sind als das Papier
+an ihrer Stelle (absolut mindestens 0,22).
+
+Das Papier wird bei Fotos als schräge Ebene geschätzt: auf einem Kranz zwischen 115 % und 140 %
+des Ringradius, also außerhalb des gedruckten Rings, je Achtelsektor das 30. Perzentil. Tabellenlinien
+und über den Ring hinausgehende Striche liegen darüber und zählen nicht. Ein Schattenverlauf quer
+über das Feld wird dadurch nicht zum Strich, ein ganz ausgemaltes Feld hebt seinen eigenen
+Hintergrund nicht an. Erst so reicht der kleine Abstand von 0,07, mit dem auch dünne, blasse
+Kugelschreiberkreuze auf getöntem Papier zählen (`fotos-serie3/blau-e4-z4.jpg`). Leere Felder
+liegen auf allen echten Fotos erst ab 0,03 überhaupt über dem Papier. Scans messen weiter mit
+festem Schwellwert (`darkRatio`).
 
 Die Statusschwellen werden bei ausgerichteten Aufnahmen an den Bildsockel angepasst:
 
@@ -215,7 +236,8 @@ Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Zettelar
 `Testdaten/<kalibrierung>/`:
 
 - `scans/`: aus dem Musterzettel erzeugte PNG-Fälle (Kreuze, Mehrfach, Rauschen, Drehung),
-- `fotos-serie<n>/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (53 Stück),
+- `fotos-serie<n>/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (57 Stück, eines davon
+  quer gespeichert),
 - `synthetisch/`: für jede Zettelart drei künstliche Fotos (gerade, leicht schräg,
   4 Grad gedreht), erzeugt mit `node scripts/erzeugeSynthetischeFotos.js`.
 

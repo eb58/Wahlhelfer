@@ -141,9 +141,15 @@ const capture = async file => {
     if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type))
       throw new Error('Aufnahme muss ein PNG-, JPEG-, WebP- oder GIF-Bild sein.');
     // Erkannt wird der Beleg, nicht die Kameraaufnahme: so reproduziert der gespeicherte Beleg die Wertung.
-    const bild = await toBeleg(file);
+    let bild = await toBeleg(file);
     imageData = await toImageData(bild);
-    const result = await state.typ.recognize(imageData);
+    let result = await state.typ.recognize(imageData);
+    // Quer gespeichert: den Beleg aus der Aufnahme aufrecht neu erzeugen und genau ihn erneut erkennen.
+    if (result.rotation) {
+      bild = await toBeleg(file, result.rotation);
+      imageData = await toImageData(bild);
+      result = await state.typ.recognize(imageData);
+    }
     state.pending = { result, bild };
     showWertung(result);
     showAufnahme(imageData, result);

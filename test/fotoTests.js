@@ -14,15 +14,22 @@ const sorted = values => [...values].sort();
 const imTeil = (teil, von) => (_, index) => index % von === teil - 1;
 const readManifest = folder => JSON.parse(readFileSync(new URL('manifest.json', folder), 'utf8'));
 
+/** Wie der Erfassungsplatz: ein quer gespeichertes Foto wird als aufrechter Beleg neu erzeugt und erneut erkannt. */
 const pruefeWertung = async (typ, datei) => {
-  const result = await typ.recognize(await readFoto(readFileSync(datei)));
+  const bytes = readFileSync(datei);
+  const erste = await typ.recognize(await readFoto(bytes));
+  const result = erste.rotation ? await typ.recognize(await readFoto(bytes, { rotation: erste.rotation })) : erste;
+  assert.equal(result.rotation, 0, 'der aufrechte Beleg traegt ohne weitere Drehung');
   return result.felder.filter(feld => feld.status !== 'leer');
 };
 
-const serien = [['fotos-serie1', 20], ['fotos-serie2', 33]]
+const serien = [['fotos-serie1', 20], ['fotos-serie2', 33], ['fotos-serie3', 4]]
   .map(([name, anzahl]) => ({ name, anzahl, folder: new URL(`../Testdaten/bundestagswahl-2017/${name}/`, import.meta.url) }));
 
-/** Echte Smartphone-Fotos vom Bundestagszettel. Die Manifeste prueft nur Teil 1. */
+/**
+ * Echte Smartphone-Fotos vom Bundestagszettel. Die Manifeste prueft nur Teil 1. Ein `todo` im
+ * Manifest kennzeichnet eine bekannte Luecke der Erkennung samt Begruendung.
+ */
 export const testeEchteFotos = (teil, von) => {
   const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
   if (teil === 1)
@@ -36,7 +43,7 @@ export const testeEchteFotos = (teil, von) => {
 
   const faelle = serien.flatMap(({ name, folder }) => readManifest(folder).faelle.map(fall => ({ ...fall, name, folder })));
   for (const fall of faelle.filter(imTeil(teil, von)))
-    test(`${fall.name}: ${fall.datei} wird wie im Manifest gewertet`, async () => {
+    test(`${fall.name}: ${fall.datei} wird wie im Manifest gewertet`, { todo: fall.todo }, async () => {
       const markiert = await pruefeWertung(typ, new URL(fall.datei, fall.folder));
       assert.deepEqual(sorted(markiert.map(feld => feld.id)), sorted(fall.markierungen));
       assert.ok(markiert.every(feld => feld.status === 'angekreuzt'));

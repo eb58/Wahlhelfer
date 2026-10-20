@@ -10,7 +10,7 @@
  * Bildausschnitt der spaeteren Aufnahme.
  */
 import { toRelative, frameWidth } from './frame.js';
-import { recognizeAnkreuzungen } from './ankreuzErkennung.js';
+import { recognizeInAnyRotation } from './ankreuzErkennung.js';
 
 export const FORMAT_VERSION = 4;
 
@@ -56,7 +56,7 @@ export const loadKalibrierung = json => {
   return {
     ...kalibrierung,
     /** @param {{width:number,height:number,data:Uint8ClampedArray}} image Aufnahme des Zettels */
-    recognize: (image, options) => recognizeAnkreuzungen(image, kalibrierung, options),
+    recognize: (image, options) => recognizeInAnyRotation(image, kalibrierung, options),
     toJson: () => JSON.stringify(file),
   };
 };

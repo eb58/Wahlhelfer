@@ -19,11 +19,13 @@ export const writePng = ({ width, height, data }) =>
  * Foto (JPEG) -> ImageData-kompatibles Objekt auf dem Weg, den der Browser geht (browserImage.js):
  * auf hoechstens `maxWidth` Pixel Breite verkleinern, als Beleg-JPEG kodieren und dieses Beleg-JPEG
  * erkennen. So pruefen die Fototests, dass der gespeicherte Beleg die Wertung reproduziert.
+ * `rotation` dreht vorher um Vierteldrehungen im Uhrzeigersinn, wie toBeleg() fuer quer gespeicherte Fotos.
  * sharp dekodiert nativ; ein 12-Megapixel-Foto in reinem JavaScript zu entpacken kostete die
  * Fototests den Grossteil ihrer Zeit.
  */
-export const readFoto = async (buffer, { maxWidth = MAX_WIDTH, quality = BELEG_QUALITY } = {}) => {
+export const readFoto = async (buffer, { maxWidth = MAX_WIDTH, quality = BELEG_QUALITY, rotation = 0 } = {}) => {
   const beleg = await sharp(buffer)
+    .rotate(rotation * 90)
     .resize({ width: maxWidth, withoutEnlargement: true, kernel: 'linear' })
     .jpeg({ quality: Math.round(quality * 100) })
     .toBuffer();

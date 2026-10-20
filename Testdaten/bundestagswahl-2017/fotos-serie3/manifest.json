@@ -1,0 +1,47 @@
+{
+  "vorlage": "../musterzettel.png",
+  "bildgroesse_vorlage": [
+    1248,
+    1748
+  ],
+  "anzahl": 4,
+  "faelle": [
+    {
+      "datei": "blau-e4-z4.jpg",
+      "markierungen": [
+        "E4",
+        "Z4"
+      ],
+      "kategorie": "foto-e4-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "schraeg-e4-z6.jpg",
+      "markierungen": [
+        "E4",
+        "Z6"
+      ],
+      "kategorie": "foto-e4-z6",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "quer-e4-z4.jpg",
+      "markierungen": [
+        "E4",
+        "Z4"
+      ],
+      "kategorie": "foto-e4-z4",
+      "verarbeitung": "robust"
+    },
+    {
+      "datei": "gedreht-e4-z4.jpg",
+      "markierungen": [
+        "E4",
+        "Z4"
+      ],
+      "kategorie": "foto-e4-z4",
+      "verarbeitung": "robust",
+      "beschreibung": "Flach liegender Zettel, vom Smartphone quer gespeichert (EXIF-Orientierung 1): wird automatisch um 90 Grad gedreht."
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 /** Perspektivisch normalisierte kleine Ausschnitte rund um die erwarteten Ankreuzringe. */
 import { perspectivePoint } from './frame.js';
-import { darknessAt, darkRatio, ringDarkness } from './image.js';
+import { darknessAt, ringDarkness } from './image.js';
 import { regressLine, regressPlane } from './leastSquares.js';
 
 const regressTransformation = treffer => {
@@ -159,10 +159,51 @@ const findRing = (map, center, radius, search) => {
   return best;
 };
 
-const localThreshold = ({ values }) => {
-  const sorted = [...values].sort((a, b) => a - b);
-  const paperLevel = sorted[Math.floor(sorted.length * 0.2)];
-  return Math.max(0.22, Math.min(0.7, paperLevel + 0.18));
+/**
+ * Papierhelligkeit als schraege Ebene, geschaetzt auf einem Kranz ausserhalb des gedruckten Rings:
+ * je Sektor ein niedriges Perzentil, damit Tabellenlinien und ueber den Ring hinausgehende Striche
+ * nicht zaehlen. So wird ein Schattenverlauf quer ueber das Feld nicht zum Strich, und ein ganz
+ * ausgemaltes Feld hebt seinen eigenen Hintergrund nicht an.
+ */
+const paperPlane = (crop, cx, cy, radius) => {
+  const sectors = [...Array(8)].map(() => []);
+  for (let y = 0; y < crop.height; y++)
+    for (let x = 0; x < crop.width; x++) {
+      const distance = Math.hypot(x - cx, y - cy);
+      if (distance < radius * 1.15 || distance > radius * 1.4) continue;
+      const sector = Math.floor(((Math.atan2(y - cy, x - cx) + Math.PI) / (2 * Math.PI)) * 8) % 8;
+      sectors[sector].push({ x, y, d: crop.values[y * crop.width + x] });
+    }
+  const points = sectors.filter(sector => sector.length).map(sector => {
+    const sorted = sector.map(point => point.d).sort((a, b) => a - b);
+    const mean = axis => sector.reduce((sum, point) => sum + point[axis], 0) / sector.length;
+    return { x: mean('x'), y: mean('y'), d: sorted[Math.floor(sorted.length * 0.3)] };
+  });
+  const plane = points.length >= 3 && regressPlane(points, point => point, point => point, 'd');
+  const level = Math.min(...points.map(point => point.d));
+  return plane ? (x, y) => plane[0] * x + plane[1] * y + plane[2] : () => level;
+};
+
+/**
+ * Wie viel dunkler als das Papier an seiner Stelle ein Pixel sein muss, um als Strich zu zaehlen.
+ * Gegen die Hintergrundebene gemessen reicht wenig: blasse, duenne Kugelschreiberkreuze liegen nur
+ * rund 0,1 ueber dem Papier, leere Felder auf allen echten Fotos erst ab 0,03 ueberhaupt darueber.
+ */
+const PAPER_CONTRAST = 0.07;
+
+/** Anteil der Pixel im Kreisinneren, die deutlich dunkler sind als das Papier an ihrer Stelle. */
+const measureFuellgrad = (crop, cx, cy, ringRadius) => {
+  const paper = paperPlane(crop, cx, cy, ringRadius);
+  const r = Math.max(2, Math.round(ringRadius * 0.68));
+  let hits = 0, count = 0;
+  for (let dy = -r; dy <= r; dy++)
+    for (let dx = -r; dx <= r; dx++) {
+      if (dx * dx + dy * dy > r * r) continue;
+      const threshold = Math.max(0.22, Math.min(0.7, paper(cx + dx, cy + dy) + PAPER_CONTRAST));
+      hits += darknessAt(crop, cx + dx, cy + dy) > threshold ? 1 : 0;
+      count++;
+    }
+  return hits / count;
 };
 
 export const normalizeField = (map, perspectiveFrame, kalibrierungsFrame, point, radius, options = {}) => {
@@ -179,8 +220,6 @@ export const normalizeField = (map, perspectiveFrame, kalibrierungsFrame, point,
     referenz,
     ringScore: ring.score,
     ringDarkness: ring.ring,
-    fuellgrad: darkRatio(
-      crop, ring.x, ring.y, Math.max(2, Math.round(normalRadius * 0.68)), localThreshold(crop),
-    ),
+    fuellgrad: measureFuellgrad(crop, ring.x, ring.y, normalRadius),
   };
 };

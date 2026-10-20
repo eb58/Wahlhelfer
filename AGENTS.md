@@ -43,6 +43,10 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   mehrere gedruckte Ankreuzringe gemeinsam gesucht und eine robuste affine Ring-Transformation
   bestimmt; liegen alle Ringe in einer Spalte, bleibt die Streckung quer zur Spalte beim Rahmen.
   Das ist der einzige Erkennungspfad fuer Fotos.
+- Quer gespeicherte Fotos richtet `recognizeInAnyRotation()` auf (nur wenn genau eine Vierteldrehung
+  traegt); der Erfassungsplatz erzeugt den Beleg dann aufrecht neu (`toBeleg(file, rotation)`) und
+  erkennt ihn erneut. Jedes Feld muss auf einem gedruckten Ring liegen - sonst trug kopfueber eine
+  falsche Ausrichtung.
 - **Ein Foto ohne sichere Ringlage wird abgelehnt, nicht geraten.** Einen OCR-Rueckfall gibt es
   bewusst nicht mehr: auf den 53 echten Fotos wertete er 3 falsch (u. a. eine Stimme fuer den
   falschen Kandidaten), ohne einen Zweifelsfall zu melden, und kostete rund 13 MB Tesseract-Dateien.
@@ -157,8 +161,10 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   vorgemerkten Textdateien auf UTF-8 und Mojibake (`scripts/pruefeTextkodierung.js`), laesst bei
   JS/JSON/HTML/CSS, Kalibrierungen oder Testdaten `npm test` und bei `server/` `npm run test:php` laufen.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
-- Die Fototests enthalten derzeit 20 Aufnahmen aus `bundestagswahl-2017/fotos-serie1` und 33 aus
-  `bundestagswahl-2017/fotos-serie2`; alle laufen ueber den Ringpfad. Damit `node --test` sie parallel
+- Die Fototests enthalten derzeit 20 Aufnahmen aus `bundestagswahl-2017/fotos-serie1`, 33 aus
+  `bundestagswahl-2017/fotos-serie2` und 4 aus `fotos-serie3` (u. a. blasse Kreuze auf getoentem Papier,
+  ein quer gespeichertes Foto); alle laufen ueber den Ringpfad. Bekannte Luecken stuenden im Manifest
+  als `todo` mit Begruendung. Damit `node --test` sie parallel
   rechnet, sind sie auf mehrere Dateien verteilt (`test/fotos/`, Ablauf in `test/fotoTests.js`); `npm test`
   dauert so rund 9 s. Eine Datei laeuft in sich nacheinander - lange Testreihen also aufteilen.
 - Fuer die anderen Zettelarten gibt es keine echten Fotos; `test/fotos/synthetisch-*.test.js` prueft sie

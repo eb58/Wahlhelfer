@@ -10,6 +10,7 @@ import { KONTEN, PASSWORT, STARTPASSWORT, WAHLLOKAL, createWahlvorstand } from '
 const foto = datei => fileURLToPath(new URL(`../../Testdaten/bundestagswahl-2017/fotos-serie1/${datei}`, import.meta.url));
 const EINDEUTIG = foto('PXL_20260803_190650402.jpg'); // E1 + Z4
 const PRUEFFALL = foto('PXL_20260803_190656590.jpg'); // nur E1, Zweitstimme leer
+const QUER = fileURLToPath(new URL('../../Testdaten/bundestagswahl-2017/fotos-serie3/gedreht-e4-z4.jpg', import.meta.url)); // E4 + Z4
 
 const sammleKonsolenfehler = page => {
   const fehler = [];
@@ -70,6 +71,13 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
     await expect(vorstand.locator('#stapelStart')).toBeEnabled();
     await vorstand.locator('#stapelSoll').fill('2');
     await vorstand.locator('#stapelStart').click();
+
+    // Quer gespeichert: der Erfassungsplatz richtet den Beleg auf; danach verworfen, der Stapel bleibt bei zwei.
+    await aufnehmen(vorstand, QUER);
+    await expect(vorstand.locator('#wertung')).toHaveAttribute('data-eindeutig', 'true');
+    await expect(vorstand.locator('#wertung')).toContainText('Soundso, Sabine');
+    await vorstand.locator('#zettelVerwerfen').click();
+    await expect(vorstand.locator('#stapelFortschritt')).toHaveText('0 / 2');
 
     await aufnehmen(vorstand, EINDEUTIG);
     await expect(vorstand.locator('#wertung')).toHaveAttribute('data-eindeutig', 'true');

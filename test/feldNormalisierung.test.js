@@ -92,6 +92,40 @@ test('normalizeField meldet ein deutlich gefuelltes Feld', () => {
   assert.ok(messung.fuellgrad > 0.5);
 });
 
+/** Papier mit Helligkeit `papier(x, y)`, darauf der gedruckte Ring um (100, 100). */
+const papierKarte = papier => {
+  const map = leereKarte(200, 200);
+  for (let y = 0; y < 200; y++)
+    for (let x = 0; x < 200; x++) map.values[y * 200 + x] = papier(x, y);
+  zeichneRing(map, 100, 100, 20, 1.5, 0.8);
+  return map;
+};
+
+test('normalizeField wertet einen Schattenverlauf quer ueber das Feld nicht als Strich', () => {
+  // Rund 0,14 Helligkeitsunterschied ueber das Kreisinnere, wie ein Schattenrand auf einem Foto.
+  const map = papierKarte(x => 0.005 * x);
+  // Suchspanne wie in recognizeAnkreuzungen: der Ausschnitt reicht dann weit in den Verlauf hinein.
+  const messung = normalizeField(map, identitaetsEcken, identitaetsRahmen, { x: 100, y: 100 }, 20, { search: 24 });
+  assert.equal(messung.fuellgrad, 0);
+});
+
+test('normalizeField erkennt ein blasses, duennes Kreuz auf getoentem Papier', () => {
+  const map = papierKarte(() => 0.2);
+  for (let dy = -13; dy <= 13; dy++)
+    for (let dx = -13; dx <= 13; dx++)
+      if (Math.abs(dx - dy) <= 2 || Math.abs(dx + dy) <= 2) map.values[(100 + dy) * 200 + 100 + dx] = 0.32;
+  const messung = normalizeField(map, identitaetsEcken, identitaetsRahmen, { x: 100, y: 100 }, 20);
+  assert.ok(messung.fuellgrad >= 0.18, `Fuellgrad ${messung.fuellgrad}`);
+});
+
+test('normalizeField meldet ein bis an den Ring ausgemaltes Feld als voll', () => {
+  const map = papierKarte(() => 0.2);
+  for (let y = 0; y < 200; y++)
+    for (let x = 0; x < 200; x++) if (Math.hypot(x - 100, y - 100) < 19) map.values[y * 200 + x] = 0.9;
+  const messung = normalizeField(map, identitaetsEcken, identitaetsRahmen, { x: 100, y: 100 }, 20);
+  assert.ok(messung.fuellgrad > 0.9, `Fuellgrad ${messung.fuellgrad}`);
+});
+
 test('findRoughRingShift findet die gemeinsame Verschiebung mehrerer Ringe', () => {
   const map = leereKarte(300, 700);
   const referenzen = [{ x: 100, y: 60 }, { x: 100, y: 300 }, { x: 100, y: 560 }];

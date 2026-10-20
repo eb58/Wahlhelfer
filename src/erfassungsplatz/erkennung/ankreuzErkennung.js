@@ -6,13 +6,16 @@
  * statt geraten. Scans richten sich nach dem geraden Rahmen. Gemessen wird lokal normalisiert im
  * Kreisinneren.
  */
-import { toDarkness, darkRatio, ringDarkness } from './image.js';
+import { toDarkness, darkRatio, ringDarkness, rotateImage } from './image.js';
 import { findFrame, findPerspectiveFrame, toAbsolute, frameWidth } from './frame.js';
 import { findPaper } from './paper.js';
 import {
   determineRingTransformation, findRoughRingShift, normalizeField, scoreFrame, transformRing,
 } from './feldNormalisierung.js';
 import { findFrameCandidates, reframe } from './frameQuad.js';
+
+/** So deutlich muss sich an jedem Feld ein gedruckter Ring abzeichnen (normalizeField). */
+const MIN_RING_SCORE = 0.3;
 
 /** Innenradius, auf dem der Fuellgrad gemessen wird - haelt Abstand zum gedruckten Ring. */
 export const innerRadius = radius => Math.max(2, Math.round(radius * 0.68));
@@ -149,6 +152,11 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
     const fuellgrad = darkRatio(map, x, y, measureRadius);
     return { ...feld, x, y, fuellgrad };
   });
+  // Jedes Feld muss auf einem gedruckten Ring liegen. Die gemeinsame Ausrichtung braucht nur einige
+  // Ringe; kopfueber liegen beim Bundestagszettel 8-10 von 14 Ringen fast symmetrisch auf anderen.
+  // Dort fehlt an manchen Feldern der Ring (ringScore hoechstens 0,2), aufrecht nie (mindestens 0,4).
+  if (ringAlignment && measuredFelder.some(feld => feld.ringScore < MIN_RING_SCORE))
+    throw new Error('Ankreuzfelder nicht sicher gefunden - Aufnahme bitte gerade, scharf und vollstaendig wiederholen.');
   const imageThresholds = computeImageThresholds(measuredFelder, thresholds, { ringAlignment });
   const felder = measuredFelder.map(feld => ({ ...feld, status: classify(feld.fuellgrad, imageThresholds) }));
   const stimmen = kalibrierung.stimmen.map(stimme => ({ ...stimme, ...evaluateStimme(felder, stimme) }));
@@ -157,4 +165,26 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
     felder, frame, radius, stimmen,
     transformation: ringAlignment?.transformation,
   };
+};
+
+/**
+ * Wie recognizeAnkreuzungen, aber auch fuer quer aufgenommene Zettel: Liegt der Zettel flach,
+ * raet das Smartphone die Lage oft falsch und speichert das Foto quer. Erst wenn die Aufnahme so
+ * nicht traegt, werden beide Vierteldrehungen versucht (kopfueber wird nicht aufgenommen). Genommen
+ * wird eine Drehung nur, wenn genau eine traegt - sonst lieber ablehnen als eine falsche Lage werten. `rotation` sagt dann,
+ * um wie viele Vierteldrehungen im Uhrzeigersinn das Bild gedreht wurde; die Koordinaten im Ergebnis
+ * gehoeren zum gedrehten Bild.
+ */
+export const recognizeInAnyRotation = async (image, kalibrierung, options) => {
+  try {
+    return { ...await recognizeAnkreuzungen(image, kalibrierung, options), rotation: 0 };
+  } catch (error) {
+    const rotated = [];
+    for (const rotation of [1, 3])
+      try {
+        rotated.push({ ...await recognizeAnkreuzungen(rotateImage(image, rotation), kalibrierung, options), rotation });
+      } catch { /* diese Lage traegt nicht */ }
+    if (rotated.length !== 1) throw error;
+    return rotated[0];
+  }
 };
