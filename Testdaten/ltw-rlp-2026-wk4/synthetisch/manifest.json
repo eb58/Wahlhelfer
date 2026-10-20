@@ -1,10 +1,11 @@
 {
-  "erzeugtMit": "scripts/erzeugeSynthetischeFotos.js",
+  "fotosErzeugtMit": "scripts/erzeugeSynthetischeFotos.js",
   "kalibrierung": "ltw-rlp-2026-wk4.json",
   "anzahl": 3,
   "faelle": [
     {
       "datei": "gerade.jpg",
+      "art": "foto",
       "lage": "gerade",
       "markierungen": [
         "W2",
@@ -13,6 +14,7 @@
     },
     {
       "datei": "schraeg.jpg",
+      "art": "foto",
       "lage": "schraeg",
       "markierungen": [
         "W3",
@@ -21,6 +23,7 @@
     },
     {
       "datei": "gedreht.jpg",
+      "art": "foto",
       "lage": "gedreht",
       "markierungen": [
         "W4",

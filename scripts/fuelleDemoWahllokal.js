@@ -22,9 +22,9 @@ const api = (path, data) => send(path, data === undefined ? {} : { method: 'POST
 token = (await api('session', { username, password })).token;
 const existing = await api('wahllokale');
 if (existing.wahllokale.some(row => row.nummer === '518')) throw new Error('Wahllokal 518 existiert bereits. Keine Daten verändert.');
-const folder = new URL('Testdaten/bundestagswahl-2017/scans/', root);
+const folder = new URL('Testdaten/bundestagswahl-2017/synthetisch/', root);
 const manifest = JSON.parse(readFileSync(new URL('manifest.json', folder), 'utf8'));
-const faelle = manifest.faelle.filter(row => row.kategorie.startsWith('gueltig-') || ['leer', 'mehrfach', 'qualitaet'].includes(row.kategorie.split('-')[0]));
+const faelle = manifest.faelle.filter(row => row.art === 'scan').filter(row => row.kategorie.startsWith('gueltig-') || ['leer', 'mehrfach', 'qualitaet'].includes(row.kategorie.split('-')[0]));
 const typ = loadKalibrierung(readFileSync(new URL(KALIBRIERUNG, root), 'utf8'));
 const vorlagen = [];
 for (const fall of faelle) {

@@ -1,7 +1,7 @@
 /**
  * Fototests, aufgeteilt auf mehrere Testdateien unter test/fotos/. node --test laesst Dateien
  * parallel laufen, die Tests einer Datei aber nacheinander - mit einer einzigen Datei bestimmten die
- * 53 echten Fotos allein die Laufzeit von npm test. Jede Datei prueft nur ihren Teil: jedes
+ * echten Fotos allein die Laufzeit von npm test. Jede Datei prueft nur ihren Teil: jedes
  * `von`-te Foto bzw. jede `von`-te Zettelart, beginnend bei `teil`.
  */
 import test from 'node:test';
@@ -23,28 +23,27 @@ const pruefeWertung = async (typ, datei) => {
   return result.felder.filter(feld => feld.status !== 'leer');
 };
 
-const serien = [['fotos-serie1', 20], ['fotos-serie2', 33], ['fotos-serie3', 4]]
-  .map(([name, anzahl]) => ({ name, anzahl, folder: new URL(`../Testdaten/bundestagswahl-2017/${name}/`, import.meta.url) }));
+const fotoFolder = new URL('../Testdaten/bundestagswahl-2017/fotos/', import.meta.url);
+const ANZAHL_FOTOS = 58;
 
 /**
- * Echte Smartphone-Fotos vom Bundestagszettel. Die Manifeste prueft nur Teil 1. Ein `todo` im
- * Manifest kennzeichnet eine bekannte Luecke der Erkennung samt Begruendung.
+ * Echte Smartphone-Fotos vom Bundestagszettel (`serie` im Manifest nennt die Aufnahmeserie). Das
+ * Manifest prueft nur Teil 1. Ein `todo` im Manifest kennzeichnet eine bekannte Luecke der Erkennung
+ * samt Begruendung.
  */
 export const testeEchteFotos = (teil, von) => {
   const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
+  const manifest = readManifest(fotoFolder);
   if (teil === 1)
-    for (const { name, anzahl, folder } of serien)
-      test(`${name}: Manifest enthaelt alle ${anzahl} JPEG-Aufnahmen`, () => {
-        const manifest = readManifest(folder);
-        assert.equal(manifest.anzahl, anzahl);
-        assert.equal(manifest.faelle.length, manifest.anzahl);
-        assert.deepEqual(sorted(readdirSync(folder).filter(datei => datei.endsWith('.jpg'))), sorted(manifest.faelle.map(fall => fall.datei)));
-      });
+    test(`Manifest enthaelt alle ${ANZAHL_FOTOS} JPEG-Aufnahmen`, () => {
+      assert.equal(manifest.anzahl, ANZAHL_FOTOS);
+      assert.equal(manifest.faelle.length, manifest.anzahl);
+      assert.deepEqual(sorted(readdirSync(fotoFolder).filter(datei => datei.endsWith('.jpg'))), sorted(manifest.faelle.map(fall => fall.datei)));
+    });
 
-  const faelle = serien.flatMap(({ name, folder }) => readManifest(folder).faelle.map(fall => ({ ...fall, name, folder })));
-  for (const fall of faelle.filter(imTeil(teil, von)))
-    test(`${fall.name}: ${fall.datei} wird wie im Manifest gewertet`, { todo: fall.todo }, async () => {
-      const markiert = await pruefeWertung(typ, new URL(fall.datei, fall.folder));
+  for (const fall of manifest.faelle.filter(imTeil(teil, von)))
+    test(`Foto ${fall.datei} wird wie im Manifest gewertet`, { todo: fall.todo }, async () => {
+      const markiert = await pruefeWertung(typ, new URL(fall.datei, fotoFolder));
       assert.deepEqual(sorted(markiert.map(feld => feld.id)), sorted(fall.markierungen));
       assert.ok(markiert.every(feld => feld.status === 'angekreuzt'));
     });
@@ -52,7 +51,8 @@ export const testeEchteFotos = (teil, von) => {
 
 /**
  * Synthetische Fotos, erzeugt mit scripts/erzeugeSynthetischeFotos.js: je Zettelart drei Lagen
- * (gerade, schraeg, gedreht) unter Testdaten/<kalibrierung>/synthetisch/.
+ * (gerade, schraeg, gedreht) unter Testdaten/<kalibrierung>/synthetisch/ (`art: 'foto'`; die Scans
+ * im selben Ordner prueft fixtures.test.js).
  */
 export const testeSynthetischeFotos = (teil, von) => {
   const kalibrierungen = readdirSync(new URL('../Kalibrierungen/', import.meta.url)).filter(datei => datei.endsWith('.json'));
@@ -64,12 +64,12 @@ export const testeSynthetischeFotos = (teil, von) => {
       const manifest = readManifest(folder);
       assert.equal(manifest.kalibrierung, kalibrierung);
       assert.equal(manifest.faelle.length, manifest.anzahl);
-      assert.deepEqual(sorted(readdirSync(folder).filter(datei => datei.endsWith('.jpg'))), sorted(manifest.faelle.map(fall => fall.datei)));
+      assert.deepEqual(sorted(readdirSync(folder).filter(datei => datei.endsWith('.jpg'))), sorted(manifest.faelle.filter(fall => fall.art === 'foto').map(fall => fall.datei)));
     });
     if (!existsSync(new URL('manifest.json', folder))) continue;
 
     const typ = loadKalibrierung(readFileSync(new URL(`../Kalibrierungen/${kalibrierung}`, import.meta.url), 'utf8'));
-    for (const fall of readManifest(folder).faelle)
+    for (const fall of readManifest(folder).faelle.filter(fall => fall.art === 'foto'))
       test(`${kalibrierung}: ${fall.datei} wird wie im Manifest gewertet`, async () => {
         const markiert = await pruefeWertung(typ, new URL(fall.datei, folder));
         assert.deepEqual(sorted(markiert.map(feld => feld.id)), sorted(fall.markierungen));

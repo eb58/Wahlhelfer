@@ -153,17 +153,18 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 ## Pruefen
 
 - Testdaten liegen je Zettelart unter `Testdaten/<kalibrierung>/` (Name wie die Datei in
-  `Kalibrierungen/`): `musterzettel.png`, dazu je nach Bestand `scans/`, `fotos-serie<n>/`
-  und `synthetisch/`, jeweils mit `manifest.json`. Neue Zettelart = neuer Ordner.
+  `Kalibrierungen/`): `musterzettel.png`, dazu je nach Bestand `fotos/` (echte Fotos, im Manifest mit `serie`)
+  und `synthetisch/` (alles Erzeugte; im Manifest je Fall `art: 'scan'` oder `'foto'`), jeweils mit
+  `manifest.json`. Neue Zettelart = neuer Ordner.
 
 - Vor dem Abschluss die betroffenen Tests ausfuehren.
 - Der pre-commit-Hook (`.githooks/pre-commit`, aktiv nach `npm install` ueber `prepare`) prueft die
   vorgemerkten Textdateien auf UTF-8 und Mojibake (`scripts/pruefeTextkodierung.js`), laesst bei
   JS/JSON/HTML/CSS, Kalibrierungen oder Testdaten `npm test` und bei `server/` `npm run test:php` laufen.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
-- Die Fototests enthalten derzeit 20 Aufnahmen aus `bundestagswahl-2017/fotos-serie1`, 33 aus
-  `bundestagswahl-2017/fotos-serie2` und 4 aus `fotos-serie3` (u. a. blasse Kreuze auf getoentem Papier,
-  ein quer gespeichertes Foto); alle laufen ueber den Ringpfad. Bekannte Luecken stuenden im Manifest
+- Die Fototests enthalten derzeit 58 Aufnahmen aus `bundestagswahl-2017/fotos` (drei Serien und ein
+  gespeicherter Beleg, u. a. blasse Kreuze auf getoentem Papier, ein quer gespeichertes Foto); alle
+  laufen ueber den Ringpfad. Bekannte Luecken stuenden im Manifest
   als `todo` mit Begruendung. Damit `node --test` sie parallel
   rechnet, sind sie auf mehrere Dateien verteilt (`test/fotos/`, Ablauf in `test/fotoTests.js`); `npm test`
   dauert so rund 9 s. Eine Datei laeuft in sich nacheinander - lange Testreihen also aufteilen.

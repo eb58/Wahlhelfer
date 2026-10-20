@@ -4,8 +4,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { loadKalibrierung } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
 import { readImage } from './fotoWerkstatt.js';
 
-const fixtureFolder = new URL('../Testdaten/bundestagswahl-2017/scans/', import.meta.url);
-const manifest = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder), 'utf8'));
+// Die Scan-Faelle (Papier fuellt das Bild) aus Testdaten/<kalibrierung>/synthetisch/; die Fotos dort prueft fotoTests.js.
+const fixtureFolder = new URL('../Testdaten/bundestagswahl-2017/synthetisch/', import.meta.url);
+const scans = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder), 'utf8')).faelle.filter(fall => fall.art === 'scan');
 const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
 const pngFiles = readdirSync(fixtureFolder).filter(datei => datei.endsWith('.png')).sort();
 const sorted = values => [...values].sort();
@@ -16,13 +17,12 @@ const expectedStimmStatus = (stimme, markierungen) => {
   return count > stimme.auswahl ? 'mehrfach' : count === stimme.auswahl ? 'gueltig' : 'leer';
 };
 
-test('Manifest und Fixture-Ordner enthalten dieselben 100 Fälle', () => {
-  assert.equal(manifest.anzahl, 100);
-  assert.equal(manifest.faelle.length, manifest.anzahl);
-  assert.deepEqual(pngFiles, sorted(manifest.faelle.map(testCase => testCase.datei)));
+test('Manifest und Fixture-Ordner enthalten dieselben 100 Scan-Fälle', () => {
+  assert.equal(scans.length, 100);
+  assert.deepEqual(pngFiles, sorted(scans.map(testCase => testCase.datei)));
 });
 
-for (const testCase of manifest.faelle) {
+for (const testCase of scans) {
   test(`Fixture ${testCase.datei} entspricht dem Manifest`, async () => {
     const image = await readImage(readFileSync(new URL(testCase.datei, fixtureFolder)));
     const expected = sorted(testCase.markierungen);

@@ -3,12 +3,13 @@
  *
  * Der Musterzettel bekommt je Stimme ein Kreuz und wird perspektivisch auf einen Holztisch mit
  * Helligkeitsverlauf und Rauschen gelegt. Die Ergebnisse liegen je Zettelart als JPEG mit Manifest
- * unter `Testdaten/<kalibrierung>/synthetisch/` und werden von `test/fotos/synthetisch-*.test.js` gelesen.
+ * unter `Testdaten/<kalibrierung>/synthetisch/` (`art: 'foto'`, vorhandene Scan-Faelle dort bleiben stehen)
+ * und werden von `test/fotos/synthetisch-*.test.js` gelesen.
  * Neu erzeugen nur, wenn sich Musterzettel oder Kalibrierung aendern:
  *   node scripts/erzeugeSynthetischeFotos.js
  * Der Zufall ist fest geseedet - dieselben Eingaben ergeben dieselben Bilder.
  */
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { readImage } from '../test/fotoWerkstatt.js';
@@ -127,9 +128,13 @@ for (const kalibrierung of zettelarten) {
     const datei = `${lage}.jpg`;
     await writeJpeg(foto, new URL(datei, folder));
     console.log(kalibrierung, datei, markierungen.join(' '));
-    return { datei, lage, markierungen };
+    return { datei, art: 'foto', lage, markierungen };
   }));
-  const manifest = { erzeugtMit: 'scripts/erzeugeSynthetischeFotos.js', kalibrierung, anzahl: faelle.length, faelle };
+  // Die Scan-Faelle im selben Ordner stammen nicht von hier und bleiben erhalten.
+  const manifestUrl = new URL('manifest.json', folder);
+  const scans = existsSync(manifestUrl) ? JSON.parse(readFileSync(manifestUrl, 'utf8')).faelle.filter(fall => fall.art === 'scan') : [];
+  const alle = [...scans, ...faelle];
+  const manifest = { fotosErzeugtMit: 'scripts/erzeugeSynthetischeFotos.js', kalibrierung, anzahl: alle.length, faelle: alle };
   writeFileSync(new URL('manifest.json', folder), `${JSON.stringify(manifest, null, 2)}
 `);
 }

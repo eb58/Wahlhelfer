@@ -186,7 +186,7 @@ des Ringradius, also außerhalb des gedruckten Rings, je Achtelsektor das 30. Pe
 und über den Ring hinausgehende Striche liegen darüber und zählen nicht. Ein Schattenverlauf quer
 über das Feld wird dadurch nicht zum Strich, ein ganz ausgemaltes Feld hebt seinen eigenen
 Hintergrund nicht an. Erst so reicht der kleine Abstand von 0,07, mit dem auch dünne, blasse
-Kugelschreiberkreuze auf getöntem Papier zählen (`fotos-serie3/blau-e4-z4.jpg`). Leere Felder
+Kugelschreiberkreuze auf getöntem Papier zählen (`fotos/blau-e4-z4.jpg`). Leere Felder
 liegen auf allen echten Fotos erst ab 0,03 überhaupt über dem Papier. Scans messen weiter mit
 festem Schwellwert (`darkRatio`).
 
@@ -235,11 +235,13 @@ Ein Foto von 1600 Pixel Breite braucht für die Erkennung am PC etwa 230 ms.
 Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Zettelart unter
 `Testdaten/<kalibrierung>/`:
 
-- `scans/`: aus dem Musterzettel erzeugte PNG-Fälle (Kreuze, Mehrfach, Rauschen, Drehung),
-- `fotos-serie<n>/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (57 Stück, eines davon
-  quer gespeichert),
-- `synthetisch/`: für jede Zettelart drei künstliche Fotos (gerade, leicht schräg,
-  4 Grad gedreht), erzeugt mit `node scripts/erzeugeSynthetischeFotos.js`.
+- `fotos/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (58 Stück aus drei
+  Aufnahmeserien und ein gespeicherter Beleg, im Manifest als `serie`; eines davon quer gespeichert),
+- `synthetisch/`: alle künstlich erzeugten Fälle mit einem gemeinsamen Manifest, je Fall `art`:
+  `scan` sind aus dem Musterzettel erzeugte PNG-Fälle, bei denen das Papier das Bild füllt (Kreuze,
+  Mehrfach, Rauschen, Drehung; bisher nur Bundestagszettel, geprüft in `test/fixtures.test.js`),
+  `foto` für jede Zettelart drei künstliche Fotos (gerade, leicht schräg, 4 Grad gedreht), erzeugt
+  mit `node scripts/erzeugeSynthetischeFotos.js`, das die Scan-Fälle im Manifest stehen lässt.
 
 Fotos und synthetische Fotos werden über die Ankreuzringe gewertet. Die Tests laden
 JPEGs mit `sharp` und verkleinern sie wie der Browser auf 1600 Pixel Breite.
