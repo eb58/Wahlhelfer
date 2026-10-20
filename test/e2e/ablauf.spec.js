@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { KONTEN, PASSWORT, STARTPASSWORT, WAHLLOKAL, createWahlvorstand } from './stack.js';
 
 const foto = datei => fileURLToPath(new URL(`../../Testdaten/bundestagswahl-2017/fotos/${datei}`, import.meta.url));
-const EINDEUTIG = foto('PXL_20260803_190650402.jpg'); // E1 + Z4
+const EINDEUTIG = foto('original/PXL_20260803_190650402.jpg'); // E1 + Z4
 const PRUEFFALL = foto('PXL_20260803_190656590.jpg'); // nur E1, Zweitstimme leer
 const QUER = fileURLToPath(new URL('../../Testdaten/bundestagswahl-2017/fotos/gedreht-e4-z4.jpg', import.meta.url)); // E4 + Z4
 

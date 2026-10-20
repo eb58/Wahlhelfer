@@ -8,17 +8,20 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { loadKalibrierung } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
-import { readFoto } from './fotoWerkstatt.js';
+import { rotateImage } from '../src/erfassungsplatz/erkennung/image.js';
+import { readImage } from './fotoWerkstatt.js';
 
 const sorted = values => [...values].sort();
 const imTeil = (teil, von) => (_, index) => index % von === teil - 1;
 const readManifest = folder => JSON.parse(readFileSync(new URL('manifest.json', folder), 'utf8'));
 
-/** Wie der Erfassungsplatz: ein quer gespeichertes Foto wird als aufrechter Beleg neu erzeugt und erneut erkannt. */
+/**
+ * Die Fixtures sind bereits die vom Erfassungsplatz gespeicherten Beleg-JPEGs.
+ */
 const pruefeWertung = async (typ, datei) => {
-  const bytes = readFileSync(datei);
-  const erste = await typ.recognize(await readFoto(bytes));
-  const result = erste.rotation ? await typ.recognize(await readFoto(bytes, { rotation: erste.rotation })) : erste;
+  const image = await readImage(readFileSync(datei));
+  const erste = await typ.recognize(image);
+  const result = erste.rotation ? await typ.recognize(rotateImage(image, erste.rotation)) : erste;
   assert.equal(result.rotation, 0, 'der aufrechte Beleg traegt ohne weitere Drehung');
   return result.felder.filter(feld => feld.status !== 'leer');
 };

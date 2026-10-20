@@ -12,7 +12,8 @@ import { readFoto } from '../fotoWerkstatt.js';
 
 const typ = loadKalibrierung(readFileSync(new URL('../../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
 // E1 + Z4
-const foto = readFoto(readFileSync(new URL('../../Testdaten/bundestagswahl-2017/fotos/PXL_20260803_190650402.jpg', import.meta.url)));
+const original = new URL('../../Testdaten/bundestagswahl-2017/fotos/original/PXL_20260803_190650402.jpg', import.meta.url);
+const foto = readFoto(readFileSync(original));
 
 test('ein um 270 Grad gedrehtes Foto wird aufgerichtet und richtig gewertet', async () => {
   const result = await typ.recognize(rotateImage(await foto, 3));
