@@ -56,8 +56,10 @@ JPEG (Qualität 85). Der Browser erzeugt dieses Bild direkt nach der Aufnahme un
 dieses Bild, nicht das Kamera-Original. Damit reproduziert der Beleg die Wertung, und ein Handyfoto
 schrumpft von rund 3 MB auf rund 0,5 MB. An allen 53 echten Fotos geprüft: Selbst bei Qualität 30
 ändert sich keine Wertung; die Fototests erkennen genau dieses Beleg-JPEG. Die Belege liegen im Belegordner der PHP-API (`bilder_path`, Standard `php-api/bilder/`); die DB enthält ihren SHA-256-Hash
-und Dateityp. Der Hash bestimmt den Dateinamen, verbindet Aufnahme und Ergebnis und wird beim
-Abruf geprüft. Bilder sind ausschließlich über die authentifizierte Server-API zugänglich.
+und Dateityp. Der Hash bestimmt den Dateinamen (`<sha256>.jpg`, `.png`, `.webp` oder `.gif` nach
+dem am Inhalt erkannten Typ), verbindet Aufnahme und Ergebnis und wird beim Abruf geprüft. Ältere
+Belege liegen als `<sha256>.bin` vor; die API liest sie weiter, `php -q belege-umbenennen.php`
+benennt die Bilder darunter einmalig um. Bilder sind ausschließlich über die authentifizierte Server-API zugänglich.
 Das ControlCenter zeigt pro Stapel die einzelnen Zettel mit Ergebnis und Beleg.
 Ältere Belege aus der Zeit vor der Verkleinerung (PNG, Original-JPEG, PDF) bleiben gültig und abrufbar.
 

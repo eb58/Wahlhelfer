@@ -81,7 +81,7 @@ und Gratulationsdienst (Strato, MariaDB 11.8). MySQL 8 funktioniert ebenso. Die 
 wahlassistent/                           Inhalt von dist/ plus configuration.js
 wahlassistent/php-api/                   index.php, lib.php, config.php, schema.sql, .htaccess
 wahlassistent/php-api/config.local.php   Zugangsdaten, nur beim Hoster
-wahlassistent/php-api/bilder/            Originalbelege, legt die API selbst an
+wahlassistent/php-api/bilder/            Originalbelege als <sha256>.jpg/.png, legt die API selbst an
 ```
 
 Das Frontend spricht `php-api/index.php/api/…` relativ an; für das Routing braucht es kein

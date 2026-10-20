@@ -13,7 +13,7 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $deployDir = Join-Path $projectRoot ".deploy\wahlassistent"
 # bilder/ (Originalbelege) liegt nur beim Hoster und bleibt dort. config.local.php entsteht aus den
 # STRATO_DB_*-Eintraegen der .env; fehlen sie, bleibt die Datei beim Hoster unangetastet.
-$apiFiles = @(".htaccess", "config.php", "config.local.example.php", "create-user.php", "import-wahllokale.php",
+$apiFiles = @(".htaccess", "belege-umbenennen.php", "config.php", "config.local.example.php", "create-user.php", "import-wahllokale.php",
     "index.php", "lib.php", "migration-stimmzettelmeldung.sql", "schema.sql", "wahllokalImport.php")
 $sshOpt = "-o UpdateHostKeys=no"
 $remoteApp = "${Webroot}/${AppPath}"

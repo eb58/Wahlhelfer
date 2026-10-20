@@ -102,7 +102,7 @@ final class WahlTest extends TestCase
         // PDFs nimmt der Server nicht mehr an; aeltere PDF-Belege liefert er weiter mit ihrem gespeicherten Typ aus.
         $this->assertNull(detectBildType('%PDF-1.7'));
         $this->assertNull(detectBildType('<svg>'));
-        $this->assertApiError(400, '/Belegkennung/', static fn() => bildPath('../config.local'));
+        $this->assertApiError(400, '/Belegkennung/', static fn() => bildPath('../config.local', 'php'));
     }
 
     public function testHerkunftWirdGeprueft(): void

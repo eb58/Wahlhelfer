@@ -170,6 +170,24 @@ final class ApiTest extends DatabaseTestCase
         $this->assertSame([1, 1, 1, 1], [$result['gueltig'], $result['leer'], $result['wahlvorschlaege'][0]['anzahl'], $result['wahlvorschlaege'][1]['anzahl']]);
     }
 
+    public function testAeltereBinBelegeBleibenLesbarUndWerdenUmbenannt(): void
+    {
+        $png = base64_decode(TEST_PNG);
+        $hash = hash('sha256', $png);
+        $pdf = '%PDF-1.7 aelterer Beleg';
+        mkdir($this->bilderPath);
+        file_put_contents("$this->bilderPath/$hash.bin", $png);
+        file_put_contents($this->bilderPath . '/' . hash('sha256', $pdf) . '.bin', $pdf);
+        $this->assertSame('image/png', storedBildType($hash), 'vor dem Umbenennen ueber .bin gefunden');
+        $this->assertSame(200, $this->request('PUT', "/api/bilder/$hash", $png, 'image/png')->statusCode, 'nicht doppelt gespeichert');
+
+        $this->assertSame(['umbenannt' => 1, 'unbekannt' => [hash('sha256', $pdf) . '.bin']], renameBinBelege());
+        $this->assertFileExists("$this->bilderPath/$hash.png");
+        $this->assertFileDoesNotExist("$this->bilderPath/$hash.bin");
+        $this->assertSame("$this->bilderPath/$hash.png", findBild($hash));
+        $this->assertSame(['umbenannt' => 0, 'unbekannt' => [hash('sha256', $pdf) . '.bin']], renameBinBelege(), 'ein zweiter Lauf aendert nichts');
+    }
+
     public function testBelegeWerdenGeprueftGespeichertUndNurMitZugangAusgeliefert(): void
     {
         $png = base64_decode(TEST_PNG);
@@ -181,6 +199,7 @@ final class ApiTest extends DatabaseTestCase
         $this->assertSame(200, $this->request('PUT', "/api/bilder/$hash", $png, 'image/png')->statusCode);
         $this->assertSame("Require all denied\n", file_get_contents($this->bilderPath . '/.htaccess'));
         $this->assertSame([], glob($this->bilderPath . '/*.tmp'));
+        $this->assertFileExists("$this->bilderPath/$hash.png", 'Endung nach erkanntem Bildtyp');
 
         $lokal = $this->wahllokal();
         $missing = ['bild' => ['hash' => str_repeat('b', 64), 'type' => 'image/png']] + $this->zettel();

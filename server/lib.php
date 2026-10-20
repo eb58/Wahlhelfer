@@ -4,6 +4,8 @@ declare(strict_types=1);
 const JSON_FLAGS = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS | JSON_THROW_ON_ERROR;
 const STATUS = ['gueltig', 'leer', 'mehrfach', 'zweifelsfall'];
 const BILD_MAX = 20 * 1024 * 1024;
+/** Dateiendung je Bildtyp. Aeltere Belege liegen noch als .bin vor (belege-umbenennen.php). */
+const BILD_ENDUNGEN = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp', 'image/gif' => 'gif'];
 const JSON_MAX = 4 * 1024 * 1024;
 const LOCK_NAME = "SHA2(CONCAT('wahlassistent:', DATABASE()), 256)";
 const ROLLEN = ['admin', 'wahlvorstand'];
@@ -658,28 +660,57 @@ function detectBildType(string $head): ?string
     return null;
 }
 
-/** Der SHA-256 der Datei ist ihr Name: gleiche Aufnahmen liegen nur einmal vor. */
-function bildPath(string $hash): string
+/**
+ * Der SHA-256 der Datei ist ihr Name, die Endung folgt dem erkannten Bildtyp: gleiche Aufnahmen liegen
+ * nur einmal vor, und wer per SSH oder FTP in den Ordner schaut, kann sie direkt oeffnen.
+ */
+function bildPath(string $hash, string $endung): string
 {
     if (!preg_match('/^[a-f0-9]{64}$/', $hash)) throw new ApiError('Ungültige Belegkennung.');
-    return rtrim((string) config()['bilder_path'], '/\\') . '/' . $hash . '.bin';
+    return rtrim((string) config()['bilder_path'], '/\\') . '/' . $hash . '.' . $endung;
+}
+
+/** Die gespeicherte Datei zu einem Hash, oder null. */
+function findBild(string $hash): ?string
+{
+    foreach ([...array_values(BILD_ENDUNGEN), 'bin'] as $endung)
+        if (is_file($path = bildPath($hash, $endung))) return $path;
+    return null;
+}
+
+/** Benennt aeltere .bin-Belege nach ihrem Bildtyp um (belege-umbenennen.php). Unbekannte Inhalte bleiben liegen. */
+function renameBinBelege(): array
+{
+    $umbenannt = 0;
+    $unbekannt = [];
+    foreach (glob(rtrim((string) config()['bilder_path'], '/\\') . '/*.bin') ?: [] as $path) {
+        $type = detectBildType((string) file_get_contents($path, false, null, 0, 16));
+        if ($type === null) {
+            $unbekannt[] = basename($path);
+            continue;
+        }
+        $ziel = substr($path, 0, -4) . '.' . BILD_ENDUNGEN[$type];
+        if (is_file($ziel) ? unlink($path) : rename($path, $ziel)) $umbenannt++;
+    }
+    return ['umbenannt' => $umbenannt, 'unbekannt' => $unbekannt];
 }
 
 function storedBildType(string $hash): ?string
 {
-    $head = @file_get_contents(bildPath($hash), false, null, 0, 16);
+    $path = findBild($hash);
+    $head = $path === null ? false : @file_get_contents($path, false, null, 0, 16);
     return $head === false ? null : detectBildType($head);
 }
 
 /** Speichert einen Beleg aus dem Stream erst nach Pruefung von Hash und Dateityp. True, wenn er neu ist. */
 function storeBild(string $hash, string $type, $stream): bool
 {
-    $path = bildPath($hash);
-    if (is_file($path)) {
-        if (hash_file('sha256', $path) !== $hash) throw new RuntimeException('Beleg-Prüfsumme stimmt nicht: ' . $path);
+    $existing = findBild($hash);
+    if ($existing !== null) {
+        if (hash_file('sha256', $existing) !== $hash) throw new RuntimeException('Beleg-Prüfsumme stimmt nicht: ' . $existing);
         return false;
     }
-    $dir = dirname($path);
+    $dir = dirname(bildPath($hash, 'bin'));
     if (!is_dir($dir) && !mkdir($dir, 0770, true) && !is_dir($dir)) throw new RuntimeException('Belegordner kann nicht angelegt werden: ' . $dir);
     if (!is_file($dir . '/.htaccess')) file_put_contents($dir . '/.htaccess', "Require all denied\n");
     $temporary = $dir . '/' . $hash . '.' . bin2hex(random_bytes(8)) . '.tmp';
@@ -692,6 +723,7 @@ function storeBild(string $hash, string $type, $stream): bool
         $detected = detectBildType((string) file_get_contents($temporary, false, null, 0, 16));
         if ($detected === null) throw new ApiError('Beleg muss ein PNG-, JPEG-, WebP- oder GIF-Bild sein.');
         if ($detected !== $type) throw new ApiError('Dateityp der Originalaufnahme stimmt nicht.');
+        $path = bildPath($hash, BILD_ENDUNGEN[$detected]);
         if (!rename($temporary, $path) && !is_file($path)) throw new RuntimeException('Beleg konnte nicht gespeichert werden: ' . $path);
         return true;
     } finally {
@@ -704,7 +736,8 @@ function loadStimmzettelBild(string $id): array
 {
     $row = query('SELECT bildhash, bildtyp FROM stimmzettel WHERE id = ?', [$id])[0] ?? null;
     if (!$row) throw new ApiError('Stimmzettel nicht gefunden.', 404);
-    $data = @file_get_contents(bildPath($row['bildhash']));
+    $path = findBild($row['bildhash']);
+    $data = $path === null ? false : @file_get_contents($path);
     if ($data === false) throw new ApiError('Originalbeleg fehlt auf dem Server.', 404);
     if (hash('sha256', $data) !== $row['bildhash']) throw new RuntimeException('Beleg-Prüfsumme stimmt nicht: ' . $row['bildhash']);
     return ['data' => $data, 'type' => $row['bildtyp']];
