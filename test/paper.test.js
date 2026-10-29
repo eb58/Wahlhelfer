@@ -64,7 +64,7 @@ test('findPaper ignoriert ein getrenntes helles Blatt neben dem Wahlzettel', () 
 
 test('findPaper trennt das zweite Blatt im problematischen Foto ab', async () => {
   const image = await readImage(readFileSync(new URL(
-    '../Testdaten/bundestagswahl-2017/fotos/PXL_20260803_201232140.jpg', import.meta.url),
+    '../Wahlen/bundestagswahl-2017/testdaten/fotos/PXL_20260803_201232140.jpg', import.meta.url),
   ));
   const paper = findPaper(image);
   assert.ok(paper);

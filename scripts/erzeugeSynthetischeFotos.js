@@ -3,7 +3,7 @@
  *
  * Der Musterzettel bekommt je Stimme ein Kreuz und wird perspektivisch auf einen Holztisch mit
  * Helligkeitsverlauf und Rauschen gelegt. Die Ergebnisse liegen je Zettelart als JPEG mit Manifest
- * unter `Testdaten/<wahl>/synthetisch/` (`art: 'foto'`, vorhandene Scan-Faelle dort bleiben stehen)
+ * unter `Wahlen/<wahl>/testdaten/synthetisch/` (`art: 'foto'`, vorhandene Scan-Faelle dort bleiben stehen)
  * und werden von `test/fotos/synthetisch-*.test.js` gelesen.
  * Neu erzeugen nur, wenn sich Musterzettel oder Kalibrierung aendern:
  *   node scripts/erzeugeSynthetischeFotos.js
@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { readImage } from '../test/fotoWerkstatt.js';
 import { loadKalibrierung } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
+import { rotateImage } from '../src/erfassungsplatz/erkennung/image.js';
 
 const root = new URL('../', import.meta.url);
 
@@ -105,6 +106,20 @@ const lagen = {
   },
 };
 
+/**
+ * Je Lage ein anderes Feld, damit nicht immer dieselbe Zeile angekreuzt ist; dazu ein quer gespeichertes
+ * Foto (aufzurichten), eines mit zwei Kreuzen je Stimme und ein leeres (beide nicht eindeutig).
+ */
+const getFaelle = typ => {
+  const feld = (stimme, index) => typ.felder.filter(row => row.stimme === stimme.id)[index].id;
+  return [
+    ...Object.keys(lagen).map((lage, index) => ({ datei: `${lage}.jpg`, lage, markierungen: typ.stimmen.map(stimme => feld(stimme, index + 1)) })),
+    { datei: 'quer.jpg', lage: 'gerade', drehung: 1, markierungen: typ.stimmen.map(stimme => feld(stimme, 4)) },
+    { datei: 'mehrfach.jpg', lage: 'gerade', markierungen: typ.stimmen.flatMap(stimme => [feld(stimme, 0), feld(stimme, 2)]) },
+    { datei: 'leer.jpg', lage: 'gerade', markierungen: [] },
+  ];
+};
+
 const writeJpeg = ({ width, height, data }, url) =>
   sharp(Buffer.from(data.buffer), { raw: { width, height, channels: 4 } }).jpeg({ quality: 85 }).toFile(fileURLToPath(url));
 
@@ -112,22 +127,20 @@ for (const wahl of readdirSync(new URL('Wahlen/', root))) {
   const json = readFileSync(new URL(`Wahlen/${wahl}/kalibrierung.json`, root), 'utf8');
   const typ = loadKalibrierung(json);
   const muster = await readImage(readFileSync(new URL(JSON.parse(json).quelle, root)));
-  const folder = new URL(`Testdaten/${wahl}/synthetisch/`, root);
+  const folder = new URL(`Wahlen/${wahl}/testdaten/synthetisch/`, root);
   mkdirSync(folder, { recursive: true });
   const width = 1200, height = Math.round(width * muster.height / muster.width * 1.25);
-  const faelle = await Promise.all(Object.entries(lagen).map(async ([lage, ecken], index) => {
-    // Je Lage ein anderes Feld, damit nicht immer dieselbe Zeile angekreuzt ist.
-    const markierungen = typ.stimmen.map(stimme => typ.felder.filter(feld => feld.stimme === stimme.id)[index + 1].id);
-    const foto = fotografiere(kreuzeAn(muster, typ, markierungen), { width, height, quad: ecken(width, height), seed: index + 1 });
-    const datei = `${lage}.jpg`;
-    await writeJpeg(foto, new URL(datei, folder));
-    console.log(wahl, datei, markierungen.join(' '));
-    return { datei, art: 'foto', lage, markierungen };
-  }));
-  // Die Scan-Faelle im selben Ordner stammen nicht von hier und bleiben erhalten.
+  // Scan-Faelle und bekannte Luecken (`todo`) im vorhandenen Manifest stammen nicht von hier und bleiben erhalten.
   const manifestUrl = new URL('manifest.json', folder);
-  const scans = existsSync(manifestUrl) ? JSON.parse(readFileSync(manifestUrl, 'utf8')).faelle.filter(fall => fall.art === 'scan') : [];
-  const alle = [...scans, ...faelle];
+  const bisher = existsSync(manifestUrl) ? JSON.parse(readFileSync(manifestUrl, 'utf8')).faelle : [];
+  const todo = datei => bisher.find(fall => fall.datei === datei)?.todo;
+  const faelle = await Promise.all(getFaelle(typ).map(async ({ datei, lage, drehung = 0, markierungen }, index) => {
+    const foto = fotografiere(kreuzeAn(muster, typ, markierungen), { width, height, quad: lagen[lage](width, height), seed: index + 1 });
+    await writeJpeg(rotateImage(foto, drehung), new URL(datei, folder));
+    console.log(wahl, datei, markierungen.join(' '));
+    return { datei, art: 'foto', lage, ...(drehung ? { drehung } : {}), markierungen, ...(todo(datei) ? { todo: todo(datei) } : {}) };
+  }));
+  const alle = [...bisher.filter(fall => fall.art === 'scan'), ...faelle];
   const manifest = { fotosErzeugtMit: 'scripts/erzeugeSynthetischeFotos.js', wahl, anzahl: alle.length, faelle: alle };
   writeFileSync(new URL('manifest.json', folder), `${JSON.stringify(manifest, null, 2)}
 `);

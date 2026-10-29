@@ -26,7 +26,7 @@ const pruefeWertung = async (typ, datei) => {
   return result.felder.filter(feld => feld.status !== 'leer');
 };
 
-const fotoFolder = new URL('../Testdaten/bundestagswahl-2017/fotos/', import.meta.url);
+const fotoFolder = new URL('../Wahlen/bundestagswahl-2017/testdaten/fotos/', import.meta.url);
 const ANZAHL_FOTOS = 69;
 
 /**
@@ -54,13 +54,13 @@ export const testeEchteFotos = (teil, von) => {
 
 /**
  * Synthetische Fotos, erzeugt mit scripts/erzeugeSynthetischeFotos.js: je Zettelart drei Lagen
- * (gerade, schraeg, gedreht) unter Testdaten/<wahl>/synthetisch/ (`art: 'foto'`; die Scans
+ * (gerade, schraeg, gedreht) unter Wahlen/<wahl>/testdaten/synthetisch/ (`art: 'foto'`; die Scans
  * im selben Ordner prueft fixtures.test.js).
  */
 export const testeSynthetischeFotos = (teil, von) => {
   const wahlen = readdirSync(new URL('../Wahlen/', import.meta.url));
   for (const wahl of wahlen.filter(imTeil(teil, von))) {
-    const folder = new URL(`../Testdaten/${wahl}/synthetisch/`, import.meta.url);
+    const folder = new URL(`../Wahlen/${wahl}/testdaten/synthetisch/`, import.meta.url);
 
     test(`${wahl}: synthetische Fotos sind vollstaendig`, () => {
       assert.ok(existsSync(new URL('manifest.json', folder)), 'node scripts/erzeugeSynthetischeFotos.js ausfuehren');
@@ -73,7 +73,7 @@ export const testeSynthetischeFotos = (teil, von) => {
 
     const typ = loadKalibrierung(readFileSync(new URL(`../Wahlen/${wahl}/kalibrierung.json`, import.meta.url), 'utf8'));
     for (const fall of readManifest(folder).faelle.filter(fall => fall.art === 'foto'))
-      test(`${wahl}: ${fall.datei} wird wie im Manifest gewertet`, async () => {
+      test(`${wahl}: ${fall.datei} wird wie im Manifest gewertet`, { todo: fall.todo }, async () => {
         const markiert = await pruefeWertung(typ, new URL(fall.datei, folder));
         assert.deepEqual(sorted(markiert.map(feld => feld.id)), sorted(fall.markierungen));
         assert.ok(markiert.every(feld => feld.status === 'angekreuzt'));

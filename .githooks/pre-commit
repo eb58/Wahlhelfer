@@ -9,7 +9,7 @@ files=$(git diff --cached --name-only --diff-filter=ACMR)
 
 node scripts/pruefeTextkodierung.js
 
-if echo "$files" | grep -qE '\.(js|mjs|json|html|css)$|^(Wahlen|Testdaten)/'; then
+if echo "$files" | grep -qE '\.(js|mjs|json|html|css)$|^Wahlen/'; then
   echo 'pre-commit: npm test'
   node --test --test-reporter=dot 'test/**/*.test.js'
 fi

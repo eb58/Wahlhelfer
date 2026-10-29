@@ -1,7 +1,7 @@
 {
   "fotosErzeugtMit": "scripts/erzeugeSynthetischeFotos.js",
   "wahl": "bundestagswahl-2017",
-  "anzahl": 103,
+  "anzahl": 106,
   "faelle": [
     {
       "datei": "001-leer.png",
@@ -1021,6 +1021,33 @@
         "E4",
         "Z4"
       ]
+    },
+    {
+      "datei": "quer.jpg",
+      "art": "foto",
+      "lage": "gerade",
+      "drehung": 1,
+      "markierungen": [
+        "E5",
+        "Z5"
+      ]
+    },
+    {
+      "datei": "mehrfach.jpg",
+      "art": "foto",
+      "lage": "gerade",
+      "markierungen": [
+        "E1",
+        "E3",
+        "Z1",
+        "Z3"
+      ]
+    },
+    {
+      "datei": "leer.jpg",
+      "art": "foto",
+      "lage": "gerade",
+      "markierungen": []
     }
   ]
 }

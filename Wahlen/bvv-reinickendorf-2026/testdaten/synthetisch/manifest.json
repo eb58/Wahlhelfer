@@ -1,0 +1,56 @@
+{
+  "fotosErzeugtMit": "scripts/erzeugeSynthetischeFotos.js",
+  "wahl": "bvv-reinickendorf-2026",
+  "anzahl": 6,
+  "faelle": [
+    {
+      "datei": "gerade.jpg",
+      "art": "foto",
+      "lage": "gerade",
+      "markierungen": [
+        "L2"
+      ]
+    },
+    {
+      "datei": "schraeg.jpg",
+      "art": "foto",
+      "lage": "schraeg",
+      "markierungen": [
+        "L3"
+      ]
+    },
+    {
+      "datei": "gedreht.jpg",
+      "art": "foto",
+      "lage": "gedreht",
+      "markierungen": [
+        "L4"
+      ]
+    },
+    {
+      "datei": "quer.jpg",
+      "art": "foto",
+      "lage": "gerade",
+      "drehung": 1,
+      "markierungen": [
+        "L5"
+      ],
+      "todo": "Quer gespeichert wird abgelehnt statt aufgerichtet: kopfueber traegt der BVV-Zettel ebenfalls (die Listennummern links stehen dann, wo die Ringe erwartet werden). Ein kopfueber liegender Zettel mit Kreuz wird sogar als leer gewertet."
+    },
+    {
+      "datei": "mehrfach.jpg",
+      "art": "foto",
+      "lage": "gerade",
+      "markierungen": [
+        "L1",
+        "L3"
+      ]
+    },
+    {
+      "datei": "leer.jpg",
+      "art": "foto",
+      "lage": "gerade",
+      "markierungen": []
+    }
+  ]
+}

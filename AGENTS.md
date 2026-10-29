@@ -22,8 +22,9 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 ## Aufbau der Erkennung
 
 - **Je Wahl ein Ordner unter `Wahlen/<wahl>/`:** `kalibrierung.json`, `musterzettel.png` (darauf
-  verweist `quelle`), `druckvorlage-2xA5.pdf` und `gebiet.json`. Neue Wahl heisst: neuer Ordner.
-  Vite liefert nur die beiden `.json` aus, Musterzettel und Druckvorlage kommen nicht in den Build.
+  verweist `quelle`), `druckvorlage-2xA5.pdf`, `gebiet.json` und `testdaten/`. Neue Wahl heisst: neuer
+  Ordner. Vite liefert nur die beiden `.json` direkt im Ordner aus; Musterzettel, Druckvorlage und
+  Testdaten kommen nicht in den Build (`test/build.test.js`).
 - **Die Kalibrierung wird nicht berechnet, sondern abgelesen** - von Hand am leeren Musterzettel
   vermessen. Es gibt bewusst kein Verfahren mehr, das Ankreuzfelder selbst sucht (fruehere
   Kreissuche, Spaltenbildung, Radiusabstimmung) - das war aufwendig und unzuverlaessig.
@@ -80,7 +81,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   den Musterzettel - die Sichtkontrolle nach jeder Aenderung an einer Kalibrierung. Braucht Pillow
   (`pip install pillow`); sonst kommt im Projekt kein Python-Paket vor.
 - `node scripts/erzeugeSynthetischeFotos.js` erzeugt fuer jede Kalibrierung drei synthetische Fotos
-  (gerade, leicht schraeg, 4 Grad gedreht) unter `Testdaten/<wahl>/synthetisch/`. Nur neu
+  (gerade, leicht schraeg, 4 Grad gedreht) unter `Wahlen/<wahl>/testdaten/synthetisch/`. Nur neu
   erzeugen, wenn sich Musterzettel oder Kalibrierung aendern; der Zufall ist fest geseedet.
 - `python scripts/erzeugeDruckvorlage.py Wahlen/<wahl>/kalibrierung.json` legt den Musterzettel zweimal
   auf ein A4-Querblatt (je eine A5-Haelfte) unter `Wahlen/<wahl>/druckvorlage-2xA5.pdf` - zum
@@ -168,15 +169,14 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 
 ## Pruefen
 
-- Testdaten liegen je Wahl unter `Testdaten/<wahl>/` (Name wie der Ordner unter
-  `Wahlen/`): je nach Bestand `fotos/` (echte Fotos, im Manifest mit `serie`)
+- Testdaten liegen je Wahl unter `Wahlen/<wahl>/testdaten/`: je nach Bestand `fotos/` (echte Fotos, im Manifest mit `serie`)
   und `synthetisch/` (alles Erzeugte; im Manifest je Fall `art: 'scan'` oder `'foto'`), jeweils mit
   `manifest.json`.
 
 - Vor dem Abschluss die betroffenen Tests ausfuehren.
 - Der pre-commit-Hook (`.githooks/pre-commit`, aktiv nach `npm install` ueber `prepare`) prueft die
   vorgemerkten Textdateien auf UTF-8 und Mojibake (`scripts/pruefeTextkodierung.js`), laesst bei
-  JS/JSON/HTML/CSS, `Wahlen/` oder Testdaten `npm test` und bei `server/` `npm run test:php` laufen.
+  JS/JSON/HTML/CSS oder `Wahlen/` (samt Testdaten) `npm test` und bei `server/` `npm run test:php` laufen.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
 - Die Fototests enthalten derzeit 69 Aufnahmen aus `bundestagswahl-2017/fotos` (fuenf Serien und ein
   gespeicherter Beleg, u. a. blasse Kreuze auf getoentem Papier, Graustufendrucke, quer gespeicherte

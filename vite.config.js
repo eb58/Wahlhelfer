@@ -10,18 +10,21 @@ export const projectRoot = fileURLToPath(new URL('.', import.meta.url));
 const publicDir = resolve(projectRoot, 'node_modules/.wahlassistent-public');
 const wahlenSource = resolve(projectRoot, 'Wahlen');
 
-const copyFiles = (source, destination, files = readdirSync(source)) => {
-  mkdirSync(destination, { recursive: true });
-  files.forEach(file => copyFileSync(resolve(source, file), resolve(destination, file)));
-};
+/**
+ * Was je Wahl ausgeliefert wird: nur die JSON-Dateien direkt im Ordner (Kalibrierung, Gebiet).
+ * Musterzettel, Druckvorlage und testdaten/ brauchen nur Werkzeuge und Tests.
+ */
+export const getWahlAssets = () => readdirSync(wahlenSource).flatMap(wahl =>
+  readdirSync(resolve(wahlenSource, wahl), { withFileTypes: true })
+    .filter(entry => entry.isFile() && entry.name.endsWith('.json')).map(entry => `${wahl}/${entry.name}`));
 
-// Je Wahl nur Kalibrierung und Gebiet; Musterzettel und Druckvorlage brauchen nur die Werkzeuge.
 const syncAssets = () => {
   // Vorher leeren: sonst bleiben umbenannte oder geloeschte Wahlen als veraltete Kopie liegen.
   rmSync(resolve(publicDir, 'Wahlen'), { recursive: true, force: true });
-  readdirSync(wahlenSource).forEach(wahl =>
-    copyFiles(resolve(wahlenSource, wahl), resolve(publicDir, 'Wahlen', wahl),
-      readdirSync(resolve(wahlenSource, wahl)).filter(file => file.endsWith('.json'))));
+  getWahlAssets().forEach(file => {
+    mkdirSync(resolve(publicDir, 'Wahlen', file, '..'), { recursive: true });
+    copyFileSync(resolve(wahlenSource, file), resolve(publicDir, 'Wahlen', file));
+  });
 };
 
 syncAssets();

@@ -1,5 +1,5 @@
 {
-  "vorlage": "../../../Wahlen/bundestagswahl-2017/musterzettel.png",
+  "vorlage": "../../musterzettel.png",
   "bildgroesse_vorlage": [1248, 1748],
   "anzahl": 69,
   "faelle": [

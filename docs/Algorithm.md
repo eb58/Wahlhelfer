@@ -248,8 +248,8 @@ Ein Foto von 1600 Pixel Breite braucht für die Erkennung am PC etwa 230 ms.
 
 ## 9. Tests und Nachvollziehbarkeit
 
-Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Zettelart unter
-`Testdaten/<wahl>/`:
+Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Wahl unter
+`Wahlen/<wahl>/testdaten/`:
 
 - `fotos/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (69 Stück aus fünf
   Aufnahmeserien und ein gespeicherter Beleg, im Manifest als `serie`; einige davon quer aufgenommen),
