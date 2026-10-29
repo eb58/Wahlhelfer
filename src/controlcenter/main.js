@@ -3,14 +3,14 @@
  * Navigation ueber den Hash (#dashboard, #wahllokal/518 ...), Daten alle 15 Sekunden neu.
  */
 import { abmelden, api, describeUser, setupAnmeldung } from '../api/serverApi.js';
-import { formatZahl, parseRoute } from './auswertung.js';
+import { formatZahl, getWahlName, parseRoute } from './auswertung.js';
 import { ansichten } from './ansichten.js';
 import { showBeleg } from './beleg.js';
 
 const $ = id => document.querySelector(`#${id}`);
 const AKTUALISIERUNG_MS = 15000;
 const SIDEBAR_KEY = 'wahlassistent-controlcenter-sidebar';
-const state = { data: undefined, view: undefined, stapelCache: new Map(), statusFilter: '', stimmeId: undefined };
+const state = { data: undefined, view: undefined, stapelCache: new Map(), statusFilter: '', stimmeId: undefined, wahlkreis: undefined };
 
 const showFehler = error => {
   $('fehler').textContent = error.message;
@@ -20,7 +20,8 @@ const setTitel = titel => {
   $('titel').textContent = titel;
   document.title = `${titel} – ControlCenter`;
 };
-const zeigeBeleg = beleg => showBeleg(beleg, state.data.gesamt.stimmen).catch(showFehler);
+const setWahl = text => { $('wahl').textContent = text; };
+const zeigeBeleg =beleg => showBeleg(beleg, state.data.gesamt.stimmen).catch(showFehler);
 
 let loading = false;
 const refresh = async () => {
@@ -30,7 +31,7 @@ const refresh = async () => {
   try {
     state.data = await api('ergebnisse');
     $('fehler').hidden = true;
-    $('wahl').textContent = state.data.wahl;
+    setWahl(getWahlName(state.data.wahl));
     $('stand').textContent = `Stand ${new Date().toLocaleTimeString('de-DE')}`;
     $('prueffallZahl').textContent = formatZahl(state.data.gesamt.prueffaelle);
     $('prueffallZahl').hidden = !state.data.gesamt.prueffaelle;
@@ -71,7 +72,7 @@ const navigate = () => {
   state.view?.destroy?.();
   $('werkzeuge').replaceChildren();
   $('inhalt').replaceChildren();
-  state.view = ansichten[route.ansicht]({ inhalt: $('inhalt'), werkzeuge: $('werkzeuge'), state, refresh, showFehler, setTitel, zeigeBeleg }, route);
+  state.view = ansichten[route.ansicht]({ inhalt: $('inhalt'), werkzeuge: $('werkzeuge'), state, refresh, showFehler, setTitel, setWahl, zeigeBeleg }, route);
   setTitel(state.view.titel);
   $('werkzeuge').hidden = !$('werkzeuge').childElementCount;
   const aktiv = route.ansicht === 'wahllokal' ? 'wahllokale' : route.ansicht;

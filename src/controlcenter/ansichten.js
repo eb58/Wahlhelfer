@@ -5,11 +5,12 @@
 import { api } from '../api/serverApi.js';
 import { getWahllokalStatus } from '../api/wahllokalAnzeige.js';
 import {
-  STATUS, formatProzent, formatSeit, formatZahl, formatZeitpunkt, getEingaenge, getHandlungsbedarf, getKennzahlen,
-  getLetzterEingang, getStatusArt, getWertungText, parseWahllokalCsv, toErgebnisCsv,
+  STATUS, filterWahlkreis, formatProzent, formatSeit, formatZahl, formatZeitpunkt, getEingaenge, getHandlungsbedarf, getKennzahlen,
+  getLetzterEingang, getStatusArt, getWahlkreise, getWahlName, getWahlTitel, getWertungText, parseWahllokalCsv, toErgebnisCsv,
 } from './auswertung.js';
 import { anteilListe, download, fortschritt, h, metrik, panel, statusBadge, stimmZaehler, zellenKnopf } from './bausteine.js';
 import { createTabelle } from './tabellen.js';
+import { WAHLKREISE } from './wahlkreise.js';
 
 const zuWahllokal = nummer => { globalThis.location.hash = `#wahllokal/${encodeURIComponent(nummer)}`; };
 const wahllokalLink = lokal => h('a', { href: `#wahllokal/${encodeURIComponent(lokal.nummer)}` }, `${lokal.nummer} · ${lokal.name}`);
@@ -44,16 +45,50 @@ const statusVerteilung = (kennzahlen, state) => h('div', { class: 'verteilung' }
     h('a', { href: '#wahllokale', onclick: () => { state.statusFilter = art; } },
       h('span', { class: `punkt status--${art}` }), text, h('strong', {}, kennzahlen.proStatus[art]))))));
 
-/** Jedes Wahllokal als Kachel, gefuellt nach Fortschritt: der Ueberblick ueber 150 Wahllokale auf einen Blick. */
-const kachelKarte = wahllokale => h('div', { class: 'kacheln' }, wahllokale.map(lokal => h('a', {
+const kachel = ({ lokal, bezirk }) => h('a', {
   class: `kachel status--${getStatusArt(lokal)}`, href: `#wahllokal/${encodeURIComponent(lokal.nummer)}`,
   title: `${lokal.nummer} · ${lokal.name}\n${getWahllokalStatus(lokal)} · ${lokal.zettel} / ${lokal.erwartet ?? 'noch nicht gemeldet'}`,
 }, h('span', { class: 'kachel__fuellung', style: `height: ${Math.min(1, lokal.erwartet ? lokal.zettel / lokal.erwartet : 0) * 100}%` }),
-h('span', { class: 'kachel__nummer' }, lokal.nummer))));
+h('span', { class: 'kachel__nummer' }, bezirk));
 
-const dashboard = ({ inhalt, state }) => ({
-  titel: 'Dashboard',
-  update: data => {
+const wahlkreisName = wahlkreis => (wahlkreis ? WAHLKREISE[wahlkreis]?.name ?? `Wahlkreis ${wahlkreis}` : 'Sonstige');
+const wahlkreisTitel = wahlkreis => WAHLKREISE[wahlkreis] && `${WAHLKREISE[wahlkreis].nummer} – ${WAHLKREISE[wahlkreis].name}`;
+
+/** Jedes Wahllokal des Wahlkreises als Kachel, gefuellt nach Fortschritt, geteilt in Urnen- und Briefwahlbezirke. */
+const kachelKarte = gruppe => h('section', { class: 'wahlkreis' },
+  gruppe.wahlkreis && h('h3', {}, wahlkreisName(gruppe.wahlkreis),
+    h('small', { title: WAHLKREISE[gruppe.wahlkreis]?.beschreibung }, WAHLKREISE[gruppe.wahlkreis]?.beschreibung),
+    h('span', {}, `${formatZahl(gruppe.zettel)} / ${formatZahl(gruppe.erwartet)} Zettel`)),
+  [['Urne', gruppe.urne], ['Brief', gruppe.brief]].map(([art, lokale]) => lokale.length > 0 && h('div', { class: 'wahlkreis__zeile' },
+    gruppe.wahlkreis && h('span', { class: 'wahlkreis__art' }, art),
+    h('div', { class: 'kacheln' }, lokale.map(kachel)))));
+
+const WAHLKREIS_KEY = 'wahlassistent-controlcenter-wahlkreis';
+const loadWahlkreis = () => {
+  try { return globalThis.localStorage.getItem(WAHLKREIS_KEY) ?? undefined; } catch { return undefined; }
+};
+
+/** Das Dashboard zeigt immer genau einen Wahlkreis; umgeschaltet wird ueber Badges oben in den Werkzeugen. */
+const dashboard = ({ inhalt, werkzeuge, state, setWahl }) => {
+  const auswahl = h('div', { class: 'chips wahlkreis-auswahl', role: 'radiogroup', 'aria-label': 'Wahlkreis' });
+  werkzeuge.append(auswahl);
+  state.wahlkreis ??= loadWahlkreis();
+  let letzte;
+  const select = wahlkreis => {
+    state.wahlkreis = wahlkreis;
+    try { globalThis.localStorage.setItem(WAHLKREIS_KEY, wahlkreis); } catch { /* nur Komfort */ }
+    update(letzte);
+  };
+  const update = alle => {
+    letzte = alle;
+    const gruppen = getWahlkreise(alle.wahllokale);
+    const gruppe = gruppen.find(row => row.wahlkreis === state.wahlkreis) ?? gruppen[0];
+    auswahl.hidden = gruppen.length < 2;
+    auswahl.replaceChildren(...gruppen.map(row => h('button', {
+      class: 'chip', type: 'button', role: 'radio', 'aria-checked': String(row === gruppe), onclick: () => select(row.wahlkreis),
+    }, wahlkreisName(row.wahlkreis), h('span', { class: 'chip__zahl' }, row.urne.length + row.brief.length))));
+    setWahl(getWahlTitel(alle.wahl, gruppe && wahlkreisTitel(gruppe.wahlkreis)));
+    const data = gruppe ? filterWahlkreis(alle, gruppe.wahlkreis) : alle;
     const kennzahlen = getKennzahlen(data);
     const bedarf = getHandlungsbedarf(data.wahllokale);
     const eingaenge = getEingaenge(data.wahllokale, 8);
@@ -68,6 +103,8 @@ const dashboard = ({ inhalt, state }) => ({
         metrik('Stapel', formatZahl(kennzahlen.stapel), `letzter ${formatSeit(kennzahlen.letzterEingang)}`),
         metrik('Handlungsbedarf', bedarf.length, bedarf.length ? 'Wahllokale prüfen' : 'keine Auffälligkeiten', bedarf.length ? 'fehler' : 'fertig')),
       h('div', { class: 'raster' },
+        panel(`Wahllokale auf einen Blick (${data.wahllokale.length})`, data.wahllokale.length
+          ? kachelKarte(gruppe) : h('p', { class: 'leer' }, 'Noch keine Wahllokale registriert – unter Verwaltung anlegen oder importieren.')),
         panel('Fortschritt der Erfassung',
           h('div', { class: 'gross-fortschritt' }, fortschritt(kennzahlen.zettel, kennzahlen.erwartet),
             h('span', {}, kennzahlen.erwartet ? `${formatProzent(kennzahlen.anteil)} der gemeldeten Stimmzettel` : 'Noch keine Stimmzettelzahl gemeldet')),
@@ -75,16 +112,15 @@ const dashboard = ({ inhalt, state }) => ({
         panel('Handlungsbedarf', bedarf.length
           ? h('ul', { class: 'liste' }, bedarf.map(({ lokal, art, grund }) => h('li', {}, h('span', { class: `punkt status--${art}` }), wahllokalLink(lokal), h('span', { class: 'liste__rechts' }, grund))))
           : h('p', { class: 'leer' }, 'Keine Wahllokale über Soll, keine stockende Erfassung.')),
-        panel(`Wahllokale auf einen Blick (${data.wahllokale.length})`, data.wahllokale.length
-          ? kachelKarte(data.wahllokale) : h('p', { class: 'leer' }, 'Noch keine Wahllokale registriert – unter Verwaltung anlegen oder importieren.')),
         ...data.gesamt.stimmen.map(stimme => panel(`${stimme.name} – vorläufig`, stimmZaehler(stimme), anteilListe(stimme, 6))),
         panel('Letzte Eingänge', eingaenge.length
           ? h('ul', { class: 'liste' }, eingaenge.map(stapel => h('li', {},
             wahllokalLink({ nummer: stapel.wahllokal, name: stapel.wahllokalName }),
             h('span', { class: 'liste__rechts' }, `${stapel.zettel} Zettel · ${formatSeit(stapel.eingang)}`))))
           : h('p', { class: 'leer' }, 'Noch keine Stapel eingegangen.'))));
-  },
-});
+  };
+  return { titel: 'Dashboard', update, destroy: () => setWahl(getWahlName(state.data?.wahl ?? '')) };
+};
 
 /* --- Wahllokale --------------------------------------------------------- */
 

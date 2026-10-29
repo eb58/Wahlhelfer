@@ -31,6 +31,50 @@ export const parseRoute = hash => {
 const sum = (rows, get) => rows.reduce((total, row) => total + get(row), 0);
 export const getLetzterEingang = lokal => lokal.stapel[0]?.eingang;
 
+/**
+ * Berliner Nummern: 12101 = Wahlkreis 121, Urnenwahlbezirk 01; 121A = Wahlkreis 121, Briefwahlbezirk A.
+ * Andere Nummern landen ohne Wahlkreis in einer Gruppe.
+ */
+export const parseWahlbezirk = nummer => {
+  const [, wahlkreis, bezirk] = /^(\d{3})(\d{2}|[A-Z]+)$/.exec(nummer) ?? [];
+  return wahlkreis ? { wahlkreis, bezirk, brief: /\D/.test(bezirk) } : { wahlkreis: '', bezirk: nummer, brief: false };
+};
+
+/** Wahllokale je Wahlkreis, getrennt nach Urnen- und Briefwahlbezirken, mit Summe von Zetteln und Meldung. */
+export const getWahlkreise = wahllokale => {
+  const gruppen = new Map();
+  [...wahllokale].sort((a, b) => a.nummer.localeCompare(b.nummer, 'de-DE', { numeric: true })).forEach(lokal => {
+    const { wahlkreis, bezirk, brief } = parseWahlbezirk(lokal.nummer);
+    if (!gruppen.has(wahlkreis)) gruppen.set(wahlkreis, { wahlkreis, urne: [], brief: [], zettel: 0, erwartet: 0 });
+    const gruppe = gruppen.get(wahlkreis);
+    gruppe[brief ? 'brief' : 'urne'].push({ lokal, bezirk });
+    gruppe.zettel += lokal.zettel;
+    gruppe.erwartet += lokal.erwartet ?? 0;
+  });
+  return [...gruppen.values()];
+};
+
+/** Die Antwort von GET /api/ergebnisse auf einen Wahlkreis beschraenkt; die Gesamtsumme aus dessen Wahllokalen. */
+export const filterWahlkreis = (data, wahlkreis) => {
+  const wahllokale = data.wahllokale.filter(lokal => parseWahlbezirk(lokal.nummer).wahlkreis === wahlkreis);
+  const stimmen = data.gesamt.stimmen.map(stimme => {
+    const rows = wahllokale.map(lokal => lokal.stimmen.find(row => row.id === stimme.id)).filter(Boolean);
+    const summe = key => sum(rows, row => row[key]);
+    return {
+      ...stimme, gueltig: summe('gueltig'), leer: summe('leer'), mehrfach: summe('mehrfach'), zweifelsfall: summe('zweifelsfall'),
+      wahlvorschlaege: stimme.wahlvorschlaege.map(vorschlag =>
+        ({ ...vorschlag, anzahl: sum(rows, row => row.wahlvorschlaege.find(other => other.id === vorschlag.id)?.anzahl ?? 0) })),
+    };
+  });
+  return { ...data, wahllokale, gesamt: { zettel: sum(wahllokale, lokal => lokal.zettel), prueffaelle: sum(wahllokale, lokal => lokal.prueffaelle), stimmen } };
+};
+
+/** Der Name der Wahl ohne den Wahlkreis des Musterzettels: 'Bundestagswahl 2017, Wahlkreis 16' -> 'Bundestagswahl 2017'. */
+export const getWahlName = wahl => wahl.replace(/,\s*Wahlkreis\s+\d+$/, '');
+
+/** 'Bundestagswahl 2017, Wahlkreis 16' mit '1205 – Reinickendorf 5' -> 'Bundestagswahl 2017, Wahlkreis 1205 – Reinickendorf 5'. */
+export const getWahlTitel = (wahl, wahlkreis) => (wahlkreis ? `${getWahlName(wahl)}, Wahlkreis ${wahlkreis}` : getWahlName(wahl));
+
 export const getKennzahlen = ({ gesamt, wahllokale }) => {
   const erwartet = sum(wahllokale, lokal => lokal.erwartet ?? 0);
   const proStatus = Object.fromEntries(STATUS.map(({ art }) => [art, 0]));

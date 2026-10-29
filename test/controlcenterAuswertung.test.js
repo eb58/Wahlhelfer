@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   formatProzent, formatSeit, getAnteile, getEingaenge, getHandlungsbedarf, getKennzahlen,
-  getStatusArt, getWertungText, parseRoute, parseWahllokalCsv, toErgebnisCsv,
+  filterWahlkreis, getStatusArt, getWahlkreise, getWahlName, getWahlTitel, getWertungText, parseRoute, parseWahlbezirk, parseWahllokalCsv, toErgebnisCsv,
 } from '../src/controlcenter/auswertung.js';
 
 const stimme = (name, anzahlen) => ({
@@ -88,6 +88,31 @@ test('Handlungsbedarf: über Soll sowie stockende Erfassung, nicht aber fertige 
   assert.equal(formatSeit('2026-10-14T18:44:30.000Z', now), 'gerade eben');
   assert.equal(formatSeit('2026-10-14T16:30:00.000Z', now), 'vor 2 Std. 15 Min.');
   assert.equal(formatSeit(undefined, now), '–');
+});
+
+test('Wahllokale gruppiert nach Wahlkreis, getrennt nach Urnen- und Briefwahlbezirken', () => {
+  assert.deepEqual(parseWahlbezirk('12101'), { wahlkreis: '121', bezirk: '01', brief: false });
+  assert.deepEqual(parseWahlbezirk('123ZA'), { wahlkreis: '123', bezirk: 'ZA', brief: true });
+  assert.deepEqual(parseWahlbezirk('518'), { wahlkreis: '', bezirk: '518', brief: false });
+  const gruppen = getWahlkreise([lokal('122A', 'Brief', 30, 5), lokal('12210', 'Halle', 50, 10), lokal('12102', 'Kita', null, 3), lokal('12202', 'Schule', 20, 0), lokal('121Z', 'Brief', 10, 1), lokal('121ZA', 'Brief', 10, 0)]);
+  assert.deepEqual(gruppen.map(({ wahlkreis, urne, brief, zettel, erwartet }) => [wahlkreis, urne.map(row => row.bezirk), brief.map(row => row.bezirk), zettel, erwartet]), [
+    ['121', ['02'], ['Z', 'ZA'], 4, 20],
+    ['122', ['02', '10'], ['A'], 15, 100],
+  ]);
+});
+
+test('Auf einen Wahlkreis beschränkt: nur dessen Wahllokale, Gesamtsumme aus ihnen', () => {
+  const data = { wahl: 'Bundestagswahl 2017, Wahlkreis 16', gesamt: daten.gesamt, wahllokale: [lokal('12101', 'Kita', 50, 20, [], 1), lokal('121A', 'Brief', 30, 5), lokal('12201', 'Halle', 40, 7)] };
+  const wahlkreis = filterWahlkreis(data, '121');
+  assert.deepEqual(wahlkreis.wahllokale.map(row => row.nummer), ['12101', '121A']);
+  assert.equal(wahlkreis.gesamt.zettel, 25);
+  assert.equal(wahlkreis.gesamt.prueffaelle, 1);
+  assert.deepEqual(wahlkreis.gesamt.stimmen[0].wahlvorschlaege.map(row => row.anzahl), [25, 0]);
+  assert.equal(wahlkreis.gesamt.stimmen[0].gueltig, 25);
+  assert.equal(getWahlTitel(data.wahl, '1205 – Reinickendorf 5'), 'Bundestagswahl 2017, Wahlkreis 1205 – Reinickendorf 5');
+  assert.equal(getWahlTitel('Landtagswahl', '1201 – Reinickendorf 1'), 'Landtagswahl, Wahlkreis 1201 – Reinickendorf 1');
+  assert.equal(getWahlTitel(data.wahl, undefined), 'Bundestagswahl 2017');
+  assert.equal(getWahlName('Landtagswahl'), 'Landtagswahl');
 });
 
 test('CSV-Export enthält je Wahllokal eine Zeile und die Gesamtsumme', () => {
