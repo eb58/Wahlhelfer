@@ -74,6 +74,10 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - `node scripts/erzeugeSynthetischeFotos.js` erzeugt fuer jede Kalibrierung drei synthetische Fotos
   (gerade, leicht schraeg, 4 Grad gedreht) unter `Testdaten/<kalibrierung>/synthetisch/`. Nur neu
   erzeugen, wenn sich Musterzettel oder Kalibrierung aendern; der Zufall ist fest geseedet.
+- `python scripts/erzeugeBvvMusterzettel.py` erzeugt den fiktiven BVV-Zettel Reinickendorf 2026
+  (Musterzettel und Kalibrierung aus denselben Koordinaten). Die einzige Kalibrierung, die nicht
+  abgelesen wird - der Zettel ist selbst erzeugt. Parteien/Bewerber dort aendern, dann
+  `pruefeKalibrierung.py` und `erzeugeSynthetischeFotos.js` laufen lassen.
 - `configuration.js` legt fest, welche Kalibrierung im Einsatz gilt. Pro Wahl einmal setzen;
   die Oberflaeche bietet keine Auswahl an.
 

@@ -81,6 +81,7 @@ const fotografiere = (zettel, { width, height, quad, seed = 1 }) => {
 
 const zettelarten = [
   'bundestagswahl-2017.json',
+  'bvv-reinickendorf-2026.json',
   'europawahl-sh-2024.json',
   'ltw-mv-2021-wk24.json',
   'ltw-rlp-2026-wk4.json',
