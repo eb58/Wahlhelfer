@@ -122,12 +122,12 @@ for index, (kurz, lang, bewerber) in enumerate(PARTEIEN):
 for x in (NUMMER, KREIS): draw.line((x, TOP, x, BOTTOM), fill='black', width=2)
 draw.rectangle((LEFT - 1, TOP - 1, RIGHT + 1, BOTTOM + 1), outline='black', width=3)
 
-image.save(root / 'Testdaten/bvv-reinickendorf-2026/musterzettel.png', dpi=(150, 150))
+image.save(root / 'Kalibrierungen/bvv-reinickendorf-2026.png', dpi=(150, 150))
 
 kalibrierung = {
     'version': 4,
     'name': 'BVV-Wahl Reinickendorf 2026 (fiktiv)',
-    'quelle': 'Testdaten/bvv-reinickendorf-2026/musterzettel.png',
+    'quelle': 'Kalibrierungen/bvv-reinickendorf-2026.png',
     'vermessenAm': '2026-10-29',
     'referenz': {'breite': W, 'hoehe': H},
     'frame': {'left': LEFT, 'right': RIGHT, 'top': TOP, 'bottom': BOTTOM},

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "name": "Bundestagswahl 2017, Wahlkreis 16",
-  "quelle": "Testdaten/bundestagswahl-2017/musterzettel.png",
+  "quelle": "Kalibrierungen/bundestagswahl-2017.png",
   "vermessenAm": "2026-08-01",
   "referenz": { "breite": 1248, "hoehe": 1748 },
   "frame": { "left": 53.5, "right": 1194, "top": 56.5, "bottom": 1689 },

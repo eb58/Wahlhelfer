@@ -22,9 +22,11 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 ## Aufbau der Erkennung
 
 - **Die Kalibrierung wird nicht berechnet, sondern abgelesen.** Je Zettelart liegt unter
-  `Kalibrierungen/` eine von Hand am leeren Musterzettel vermessene Datei. Es gibt bewusst kein
+  `Kalibrierungen/` eine von Hand am leeren Musterzettel vermessene Datei, der Musterzettel gleichnamig
+  daneben (`<name>.json` und `<name>.png`, `quelle` verweist darauf). Es gibt bewusst kein
   Verfahren mehr, das Ankreuzfelder selbst sucht (fruehere Kreissuche, Spaltenbildung,
-  Radiusabstimmung) - das war aufwendig und unzuverlaessig. Neue Zettelart heisst: neue Datei.
+  Radiusabstimmung) - das war aufwendig und unzuverlaessig. Neue Zettelart heisst: neues Dateipaar.
+  Vite liefert nur die `.json` aus, die Musterzettel kommen nicht in den Build.
 - Aufbau einer Kalibrierungsdatei: `frame` (die Rahmenlinien des Musterzettels), `radius` sowie
   je Stimme (`erststimme`, `zweitstimme`, bei nur einer Stimme schlicht `stimme`) die Felder mit
   `x`/`y` in Musterzettel-Pixeln, `nummer` (Listenplatz wie gedruckt) und `beschriftung`.
@@ -158,7 +160,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 ## Pruefen
 
 - Testdaten liegen je Zettelart unter `Testdaten/<kalibrierung>/` (Name wie die Datei in
-  `Kalibrierungen/`): `musterzettel.png`, dazu je nach Bestand `fotos/` (echte Fotos, im Manifest mit `serie`)
+  `Kalibrierungen/`): je nach Bestand `fotos/` (echte Fotos, im Manifest mit `serie`)
   und `synthetisch/` (alles Erzeugte; im Manifest je Fall `art: 'scan'` oder `'foto'`), jeweils mit
   `manifest.json`. Neue Zettelart = neuer Ordner.
 

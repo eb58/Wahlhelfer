@@ -1,7 +1,7 @@
 {
   "version": 4,
   "name": "BVV-Wahl Reinickendorf 2026 (fiktiv)",
-  "quelle": "Testdaten/bvv-reinickendorf-2026/musterzettel.png",
+  "quelle": "Kalibrierungen/bvv-reinickendorf-2026.png",
   "vermessenAm": "2026-10-29",
   "referenz": { "breite": 1241, "hoehe": 1810 },
   "frame": { "left": 31, "right": 1210, "top": 300, "bottom": 1700 },
