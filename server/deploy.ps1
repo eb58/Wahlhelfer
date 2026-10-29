@@ -111,8 +111,6 @@ Write-Host "Lade PHP-API hoch..." -ForegroundColor Cyan
 $uploadFiles = $apiFiles | ForEach-Object { Join-Path "$deployDir\php-api" $_ }
 scp -P $Port $sshOpt @uploadFiles "${User}@${Server}:${remoteApi}/"
 Assert-Success "API-Upload fehlgeschlagen."
-scp -r -P $Port $sshOpt "$deployDir\php-api\daten" "${User}@${Server}:${remoteApi}/"
-Assert-Success "Upload der Wahllokal-Daten fehlgeschlagen."
 if (Test-Path $configLocal) {
     scp -P $Port $sshOpt $configLocal "${User}@${Server}:${remoteApi}/"
     Assert-Success "Upload der config.local.php fehlgeschlagen."
