@@ -8,7 +8,7 @@ Es gibt keine zusätzliche Wahl-Tabelle und keine Wahl-ID in jeder Ergebniszeile
 
 | Tabelle | Inhalt |
 |---|---|
-| `wahllokal` | Nummer (Primärschlüssel, z. B. `518`), Name und tatsächlich vorab gezählte Gesamtzahl der Stimmzettel (`erwartet`, bis zur Meldung `NULL`). |
+| `wahllokal` | Nummer (Primärschlüssel, z. B. `12518`), Name und tatsächlich vorab gezählte Gesamtzahl der Stimmzettel (`erwartet`, bis zur Meldung `NULL`). |
 
 Vor der Erfassung sortieren die Wahlhelfer alle Stimmzettel in Stapel und zählen sie. Nach Abschluss dieser Vorbereitung trägt der Wahlvorsteher die ermittelte Gesamtzahl als `erwartet` ein und meldet sie an das ControlCenter. Erst anschließend werden die einzelnen Stapel erfasst. Der Wert ist keine Schätzung und wird nicht aus historischen Wählerzahlen abgeleitet.
 | `stapel` | Kennung, Wahllokalnummer, Sollzahl, Eingangszeit und Prüfsumme für Wiederholungsuploads. |

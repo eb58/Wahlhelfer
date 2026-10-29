@@ -21,7 +21,7 @@ export const getStatusArt = lokal => STATUS.find(status => status.text === getWa
 /** Nach so langer Pause ohne neuen Stapel gilt eine laufende Erfassung als ins Stocken geraten. */
 export const STOCKT_NACH_MS = 30 * 60 * 1000;
 
-/** '#wahllokal/518' -> { ansicht: 'wahllokal', nummer: '518' }; Unbekanntes fuehrt zum Dashboard. */
+/** '#wahllokal/12518' -> { ansicht: 'wahllokal', nummer: '12518' }; Unbekanntes fuehrt zum Dashboard. */
 export const parseRoute = hash => {
   const [ansicht, ...rest] = hash.replace(/^#\/?/, '').split('/');
   if (ansicht === 'wahllokal' && rest.join('/')) return { ansicht, nummer: decodeURIComponent(rest.join('/')) };

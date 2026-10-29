@@ -15,7 +15,7 @@ import { getWahllokalStatus } from '../api/wahllokalAnzeige.js';
 import { findWahllokal, getFortschritt } from './wahllokal.js';
 
 const $ = id => document.querySelector(`#${id}`);
-// Das Wahllokal steht im Link (?wahllokal=518); jedes Wahllokal bekommt seinen eigenen Link.
+// Das Wahllokal steht im Link (?wahllokal=12518); jedes Wahllokal bekommt seinen eigenen Link.
 const wahllokalNummer = new URL(globalThis.location.href).searchParams.get('wahllokal');
 // fremderStapel: gespeicherter Stapel, der nicht zu Wahl oder Wahllokal passt - er laesst sich nur verwerfen.
 const state = { typ: undefined, stapel: undefined, fremderStapel: undefined, pending: undefined, busy: false, wahlHash: undefined, lokal: undefined };

@@ -117,7 +117,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - Der Erfassungsplatz ist fuer das Smartphone gebaut: schmale Kopfzeile, je Phase nur das Noetige
   (vor dem Stapel die Stapelgroesse, waehrend des Stapels Fortschritt und Aufnahme, waehrend einer
   Wertung nur diese, am Ende Kontrolle und Senden). Das Wahllokal kommt allein aus dem Link
-  (`?wahllokal=518`, `findWahllokal()`); eine Auswahl gibt es bewusst nicht, angemeldet wird trotzdem.
+  (`?wahllokal=12518`, `findWahllokal()`); eine Auswahl gibt es bewusst nicht, angemeldet wird trotzdem.
 - Der Erfassungsplatz zeigt vom Server nur den Fortschritt (`GET /api/wahllokale`: Zaehler je
   Wahllokal, keine Stimmen, keine Belege) im Monitor. Ergebnisse, Stapel, Prueffaelle und Belege
   (`/api/ergebnisse`, `/api/stapel/{id}`, `/api/prueffaelle`, `/api/stimmzettel/{id}/bild`)
@@ -133,7 +133,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 
 - Beide Seiten brauchen den Build und die PHP-API; sie laufen nur gebaut beim Hoster oder lokal im
   Docker-Stack. Eine Startseite im App-Root gibt es nicht, Links fuehren direkt auf
-  `erfassungsplatz/?wahllokal=518` bzw. `controlcenter/`.
+  `erfassungsplatz/?wahllokal=12518` bzw. `controlcenter/`.
 - Die vollstaendige Anwendung mit Server laeuft beim Hoster (Strato, wie Mitgliederverwaltung und
   Gratulationsdienst): nur PHP und MariaDB, kein Node. Die API steht in `server/` (PHP, `lib.php`),
   wird von `server/deploy.ps1` als `php-api/` neben `dist/` und `configuration.js` gelegt und liest

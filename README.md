@@ -41,7 +41,7 @@ npm run dev:lan
 ipconfig
 ```
 
-Dann auf dem Smartphone `https://<IPv4-Adresse-des-PCs>:5173/erfassungsplatz/?wahllokal=518` öffnen und die
+Dann auf dem Smartphone `https://<IPv4-Adresse-des-PCs>:5173/erfassungsplatz/?wahllokal=12518` öffnen und die
 Warnung zum selbst signierten Zertifikat einmal bestätigen (Chrome: *Erweitert* → *Weiter zu …*).
 Die IPv4-Adresse steht bei `ipconfig` unter dem aktiven WLAN-Adapter – nicht die `172.…`-Adresse
 von WSL/Hyper-V. Falls Windows beim ersten Start nach der Firewall fragt, den Zugriff im privaten
@@ -154,7 +154,7 @@ dem **Erfassungsplatz** (`src/erfassungsplatz/`) für die Wahlhelfer im Wahlloka
 `src/api/` mit der PHP-API in `server/`.
 
 Im ControlCenter unter *Verwaltung* zuerst die Wahllokale registrieren – einzeln oder als CSV (`Nummer;Name`). Zunächst sortieren die Wahlhelfer alle Stimmzettel in Stapel und zählen sie. Erst danach trägt der Wahlvorsteher die ermittelte Gesamtzahl als `erwartet` am Erfassungsplatz ein und meldet sie an das ControlCenter. Anschließend beginnt die Erfassung der einzelnen Stapel. `erwartet` ist die tatsächlich vorab gezählte Gesamtzahl, keine Schätzung. Jedes Wahllokal
-bekommt einen eigenen Link, z. B. `…/erfassungsplatz/?wahllokal=518` – als Link oder QR-Code für die Wahlhelfer
+bekommt einen eigenen Link, z. B. `…/erfassungsplatz/?wahllokal=12518` – als Link oder QR-Code für die Wahlhelfer
 vor Ort. Am Erfassungsplatz wird kein Wahllokal ausgewählt; ohne Wahllokal im Link wird nicht
 erfasst. Nach der Anmeldung nur die Stapelgröße eintragen (Standard: 20), dann jede Aufnahme
 prüfen und zum Stapel hinzufügen. Bei vollständigem Stapel den leeren Eingangsstapel bestätigen und übertragen. Bei
@@ -225,7 +225,7 @@ Belegordner benötigt.
 Docker Desktop mit Linux-Containern starten. `compose.yaml` betreibt drei Dienste:
 
 - `wahlassistent`: Apache mit PHP 8.4, erreichbar unter `http://localhost:3000/`
-  (Erfassungsplatz: z. B. `/erfassungsplatz/?wahllokal=518`; ControlCenter: `/controlcenter/`).
+  (Erfassungsplatz: z. B. `/erfassungsplatz/?wahllokal=12518`; ControlCenter: `/controlcenter/`).
 - `db`: MariaDB 11.4, Daten im Volume `mariadb_daten`, nur im internen Docker-Netz erreichbar.
 - `phpmyadmin`: `http://localhost:8082/`, nur an `127.0.0.1` gebunden.
 
@@ -261,13 +261,13 @@ docker compose exec wahlassistent php /srv/wahlassistent/server/create-user.php 
 Die Tabellen legt die API beim ersten Aufruf selbst an. `npm run dev` und `npm run dev:source`
 leiten `php-api/` an den Container auf Port 3000 weiter. Über `npm run dev:lan` läuft die
 Vorschau per HTTPS mit selbst signiertem Zertifikat im WLAN – zum Testen auf dem Smartphone
-`https://<WLAN-IP des PCs>:5173/erfassungsplatz/?wahllokal=518` öffnen und die Zertifikatswarnung einmal
+`https://<WLAN-IP des PCs>:5173/erfassungsplatz/?wahllokal=12518` öffnen und die Zertifikatswarnung einmal
 bestätigen. HTTPS ist nötig, weil der Browser `crypto.subtle` (Wahlabgleich, Belege) nur auf
 sicheren Seiten bereitstellt.
 
 `docker compose down` erhält die Daten; `down -v` löscht die Volumes samt Wahldaten und Belegen.
 
-## Fiktives Wahllokal 518
+## Demo-Wahllokal mit synthetischen Belegen
 
 ```powershell
 $env:WAHLASSISTENT_USER = '<admin-konto>'
@@ -276,11 +276,12 @@ node scripts/fuelleDemoWahllokal.js
 ```
 
 Die API (Standard: lokaler Container auf Port 3000, sonst `WAHLASSISTENT_URL`) erhält über ihre normalen
-Endpunkte 500 fiktive Stimmzettel in 25 Stapeln zu je 20 Zetteln. Vorhandene synthetische
-Scan-Vorlagen werden tatsächlich erkannt und als Belege zu den passenden Ergebnissen gespeichert;
-dieselben Vorlagen werden mehrfach verwendet. Es sind keine echten Stimmzettelfotos. Das
-Wahllokal heißt ausdrücklich „Fiktives Testwahllokal 518 – synthetische Belege“. Existiert die
-Nummer 518 bereits, bricht das Skript vor Änderungen ab.
+Endpunkte 500 fiktive Stimmzettel in 25 Stapeln zu je 20 Zetteln, standardmäßig für Wahllokal 12518
+(sonst `WAHLASSISTENT_WAHLLOKAL`). Die synthetischen Aufnahmen der eingestellten Wahl
+(`Wahlen/<wahl>/testdaten/synthetisch/`) werden tatsächlich erkannt und als Belege zu den passenden
+Ergebnissen gespeichert; dieselben Aufnahmen werden mehrfach verwendet, darunter leere und mehrfach
+angekreuzte als Prüffälle. Es sind keine echten Stimmzettelfotos. Hat das Wahllokal schon eine Meldung
+oder Zettel, bricht das Skript vor Änderungen ab; fehlt es, legt das Skript es an.
 
 ## Tests
 
