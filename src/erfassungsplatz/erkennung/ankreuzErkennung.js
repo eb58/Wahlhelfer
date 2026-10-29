@@ -198,17 +198,28 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
  * wird eine Drehung nur, wenn genau eine traegt - sonst lieber ablehnen als eine falsche Lage werten. `rotation` sagt dann,
  * um wie viele Vierteldrehungen im Uhrzeigersinn das Bild gedreht wurde; die Koordinaten im Ergebnis
  * gehoeren zum gedrehten Bild.
+ *
+ * Ein quer gespeichertes Foto eines Zettels im Hochformat ist fast immer verdreht: dann zuerst die
+ * Vierteldrehungen und die gespeicherte Lage nur, wenn keine traegt. Das spart den vergeblichen
+ * ersten Versuch (rund ein Drittel der Zeit); die Regel "genau eine Drehung" bleibt dieselbe.
  */
 export const recognizeInAnyRotation = async (image, kalibrierung, options) => {
-  try {
-    return { ...await recognizeAnkreuzungen(image, kalibrierung, options), rotation: 0 };
-  } catch (error) {
+  const aufrecht = async () => ({ ...await recognizeAnkreuzungen(image, kalibrierung, options), rotation: 0 });
+  const gedreht = async () => {
     const rotated = [];
     for (const rotation of [1, 3])
       try {
         rotated.push({ ...await recognizeAnkreuzungen(rotateImage(image, rotation), kalibrierung, options), rotation });
       } catch { /* diese Lage traegt nicht */ }
-    if (rotated.length !== 1) throw error;
-    return rotated[0];
+    return rotated.length === 1 ? rotated[0] : undefined;
+  };
+  const hochformat = kalibrierung.referenz.hoehe > kalibrierung.referenz.breite;
+  if (hochformat && image.width > image.height) return (await gedreht()) ?? aufrecht();
+  try {
+    return await aufrecht();
+  } catch (error) {
+    const result = await gedreht();
+    if (!result) throw error;
+    return result;
   }
 };

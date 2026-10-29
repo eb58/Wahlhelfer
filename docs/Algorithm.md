@@ -119,7 +119,9 @@ so oder so beim Wahlvorstand. `test/fotoTests.js` prüft jede synthetische Aufna
 
 Liegt der Zettel flach, speichert das Smartphone das Foto oft quer (EXIF-Orientierung 1, also
 wirklich quer). Trägt die Aufnahme nicht, versucht `recognizeInAnyRotation()` beide
-Vierteldrehungen und nimmt eine nur, wenn genau eine trägt. Das Ergebnis nennt die Drehung
+Vierteldrehungen und nimmt eine nur, wenn genau eine trägt. Ist das Foto im Querformat gespeichert,
+der Zettel aber Hochformat, kommen die Vierteldrehungen zuerst und die gespeicherte Lage nur, wenn
+keine trägt - das spart den vergeblichen ersten Versuch, rund ein Drittel der Zeit. Das Ergebnis nennt die Drehung
 (`rotation`); der Erfassungsplatz erzeugt den Beleg dann aus der Aufnahme aufrecht neu und
 erkennt genau diesen erneut, damit der gespeicherte Beleg die Wertung reproduziert.
 

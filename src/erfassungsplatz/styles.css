@@ -83,7 +83,8 @@ body[data-angemeldet] #anmeldung { display: none; }
 form { display: grid; gap: 12px; margin: 0; }
 label { display: grid; gap: 4px; font-size: 0.85rem; font-weight: 600; line-height: 1.4; }
 
-input:not([type='checkbox']), select {
+/* Ohne Dateifelder: die sind versteckt (.visually-hidden) und duerfen die Seite nicht verbreitern. */
+input:not([type='checkbox'], [type='file']), select {
   width: 100%;
   min-height: 46px;
   padding: 10px 12px;
@@ -150,6 +151,26 @@ input:not([type='checkbox']), select {
 /* Die Dateiauswahl ist nur am PC sinnvoll - Verwerfen und Abmelden bleiben sichtbar. */
 @media (hover: none) and (pointer: coarse) {
   #dateiKnopf { display: none; }
+
+  /* Aufnehmen und Bestaetigen liegen am Smartphone unten, auf der Hoehe des Ausloesers der Kamera-App
+     (rund ein Siebtel der Bildschirmhoehe ueber dem Rand): der Daumen bleibt an einer Stelle. Sichtbar
+     ist immer nur einer der beiden - sie teilen den Platz. */
+  #erfassenKnopf, #zettelBestaetigen {
+    position: fixed;
+    z-index: 10;
+    right: 12px;
+    bottom: calc(max(64px, 14vh, env(safe-area-inset-bottom)) + 50px);
+    left: 12px;
+    width: auto;
+    min-height: 64px;
+    margin: 0;
+    box-shadow: 0 6px 20px rgb(30 43 37 / 25%);
+    font-size: 1.1rem;
+  }
+  /* Ohne Wertung bliebe von der Karte nur ein leerer Streifen. */
+  #ansichtErfassen:has(#wertungBereich[hidden]) { display: contents; }
+  /* Platz unter dem Inhalt, damit der Knopf nichts verdeckt. */
+  .app { padding-bottom: calc(64px + max(64px, 14vh) + 66px); }
 }
 
 .status { margin: 10px 0 0; color: #748078; font-size: 0.85rem; text-align: center; }
