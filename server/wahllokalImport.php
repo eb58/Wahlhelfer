@@ -1,6 +1,18 @@
 <?php
 declare(strict_types=1);
 
+/** Die Wahlbezirke einer Gebietsdatei als Wahllokale: je Wahlkreis erst die Urnen-, dann die Briefwahlbezirke. */
+function getGebietWahllokale(array $gebiet): array
+{
+    $rows = [];
+    foreach ($gebiet['wahlkreise'] ?? [] as $wahlkreis) {
+        foreach (['urnenwahlbezirke', 'briefwahlbezirke'] as $art) {
+            foreach ($wahlkreis[$art] ?? [] as $bezirk) $rows[] = ['nummer' => $bezirk['nummer'] ?? null, 'name' => $bezirk['name'] ?? null];
+        }
+    }
+    return $rows;
+}
+
 /** Atomarer Import. Bestehende Meldungen bleiben unveraendert. */
 function importWahllokale(array $rows): array
 {

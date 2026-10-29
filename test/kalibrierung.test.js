@@ -12,13 +12,13 @@ import { innerRadius } from '../src/erfassungsplatz/erkennung/ankreuzErkennung.j
 import { kreuzeAn } from './zettelWerkstatt.js';
 import { readImage } from './fotoWerkstatt.js';
 
-const folder = new URL('../Kalibrierungen/', import.meta.url);
+const folder = new URL('../Wahlen/', import.meta.url);
 const read = file => JSON.parse(readFileSync(new URL(file, folder), 'utf8'));
-const files = readdirSync(folder).filter(file => file.endsWith('.json'));
+const files = readdirSync(folder).map(wahl => `${wahl}/kalibrierung.json`);
 
 test('die eingestellte Kalibrierung ist vorhanden', async () => {
   const { KALIBRIERUNG } = await import('../configuration.js');
-  assert.ok(files.includes(KALIBRIERUNG.split('/').pop()), `${KALIBRIERUNG} fehlt in Kalibrierungen/`);
+  assert.ok(files.includes(KALIBRIERUNG.replace('./Wahlen/', '')), `${KALIBRIERUNG} fehlt unter Wahlen/`);
 });
 
 for (const file of files) {
@@ -84,6 +84,6 @@ for (const file of files) {
 test('fremde Versionen und unvollstaendige Dateien werden abgewiesen', () => {
   assert.throws(() => loadKalibrierung(JSON.stringify({ version: 99 })), /Version/);
   assert.throws(() => loadKalibrierung({ version: FORMAT_VERSION, radius: 10, stimmen: [] }), /Rahmen/);
-  const mv = JSON.parse(readFileSync(new URL('ltw-mv-2021-wk24.json', folder), 'utf8'));
-  assert.throws(() => loadKalibrierung({ ...mv, huelle: { left: 1, right: 2 } }), /Huelle/);
+  const bvv = JSON.parse(readFileSync(new URL('bvv-reinickendorf-2026/kalibrierung.json', folder), 'utf8'));
+  assert.throws(() => loadKalibrierung({ ...bvv, huelle: { left: 1, right: 2 } }), /Huelle/);
 });

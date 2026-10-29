@@ -142,9 +142,9 @@ final class ApiTest extends DatabaseTestCase
         $this->assertSame([], array_intersect($columns, ['x', 'y', 'radius', 'fuellgrad', 'kalibrierung', 'felder']));
     }
 
-    public function testEuropawahlUndMehrereZulaessigeMarkierungen(): void
+    public function testWahlMitNurEinerStimme(): void
     {
-        $typ = kalibrierung('europawahl-sh-2024');
+        $typ = kalibrierung('bvv-reinickendorf-2026');
         wahl($typ);
         receiveStapel($this->admin, $this->stapel($this->wahllokal(), [$this->zettel('gueltig', $typ)]));
         $result = uebersicht($this->admin)['gesamt'];

@@ -10,7 +10,6 @@ import {
 } from './auswertung.js';
 import { anteilListe, download, fortschritt, h, metrik, panel, statusBadge, stimmZaehler, zellenKnopf } from './bausteine.js';
 import { createTabelle } from './tabellen.js';
-import { WAHLKREISE } from './wahlkreise.js';
 
 const zuWahllokal = nummer => { globalThis.location.hash = `#wahllokal/${encodeURIComponent(nummer)}`; };
 const wahllokalLink = lokal => h('a', { href: `#wahllokal/${encodeURIComponent(lokal.nummer)}` }, `${lokal.nummer} · ${lokal.name}`);
@@ -51,13 +50,13 @@ const kachel = ({ lokal, bezirk }) => h('a', {
 }, h('span', { class: 'kachel__fuellung', style: `height: ${Math.min(1, lokal.erwartet ? lokal.zettel / lokal.erwartet : 0) * 100}%` }),
 h('span', { class: 'kachel__nummer' }, bezirk));
 
-const wahlkreisName = wahlkreis => (wahlkreis ? WAHLKREISE[wahlkreis]?.name ?? `Wahlkreis ${wahlkreis}` : 'Sonstige');
-const wahlkreisTitel = wahlkreis => WAHLKREISE[wahlkreis] && `${WAHLKREISE[wahlkreis].nummer} – ${WAHLKREISE[wahlkreis].name}`;
+const wahlkreisName = ({ wahlkreis }) => wahlkreis?.name ?? 'Sonstige';
+const wahlkreisTitel = ({ wahlkreis }) => wahlkreis && `${wahlkreis.nummer} – ${wahlkreis.name}`;
 
 /** Jedes Wahllokal des Wahlkreises als Kachel, gefuellt nach Fortschritt, geteilt in Urnen- und Briefwahlbezirke. */
 const kachelKarte = gruppe => h('section', { class: 'wahlkreis' },
-  gruppe.wahlkreis && h('h3', {}, wahlkreisName(gruppe.wahlkreis),
-    h('small', { title: WAHLKREISE[gruppe.wahlkreis]?.beschreibung }, WAHLKREISE[gruppe.wahlkreis]?.beschreibung),
+  gruppe.wahlkreis && h('h3', {}, wahlkreisName(gruppe),
+    h('small', { title: gruppe.wahlkreis.beschreibung }, gruppe.wahlkreis.beschreibung),
     h('span', {}, `${formatZahl(gruppe.zettel)} / ${formatZahl(gruppe.erwartet)} Zettel`)),
   [['Urne', gruppe.urne], ['Brief', gruppe.brief]].map(([art, lokale]) => lokale.length > 0 && h('div', { class: 'wahlkreis__zeile' },
     gruppe.wahlkreis && h('span', { class: 'wahlkreis__art' }, art),
@@ -81,14 +80,14 @@ const dashboard = ({ inhalt, werkzeuge, state, setWahl }) => {
   };
   const update = alle => {
     letzte = alle;
-    const gruppen = getWahlkreise(alle.wahllokale);
-    const gruppe = gruppen.find(row => row.wahlkreis === state.wahlkreis) ?? gruppen[0];
+    const gruppen = getWahlkreise(alle.wahllokale, state.gebiet);
+    const gruppe = gruppen.find(row => row.id === state.wahlkreis) ?? gruppen[0];
     auswahl.hidden = gruppen.length < 2;
     auswahl.replaceChildren(...gruppen.map(row => h('button', {
-      class: 'chip', type: 'button', role: 'radio', 'aria-checked': String(row === gruppe), onclick: () => select(row.wahlkreis),
-    }, wahlkreisName(row.wahlkreis), h('span', { class: 'chip__zahl' }, row.urne.length + row.brief.length))));
-    setWahl(getWahlTitel(alle.wahl, gruppe && wahlkreisTitel(gruppe.wahlkreis)));
-    const data = gruppe ? filterWahlkreis(alle, gruppe.wahlkreis) : alle;
+      class: 'chip', type: 'button', role: 'radio', 'aria-checked': String(row === gruppe), onclick: () => select(row.id),
+    }, wahlkreisName(row), h('span', { class: 'chip__zahl' }, row.urne.length + row.brief.length))));
+    setWahl(getWahlTitel(alle.wahl, gruppe && wahlkreisTitel(gruppe)));
+    const data = gruppe ? filterWahlkreis(alle, gruppe) : alle;
     const kennzahlen = getKennzahlen(data);
     const bedarf = getHandlungsbedarf(data.wahllokale);
     const eingaenge = getEingaenge(data.wahllokale, 8);

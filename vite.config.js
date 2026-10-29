@@ -5,21 +5,23 @@ import { defineConfig } from 'vite';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export const projectRoot = fileURLToPath(new URL('.', import.meta.url));
-// Erzeugtes Zwischenlager fuer die Kalibrierungen - wie Vites eigener Cache unter node_modules,
+// Erzeugtes Zwischenlager fuer Kalibrierungen und Gebiete - wie Vites eigener Cache unter node_modules,
 // damit es im Projekt nicht als Ordner auftaucht. Vite liefert es aus und kopiert es nach dist/.
 const publicDir = resolve(projectRoot, 'node_modules/.wahlassistent-public');
-const kalibrierungSource = resolve(projectRoot, 'Kalibrierungen');
+const wahlenSource = resolve(projectRoot, 'Wahlen');
 
 const copyFiles = (source, destination, files = readdirSync(source)) => {
   mkdirSync(destination, { recursive: true });
   files.forEach(file => copyFileSync(resolve(source, file), resolve(destination, file)));
 };
 
+// Je Wahl nur Kalibrierung und Gebiet; Musterzettel und Druckvorlage brauchen nur die Werkzeuge.
 const syncAssets = () => {
-  // Vorher leeren: sonst bleiben umbenannte oder geloeschte Kalibrierungen als veraltete Kopie liegen.
-  rmSync(resolve(publicDir, 'Kalibrierungen'), { recursive: true, force: true });
-  copyFiles(kalibrierungSource, resolve(publicDir, 'Kalibrierungen'),
-    readdirSync(kalibrierungSource).filter(file => file.endsWith('.json')));
+  // Vorher leeren: sonst bleiben umbenannte oder geloeschte Wahlen als veraltete Kopie liegen.
+  rmSync(resolve(publicDir, 'Wahlen'), { recursive: true, force: true });
+  readdirSync(wahlenSource).forEach(wahl =>
+    copyFiles(resolve(wahlenSource, wahl), resolve(publicDir, 'Wahlen', wahl),
+      readdirSync(resolve(wahlenSource, wahl)).filter(file => file.endsWith('.json'))));
 };
 
 syncAssets();

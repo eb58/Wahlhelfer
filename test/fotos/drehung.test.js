@@ -10,7 +10,7 @@ import { loadKalibrierung } from '../../src/erfassungsplatz/erkennung/kalibrieru
 import { rotateImage } from '../../src/erfassungsplatz/erkennung/image.js';
 import { readFoto } from '../fotoWerkstatt.js';
 
-const typ = loadKalibrierung(readFileSync(new URL('../../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
+const typ = loadKalibrierung(readFileSync(new URL('../../Wahlen/bundestagswahl-2017/kalibrierung.json', import.meta.url), 'utf8'));
 // E1 + Z4
 const original = new URL('../../Testdaten/bundestagswahl-2017/fotos/original/PXL_20260803_190650402.jpg', import.meta.url);
 const foto = readFoto(readFileSync(original));

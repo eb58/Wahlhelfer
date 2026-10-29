@@ -1,6 +1,6 @@
 {
   "fotosErzeugtMit": "scripts/erzeugeSynthetischeFotos.js",
-  "kalibrierung": "bvv-reinickendorf-2026.json",
+  "wahl": "bvv-reinickendorf-2026",
   "anzahl": 3,
   "faelle": [
     {

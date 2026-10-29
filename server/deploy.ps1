@@ -75,13 +75,12 @@ Write-Host "Bereite Deploy-Paket vor..." -ForegroundColor Cyan
 if (Test-Path $deployDir) { Remove-Item -LiteralPath $deployDir -Recurse -Force }
 New-Item -ItemType Directory -Path "$deployDir\php-api" | Out-Null
 Copy-Item -Path "$projectRoot\dist\*" -Destination $deployDir -Recurse -Force
-# Die API liest daraus, welche Kalibrierung gilt - wie der Browser.
+# Die API liest daraus, welche Kalibrierung und welches Gebiet gelten - wie der Browser.
+# Beide Dateien bringt der Build in dist/ mit.
 Copy-Item -Path "$projectRoot\configuration.js" -Destination $deployDir -Force
 foreach ($file in $apiFiles) {
     Copy-Item -Path (Join-Path $PSScriptRoot $file) -Destination "$deployDir\php-api" -Force
 }
-# Wahllokal-Listen fuer import-wahllokale.php; per .htaccess von aussen gesperrt.
-Copy-Item -Path "$PSScriptRoot\daten" -Destination "$deployDir\php-api" -Recurse -Force
 
 $envValues = Read-Env (Join-Path $projectRoot ".env")
 $configLocal = "$deployDir\php-api\config.local.php"

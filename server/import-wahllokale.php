@@ -1,19 +1,18 @@
 <?php
 declare(strict_types=1);
 
-// Lokal: docker compose exec -T wahlassistent php /srv/wahlassistent/server/import-wahllokale.php daten/reinickendorf-2026.json
+// Spielt die Wahlbezirke der Gebietsdatei aus configuration.js als Wahllokale ein; wiederholbar.
+// Lokal: docker compose exec -T wahlassistent php /srv/wahlassistent/server/import-wahllokale.php
 require __DIR__ . '/lib.php';
 require __DIR__ . '/wahllokalImport.php';
 
 if (!isCommandLine()) exit(1);
-$argv = $_SERVER['argv'] ?? [];
 try {
-    [, $path] = array_pad($argv, 2, null);
-    if ($path === null || count($argv) !== 2)
-        throw new ApiError('Aufruf: php import-wahllokale.php <JSON-Datei relativ zu server/>');
-    $data = json_decode((string) file_get_contents(__DIR__ . '/' . $path), true, 512, JSON_THROW_ON_ERROR);
+    if (count($_SERVER['argv'] ?? []) !== 1) throw new ApiError('Aufruf: php import-wahllokale.php (ohne Argumente)');
+    $raw = @file_get_contents(gebietPath());
+    if ($raw === false) throw new ApiError('Gebietsdatei nicht gefunden: ' . gebietPath());
     ensureWahl();
-    $result = importWahllokale($data['wahllokale'] ?? []);
+    $result = importWahllokale(getGebietWahllokale(json_decode($raw, true, 512, JSON_THROW_ON_ERROR)));
     echo json_encode($result, JSON_FLAGS) . "\n";
 } catch (Throwable $error) {
     printError($error->getMessage());

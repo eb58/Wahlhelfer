@@ -21,17 +21,23 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 
 ## Aufbau der Erkennung
 
-- **Die Kalibrierung wird nicht berechnet, sondern abgelesen.** Je Zettelart liegt unter
-  `Kalibrierungen/` eine von Hand am leeren Musterzettel vermessene Datei, der Musterzettel gleichnamig
-  daneben (`<name>.json` und `<name>.png`, `quelle` verweist darauf). Es gibt bewusst kein
-  Verfahren mehr, das Ankreuzfelder selbst sucht (fruehere Kreissuche, Spaltenbildung,
-  Radiusabstimmung) - das war aufwendig und unzuverlaessig. Neue Zettelart heisst: neues Dateipaar.
-  Vite liefert nur die `.json` aus, die Musterzettel kommen nicht in den Build.
+- **Je Wahl ein Ordner unter `Wahlen/<wahl>/`:** `kalibrierung.json`, `musterzettel.png` (darauf
+  verweist `quelle`), `druckvorlage-2xA5.pdf` und `gebiet.json`. Neue Wahl heisst: neuer Ordner.
+  Vite liefert nur die beiden `.json` aus, Musterzettel und Druckvorlage kommen nicht in den Build.
+- **Die Kalibrierung wird nicht berechnet, sondern abgelesen** - von Hand am leeren Musterzettel
+  vermessen. Es gibt bewusst kein Verfahren mehr, das Ankreuzfelder selbst sucht (fruehere
+  Kreissuche, Spaltenbildung, Radiusabstimmung) - das war aufwendig und unzuverlaessig.
+- Das Gebiet (`gebiet.json`) nennt die Wahlkreise (`nummer`, `name`, `beschreibung`) mit ihren
+  `urnenwahlbezirke`n und `briefwahlbezirke`n (`nummer`, `name`); jeder Wahlbezirk ist ein Wahllokal.
+  Das ControlCenter gruppiert danach (`getWahlkreise()`), `server/import-wahllokale.php` spielt
+  daraus die Wahllokale ein. Ein Nummernschema wird nicht ausgewertet; `test/gebiet.test.js` prueft
+  jede Gebietsdatei.
 - Aufbau einer Kalibrierungsdatei: `frame` (die Rahmenlinien des Musterzettels), `radius` sowie
   je Stimme (`erststimme`, `zweitstimme`, bei nur einer Stimme schlicht `stimme`) die Felder mit
   `x`/`y` in Musterzettel-Pixeln, `nummer` (Listenplatz wie gedruckt) und `beschriftung`.
   `auswahl` sagt, wie viele Markierungen je Stimme gueltig sind. Optional `huelle`: der aeussere
-  Rand aller Tabellen, nur wenn er von `frame` abweicht (MV: `frame` endet vor der Nummernspalte).
+  Rand aller Tabellen, nur wenn er von `frame` abweicht (etwa wenn `frame` vor einer Nummernspalte
+  endet; derzeit nutzt keine Kalibrierung das).
   Die Fotoerkennung deutet jedes gefundene Viereck dann auch als Huelle; `frame` bleibt unveraendert,
   weil die Scan-Erkennung genau diese Linien findet.
 - `loadKalibrierung(json)` liefert den asynchronen Erkenner `await typ.recognize(aufnahme)`.
@@ -74,17 +80,17 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   den Musterzettel - die Sichtkontrolle nach jeder Aenderung an einer Kalibrierung. Braucht Pillow
   (`pip install pillow`); sonst kommt im Projekt kein Python-Paket vor.
 - `node scripts/erzeugeSynthetischeFotos.js` erzeugt fuer jede Kalibrierung drei synthetische Fotos
-  (gerade, leicht schraeg, 4 Grad gedreht) unter `Testdaten/<kalibrierung>/synthetisch/`. Nur neu
+  (gerade, leicht schraeg, 4 Grad gedreht) unter `Testdaten/<wahl>/synthetisch/`. Nur neu
   erzeugen, wenn sich Musterzettel oder Kalibrierung aendern; der Zufall ist fest geseedet.
-- `python scripts/erzeugeDruckvorlage.py <datei.json>` legt den Musterzettel zweimal auf ein
-  A4-Querblatt (je eine A5-Haelfte) unter `Testdaten/<kalibrierung>/druckvorlage-2xA5.pdf` - zum
+- `python scripts/erzeugeDruckvorlage.py Wahlen/<wahl>/kalibrierung.json` legt den Musterzettel zweimal
+  auf ein A4-Querblatt (je eine A5-Haelfte) unter `Wahlen/<wahl>/druckvorlage-2xA5.pdf` - zum
   Ausdrucken, Ankreuzen und Fotografieren fuer `fotos/`.
 - `python scripts/erzeugeBvvMusterzettel.py` erzeugt den fiktiven BVV-Zettel Reinickendorf 2026
   (Musterzettel und Kalibrierung aus denselben Koordinaten). Die einzige Kalibrierung, die nicht
   abgelesen wird - der Zettel ist selbst erzeugt. Parteien/Bewerber dort aendern, dann
   `pruefeKalibrierung.py` und `erzeugeSynthetischeFotos.js` laufen lassen.
-- `configuration.js` legt fest, welche Kalibrierung im Einsatz gilt. Pro Wahl einmal setzen;
-  die Oberflaeche bietet keine Auswahl an.
+- `configuration.js` legt mit `WAHL` fest, welche Wahl im Einsatz gilt; `KALIBRIERUNG` und `GEBIET`
+  ergeben sich daraus. Pro Wahl einmal setzen; die Oberflaeche bietet keine Auswahl an.
 
 ## Erfassungsplatz und ControlCenter
 
@@ -104,7 +110,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   und `wahllokalAnzeige.js` (was die Zaehler eines Wahllokals bedeuten). Was nur eine Seite braucht und
   nicht mit dem Server zu tun hat, gehoert in deren Ordner.
 - Die Seiten liegen eine Ebene unter dem App-Root und sagen das mit `<html data-app-base="../">`.
-  Alles, was im App-Root liegt (`php-api/`, `Kalibrierungen/`), immer ueber
+  Alles, was im App-Root liegt (`php-api/`, `Wahlen/`), immer ueber
   `appUrl()` aus `src/api/appUrl.js` ansprechen, nie relativ zur Seite.
 - Der Erfassungsplatz ist fuer das Smartphone gebaut: schmale Kopfzeile, je Phase nur das Noetige
   (vor dem Stapel die Stapelgroesse, waehrend des Stapels Fortschritt und Aufnahme, waehrend einer
@@ -129,7 +135,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 - Die vollstaendige Anwendung mit Server laeuft beim Hoster (Strato, wie Mitgliederverwaltung und
   Gratulationsdienst): nur PHP und MariaDB, kein Node. Die API steht in `server/` (PHP, `lib.php`),
   wird von `server/deploy.ps1` als `php-api/` neben `dist/` und `configuration.js` gelegt und liest
-  die Kalibrierung wie der Browser aus `configuration.js`. Das Frontend spricht sie relativ unter
+  Kalibrierung und Gebiet wie der Browser ueber `WAHL` aus `configuration.js`. Das Frontend spricht sie relativ unter
   `php-api/index.php/api/...` an, deshalb baut Vite mit `base: './'`.
 - Wie in der Mitgliederverwaltung werfen Handler ihre Antwort (`jsonResponse()` -> `ApiResponse`),
   `db()`, `config()`, `wahl()` und `requestStream()` sind die Test-Naehte. Neue Routen in
@@ -156,21 +162,21 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
 
 ## Externe Ressourcen
 
-- Zur Laufzeit wird nichts aus dem Netz geladen. Vite kopiert die Kalibrierungen beim Start bzw.
-  Build aus `Kalibrierungen/` in sein `publicDir` (`node_modules/.wahlassistent-public`)
+- Zur Laufzeit wird nichts aus dem Netz geladen. Vite kopiert Kalibrierungen und Gebiete beim Start bzw.
+  Build aus `Wahlen/` in sein `publicDir` (`node_modules/.wahlassistent-public`)
   und von dort nach `dist/`. `dist/` ist erzeugt und ignoriert.
 
 ## Pruefen
 
-- Testdaten liegen je Zettelart unter `Testdaten/<kalibrierung>/` (Name wie die Datei in
-  `Kalibrierungen/`): je nach Bestand `fotos/` (echte Fotos, im Manifest mit `serie`)
+- Testdaten liegen je Wahl unter `Testdaten/<wahl>/` (Name wie der Ordner unter
+  `Wahlen/`): je nach Bestand `fotos/` (echte Fotos, im Manifest mit `serie`)
   und `synthetisch/` (alles Erzeugte; im Manifest je Fall `art: 'scan'` oder `'foto'`), jeweils mit
-  `manifest.json`. Neue Zettelart = neuer Ordner.
+  `manifest.json`.
 
 - Vor dem Abschluss die betroffenen Tests ausfuehren.
 - Der pre-commit-Hook (`.githooks/pre-commit`, aktiv nach `npm install` ueber `prepare`) prueft die
   vorgemerkten Textdateien auf UTF-8 und Mojibake (`scripts/pruefeTextkodierung.js`), laesst bei
-  JS/JSON/HTML/CSS, Kalibrierungen oder Testdaten `npm test` und bei `server/` `npm run test:php` laufen.
+  JS/JSON/HTML/CSS, `Wahlen/` oder Testdaten `npm test` und bei `server/` `npm run test:php` laufen.
 - Fuer breitere Änderungen mindestens `npm test` laufen lassen.
 - Die Fototests enthalten derzeit 69 Aufnahmen aus `bundestagswahl-2017/fotos` (fuenf Serien und ein
   gespeicherter Beleg, u. a. blasse Kreuze auf getoentem Papier, Graustufendrucke, quer gespeicherte

@@ -19,7 +19,7 @@ function uuid(): string
 
 function kalibrierung(string $name = 'bundestagswahl-2017'): array
 {
-    return json_decode((string) file_get_contents(__DIR__ . "/../../Kalibrierungen/$name.json"), true, 512, JSON_THROW_ON_ERROR);
+    return json_decode((string) file_get_contents(__DIR__ . "/../../Wahlen/$name/kalibrierung.json"), true, 512, JSON_THROW_ON_ERROR);
 }
 
 /** Faengt die geworfene Antwort bzw. den Fehler ab - beides gehoert zum Ergebnis einer Anfrage. */

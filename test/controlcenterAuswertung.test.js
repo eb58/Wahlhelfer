@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   formatProzent, formatSeit, getAnteile, getEingaenge, getHandlungsbedarf, getKennzahlen,
-  filterWahlkreis, getStatusArt, getWahlkreise, getWahlName, getWahlTitel, getWertungText, parseRoute, parseWahlbezirk, parseWahllokalCsv, toErgebnisCsv,
+  filterWahlkreis, getStatusArt, getWahlkreise, getWahlName, getWahlTitel, getWertungText, parseRoute, parseWahllokalCsv, toErgebnisCsv,
 } from '../src/controlcenter/auswertung.js';
 
 const stimme = (name, anzahlen) => ({
@@ -90,20 +90,31 @@ test('Handlungsbedarf: über Soll sowie stockende Erfassung, nicht aber fertige 
   assert.equal(formatSeit(undefined, now), '–');
 });
 
-test('Wahllokale gruppiert nach Wahlkreis, getrennt nach Urnen- und Briefwahlbezirken', () => {
-  assert.deepEqual(parseWahlbezirk('12101'), { wahlkreis: '121', bezirk: '01', brief: false });
-  assert.deepEqual(parseWahlbezirk('123ZA'), { wahlkreis: '123', bezirk: 'ZA', brief: true });
-  assert.deepEqual(parseWahlbezirk('518'), { wahlkreis: '', bezirk: '518', brief: false });
-  const gruppen = getWahlkreise([lokal('122A', 'Brief', 30, 5), lokal('12210', 'Halle', 50, 10), lokal('12102', 'Kita', null, 3), lokal('12202', 'Schule', 20, 0), lokal('121Z', 'Brief', 10, 1), lokal('121ZA', 'Brief', 10, 0)]);
-  assert.deepEqual(gruppen.map(({ wahlkreis, urne, brief, zettel, erwartet }) => [wahlkreis, urne.map(row => row.bezirk), brief.map(row => row.bezirk), zettel, erwartet]), [
-    ['121', ['02'], ['Z', 'ZA'], 4, 20],
-    ['122', ['02', '10'], ['A'], 15, 100],
+const gebiet = {
+  wahlkreise: [
+    { nummer: '1201', name: 'Reinickendorf 1', urnenwahlbezirke: [{ nummer: '12101' }, { nummer: '12102' }], briefwahlbezirke: [{ nummer: '121A' }, { nummer: '121ZA' }] },
+    { nummer: '1202', name: 'Reinickendorf 2', urnenwahlbezirke: [{ nummer: '12202' }, { nummer: '12210' }], briefwahlbezirke: [{ nummer: '122A' }] },
+    { nummer: '1203', name: 'Reinickendorf 3', urnenwahlbezirke: [{ nummer: '12301' }], briefwahlbezirke: [] },
+  ],
+};
+
+test('Wahllokale gruppiert nach den Wahlkreisen des Gebiets, getrennt nach Urnen- und Briefwahlbezirken', () => {
+  const gruppen = getWahlkreise([lokal('122A', 'Brief', 30, 5), lokal('12210', 'Halle', 50, 10), lokal('12102', 'Kita', null, 3),
+    lokal('12202', 'Schule', 20, 0), lokal('121ZA', 'Brief', 10, 1), lokal('519', 'Fremd', 5, 0), lokal('518', 'Fremd', 5, 0)], gebiet);
+  assert.deepEqual(gruppen.map(({ id, urne, brief, zettel, erwartet }) => [id, urne.map(row => row.bezirk), brief.map(row => row.bezirk), zettel, erwartet]), [
+    ['1201', ['02'], ['ZA'], 4, 10],
+    ['1202', ['02', '10'], ['A'], 15, 100],
+    // Unbekannte Wahllokale zuletzt, mit voller Nummer; Wahlkreise ohne registriertes Wahllokal fehlen.
+    ['', ['518', '519'], [], 0, 10],
   ]);
+  assert.equal(gruppen[0].wahlkreis.name, 'Reinickendorf 1');
+  assert.deepEqual(getWahlkreise([lokal('12301', 'Allein', 1, 0)], gebiet)[0].urne.map(row => row.bezirk), ['12301'], 'ohne Vergleich die volle Nummer');
+  assert.deepEqual(getWahlkreise([lokal('12101', 'Kita', 1, 0)], undefined).map(row => row.id), [''], 'ohne Gebiet eine Gruppe');
 });
 
 test('Auf einen Wahlkreis beschränkt: nur dessen Wahllokale, Gesamtsumme aus ihnen', () => {
-  const data = { wahl: 'Bundestagswahl 2017, Wahlkreis 16', gesamt: daten.gesamt, wahllokale: [lokal('12101', 'Kita', 50, 20, [], 1), lokal('121A', 'Brief', 30, 5), lokal('12201', 'Halle', 40, 7)] };
-  const wahlkreis = filterWahlkreis(data, '121');
+  const data = { wahl: 'Bundestagswahl 2017, Wahlkreis 16', gesamt: daten.gesamt, wahllokale: [lokal('12101', 'Kita', 50, 20, [], 1), lokal('121A', 'Brief', 30, 5), lokal('12202', 'Halle', 40, 7)] };
+  const wahlkreis = filterWahlkreis(data, getWahlkreise(data.wahllokale, gebiet)[0]);
   assert.deepEqual(wahlkreis.wahllokale.map(row => row.nummer), ['12101', '121A']);
   assert.equal(wahlkreis.gesamt.zettel, 25);
   assert.equal(wahlkreis.gesamt.prueffaelle, 1);

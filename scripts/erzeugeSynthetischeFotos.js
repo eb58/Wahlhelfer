@@ -1,15 +1,15 @@
 /**
- * Erzeugt synthetische Smartphone-Fotos fuer alle Kalibrierungen, fuer die es keine echten Fotos gibt.
+ * Erzeugt synthetische Smartphone-Fotos fuer alle Wahlen unter `Wahlen/`.
  *
  * Der Musterzettel bekommt je Stimme ein Kreuz und wird perspektivisch auf einen Holztisch mit
  * Helligkeitsverlauf und Rauschen gelegt. Die Ergebnisse liegen je Zettelart als JPEG mit Manifest
- * unter `Testdaten/<kalibrierung>/synthetisch/` (`art: 'foto'`, vorhandene Scan-Faelle dort bleiben stehen)
+ * unter `Testdaten/<wahl>/synthetisch/` (`art: 'foto'`, vorhandene Scan-Faelle dort bleiben stehen)
  * und werden von `test/fotos/synthetisch-*.test.js` gelesen.
  * Neu erzeugen nur, wenn sich Musterzettel oder Kalibrierung aendern:
  *   node scripts/erzeugeSynthetischeFotos.js
  * Der Zufall ist fest geseedet - dieselben Eingaben ergeben dieselben Bilder.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { readImage } from '../test/fotoWerkstatt.js';
@@ -79,13 +79,6 @@ const fotografiere = (zettel, { width, height, quad, seed = 1 }) => {
   return { width, height, data };
 };
 
-const zettelarten = [
-  'bundestagswahl-2017.json',
-  'bvv-reinickendorf-2026.json',
-  'europawahl-sh-2024.json',
-  'ltw-mv-2021-wk24.json',
-  'ltw-rlp-2026-wk4.json',
-];
 
 // Ecken des Musterzettels (oben links, oben rechts, unten rechts, unten links) in Bildpixeln - in dem
 // Mass, wie es auch echte Aufnahmen zeigen: gerade, leicht von schraeg oben, um wenige Grad gedreht.
@@ -115,11 +108,11 @@ const lagen = {
 const writeJpeg = ({ width, height, data }, url) =>
   sharp(Buffer.from(data.buffer), { raw: { width, height, channels: 4 } }).jpeg({ quality: 85 }).toFile(fileURLToPath(url));
 
-for (const kalibrierung of zettelarten) {
-  const json = readFileSync(new URL(`Kalibrierungen/${kalibrierung}`, root), 'utf8');
+for (const wahl of readdirSync(new URL('Wahlen/', root))) {
+  const json = readFileSync(new URL(`Wahlen/${wahl}/kalibrierung.json`, root), 'utf8');
   const typ = loadKalibrierung(json);
   const muster = await readImage(readFileSync(new URL(JSON.parse(json).quelle, root)));
-  const folder = new URL(`Testdaten/${kalibrierung.replace('.json', '')}/synthetisch/`, root);
+  const folder = new URL(`Testdaten/${wahl}/synthetisch/`, root);
   mkdirSync(folder, { recursive: true });
   const width = 1200, height = Math.round(width * muster.height / muster.width * 1.25);
   const faelle = await Promise.all(Object.entries(lagen).map(async ([lage, ecken], index) => {
@@ -128,14 +121,14 @@ for (const kalibrierung of zettelarten) {
     const foto = fotografiere(kreuzeAn(muster, typ, markierungen), { width, height, quad: ecken(width, height), seed: index + 1 });
     const datei = `${lage}.jpg`;
     await writeJpeg(foto, new URL(datei, folder));
-    console.log(kalibrierung, datei, markierungen.join(' '));
+    console.log(wahl, datei, markierungen.join(' '));
     return { datei, art: 'foto', lage, markierungen };
   }));
   // Die Scan-Faelle im selben Ordner stammen nicht von hier und bleiben erhalten.
   const manifestUrl = new URL('manifest.json', folder);
   const scans = existsSync(manifestUrl) ? JSON.parse(readFileSync(manifestUrl, 'utf8')).faelle.filter(fall => fall.art === 'scan') : [];
   const alle = [...scans, ...faelle];
-  const manifest = { fotosErzeugtMit: 'scripts/erzeugeSynthetischeFotos.js', kalibrierung, anzahl: alle.length, faelle: alle };
+  const manifest = { fotosErzeugtMit: 'scripts/erzeugeSynthetischeFotos.js', wahl, anzahl: alle.length, faelle: alle };
   writeFileSync(new URL('manifest.json', folder), `${JSON.stringify(manifest, null, 2)}
 `);
 }

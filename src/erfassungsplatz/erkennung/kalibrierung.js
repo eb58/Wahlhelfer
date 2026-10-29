@@ -1,7 +1,7 @@
 /**
  * Kalibrierung: die von Hand vermessene Beschreibung einer Zettelart.
  *
- * Die Dateien unter `Kalibrierungen/` werden am leeren Musterzettel abgelesen, nicht berechnet -
+ * Die Kalibrierungen unter `Wahlen/<wahl>/` werden am leeren Musterzettel abgelesen, nicht berechnet -
  * es gibt kein Verfahren mehr, das Ankreuzfelder selbst sucht. Eine Datei nennt je Stimme ihre
  * Ankreuzfelder in Pixeln des Musterzettels und unter `frame` dessen Rahmenlinien. Weicht der
  * aeussere Rand aller Tabellen davon ab (MV: `frame` endet vor der Nummernspalte), steht er
@@ -48,7 +48,7 @@ const validate = file => {
 
 /**
  * Macht aus einer Kalibrierungsdatei den Erkenner fuer genau diese Zettelart.
- * @param {string|object} json Inhalt einer Datei aus `Kalibrierungen/`
+ * @param {string|object} json Inhalt einer `Wahlen/<wahl>/kalibrierung.json`
  */
 export const loadKalibrierung = json => {
   const file = validate(typeof json === 'string' ? JSON.parse(json) : json);

@@ -5,13 +5,13 @@ import { createStapel, addZettel, getStapelKonflikt, isStapelIntakt, saveStapel 
 import { getWahlDefinition } from '../src/erfassungsplatz/wahl.js';
 import { sha256 } from '../src/api/serverApi.js';
 
-const kalibrierung = name => JSON.parse(readFileSync(new URL(`../Kalibrierungen/${name}.json`, import.meta.url), 'utf8'));
+const kalibrierung = name => JSON.parse(readFileSync(new URL(`../Wahlen/${name}/kalibrierung.json`, import.meta.url), 'utf8'));
 const wahlHash = name => sha256(new TextEncoder().encode(JSON.stringify(getWahlDefinition(kalibrierung(name)))));
 
 test('Der Wahl-Hash des Browsers entspricht dem der PHP-API', async () => {
   // Dieselben Werte prueft test/php/WahlTest.php fuer getWahlDefinition() aus server/lib.php.
   assert.equal(await wahlHash('bundestagswahl-2017'), 'ec7521371a58afa0d5c2224474793391bec2643aea9ecbe3f350a93bbc57e4c5');
-  assert.equal(await wahlHash('europawahl-sh-2024'), 'e5a1e30c74deded4ddabea95ae317d42ed8d047352d877a35a0e54a608f72c77');
+  assert.equal(await wahlHash('bvv-reinickendorf-2026'), '65a8bbe9ccaba8b762becae456cb76d6638047032b4d245a314ac7baaf6af9d5');
 });
 
 test('Die Wahl-Definition enthält nur Namen, Auswahlzahlen und Wahlvorschläge', () => {

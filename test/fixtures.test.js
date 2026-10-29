@@ -7,7 +7,7 @@ import { readImage } from './fotoWerkstatt.js';
 // Die Scan-Faelle (Papier fuellt das Bild) aus Testdaten/<kalibrierung>/synthetisch/; die Fotos dort prueft fotoTests.js.
 const fixtureFolder = new URL('../Testdaten/bundestagswahl-2017/synthetisch/', import.meta.url);
 const scans = JSON.parse(readFileSync(new URL('manifest.json', fixtureFolder), 'utf8')).faelle.filter(fall => fall.art === 'scan');
-const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
+const typ = loadKalibrierung(readFileSync(new URL('../Wahlen/bundestagswahl-2017/kalibrierung.json', import.meta.url), 'utf8'));
 const pngFiles = readdirSync(fixtureFolder).filter(datei => datei.endsWith('.png')).sort();
 const sorted = values => [...values].sort();
 

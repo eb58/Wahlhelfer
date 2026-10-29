@@ -1,6 +1,6 @@
 {
   "fotosErzeugtMit": "scripts/erzeugeSynthetischeFotos.js",
-  "kalibrierung": "bundestagswahl-2017.json",
+  "wahl": "bundestagswahl-2017",
   "anzahl": 103,
   "faelle": [
     {

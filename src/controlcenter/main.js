@@ -2,7 +2,9 @@
  * ControlCenter fuer das Wahlamt: Monitoring der Wahllokale und vorlaeufige Ergebnisse. Nur fuer Admins.
  * Navigation ueber den Hash (#dashboard, #wahllokal/518 ...), Daten alle 15 Sekunden neu.
  */
+import { GEBIET } from '../../configuration.js';
 import { abmelden, api, describeUser, setupAnmeldung } from '../api/serverApi.js';
+import { appUrl } from '../api/appUrl.js';
 import { formatZahl, getWahlName, parseRoute } from './auswertung.js';
 import { ansichten } from './ansichten.js';
 import { showBeleg } from './beleg.js';
@@ -10,7 +12,7 @@ import { showBeleg } from './beleg.js';
 const $ = id => document.querySelector(`#${id}`);
 const AKTUALISIERUNG_MS = 15000;
 const SIDEBAR_KEY = 'wahlassistent-controlcenter-sidebar';
-const state = { data: undefined, view: undefined, stapelCache: new Map(), statusFilter: '', stimmeId: undefined, wahlkreis: undefined };
+const state = { data: undefined, view: undefined, stapelCache: new Map(), statusFilter: '', stimmeId: undefined, gebiet: undefined, wahlkreis: undefined };
 
 const showFehler = error => {
   $('fehler').textContent = error.message;
@@ -41,6 +43,13 @@ const refresh = async () => {
     loading = false;
     $('aktualisieren').disabled = false;
   }
+};
+
+/** Wahlkreise und Wahlbezirke; ohne Gebietsdatei zeigt das Dashboard alle Wahllokale ungegliedert. */
+const loadGebiet = async () => {
+  const response = await fetch(appUrl(GEBIET));
+  if (!response.ok) throw new Error(`Gebietsdatei ${GEBIET} nicht gefunden (${response.status}).`);
+  return response.json();
 };
 
 /* --- Seitenleiste: am PC einklappbar, auf dem Smartphone ausklappbar --- */
@@ -91,6 +100,7 @@ const user = await setupAnmeldung({ nurAdmin: true });
 if (user) {
   $('benutzer').textContent = describeUser(user);
   await refresh();
+  state.gebiet = await loadGebiet().catch(showFehler);
   navigate();
   globalThis.addEventListener('hashchange', navigate);
   // Nicht waehrend ein Beleg offen ist oder der Tab im Hintergrund liegt.

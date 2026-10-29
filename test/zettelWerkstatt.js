@@ -7,7 +7,7 @@ import { readImage } from './fotoWerkstatt.js';
 import { toDarkness } from '../src/erfassungsplatz/erkennung/image.js';
 import { findFrame, toAbsolute, frameWidth } from '../src/erfassungsplatz/erkennung/frame.js';
 
-export const musterZettel = () => readImage(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.png', import.meta.url)));
+export const musterZettel = () => readImage(readFileSync(new URL('../Wahlen/bundestagswahl-2017/musterzettel.png', import.meta.url)));
 
 export const copy = ({ width, height, data }) => ({ width, height, data: new Uint8ClampedArray(data) });
 

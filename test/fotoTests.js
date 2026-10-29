@@ -35,7 +35,7 @@ const ANZAHL_FOTOS = 69;
  * samt Begruendung.
  */
 export const testeEchteFotos = (teil, von) => {
-  const typ = loadKalibrierung(readFileSync(new URL('../Kalibrierungen/bundestagswahl-2017.json', import.meta.url), 'utf8'));
+  const typ = loadKalibrierung(readFileSync(new URL('../Wahlen/bundestagswahl-2017/kalibrierung.json', import.meta.url), 'utf8'));
   const manifest = readManifest(fotoFolder);
   if (teil === 1)
     test(`Manifest enthaelt alle ${ANZAHL_FOTOS} JPEG-Aufnahmen`, () => {
@@ -54,26 +54,26 @@ export const testeEchteFotos = (teil, von) => {
 
 /**
  * Synthetische Fotos, erzeugt mit scripts/erzeugeSynthetischeFotos.js: je Zettelart drei Lagen
- * (gerade, schraeg, gedreht) unter Testdaten/<kalibrierung>/synthetisch/ (`art: 'foto'`; die Scans
+ * (gerade, schraeg, gedreht) unter Testdaten/<wahl>/synthetisch/ (`art: 'foto'`; die Scans
  * im selben Ordner prueft fixtures.test.js).
  */
 export const testeSynthetischeFotos = (teil, von) => {
-  const kalibrierungen = readdirSync(new URL('../Kalibrierungen/', import.meta.url)).filter(datei => datei.endsWith('.json'));
-  for (const kalibrierung of kalibrierungen.filter(imTeil(teil, von))) {
-    const folder = new URL(`../Testdaten/${kalibrierung.replace('.json', '')}/synthetisch/`, import.meta.url);
+  const wahlen = readdirSync(new URL('../Wahlen/', import.meta.url));
+  for (const wahl of wahlen.filter(imTeil(teil, von))) {
+    const folder = new URL(`../Testdaten/${wahl}/synthetisch/`, import.meta.url);
 
-    test(`${kalibrierung}: synthetische Fotos sind vollstaendig`, () => {
+    test(`${wahl}: synthetische Fotos sind vollstaendig`, () => {
       assert.ok(existsSync(new URL('manifest.json', folder)), 'node scripts/erzeugeSynthetischeFotos.js ausfuehren');
       const manifest = readManifest(folder);
-      assert.equal(manifest.kalibrierung, kalibrierung);
+      assert.equal(manifest.wahl, wahl);
       assert.equal(manifest.faelle.length, manifest.anzahl);
       assert.deepEqual(sorted(readdirSync(folder).filter(datei => datei.endsWith('.jpg'))), sorted(manifest.faelle.filter(fall => fall.art === 'foto').map(fall => fall.datei)));
     });
     if (!existsSync(new URL('manifest.json', folder))) continue;
 
-    const typ = loadKalibrierung(readFileSync(new URL(`../Kalibrierungen/${kalibrierung}`, import.meta.url), 'utf8'));
+    const typ = loadKalibrierung(readFileSync(new URL(`../Wahlen/${wahl}/kalibrierung.json`, import.meta.url), 'utf8'));
     for (const fall of readManifest(folder).faelle.filter(fall => fall.art === 'foto'))
-      test(`${kalibrierung}: ${fall.datei} wird wie im Manifest gewertet`, async () => {
+      test(`${wahl}: ${fall.datei} wird wie im Manifest gewertet`, async () => {
         const markiert = await pruefeWertung(typ, new URL(fall.datei, folder));
         assert.deepEqual(sorted(markiert.map(feld => feld.id)), sorted(fall.markierungen));
         assert.ok(markiert.every(feld => feld.status === 'angekreuzt'));

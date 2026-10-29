@@ -31,32 +31,42 @@ export const parseRoute = hash => {
 const sum = (rows, get) => rows.reduce((total, row) => total + get(row), 0);
 export const getLetzterEingang = lokal => lokal.stapel[0]?.eingang;
 
+/** Laenge des gemeinsamen Anfangs aller Nummern: 12101, 12102 und 121A -> 3. */
+const commonPrefixLength = ([first = '', ...rest]) =>
+  rest.reduce((length, nummer) => {
+    while (length && !nummer.startsWith(first.slice(0, length))) length--;
+    return length;
+  }, rest.length ? first.length : 0);
+
+const toGruppe = (wahlkreis, urne, brief) => {
+  const lokale = [...urne, ...brief];
+  // Die Kachel zeigt nur, was die Nummer innerhalb des Wahlkreises unterscheidet: 12101 -> 01, 121A -> A.
+  const prefix = wahlkreis ? commonPrefixLength(lokale.map(lokal => lokal.nummer)) : 0;
+  const kachel = lokal => ({ lokal, bezirk: lokal.nummer.slice(prefix) || lokal.nummer });
+  return {
+    id: wahlkreis?.nummer ?? '', wahlkreis, urne: urne.map(kachel), brief: brief.map(kachel),
+    zettel: sum(lokale, lokal => lokal.zettel), erwartet: sum(lokale, lokal => lokal.erwartet ?? 0),
+  };
+};
+
 /**
- * Berliner Nummern: 12101 = Wahlkreis 121, Urnenwahlbezirk 01; 121A = Wahlkreis 121, Briefwahlbezirk A.
- * Andere Nummern landen ohne Wahlkreis in einer Gruppe.
+ * Wahllokale je Wahlkreis der Gebietsdatei, getrennt nach Urnen- und Briefwahlbezirken, mit Summe von Zetteln
+ * und Meldung. Wahllokale, die das Gebiet nicht kennt, stehen zuletzt in einer Gruppe ohne Wahlkreis.
  */
-export const parseWahlbezirk = nummer => {
-  const [, wahlkreis, bezirk] = /^(\d{3})(\d{2}|[A-Z]+)$/.exec(nummer) ?? [];
-  return wahlkreis ? { wahlkreis, bezirk, brief: /\D/.test(bezirk) } : { wahlkreis: '', bezirk: nummer, brief: false };
+export const getWahlkreise = (wahllokale, gebiet) => {
+  const byNummer = new Map(wahllokale.map(lokal => [lokal.nummer, lokal]));
+  const pick = bezirke => (bezirke ?? []).map(bezirk => byNummer.get(bezirk.nummer)).filter(Boolean);
+  const gruppen = (gebiet?.wahlkreise ?? []).map(wahlkreis => toGruppe(wahlkreis, pick(wahlkreis.urnenwahlbezirke), pick(wahlkreis.briefwahlbezirke)));
+  const bekannt = new Set(gruppen.flatMap(gruppe => [...gruppe.urne, ...gruppe.brief].map(row => row.lokal.nummer)));
+  const sonstige = wahllokale.filter(lokal => !bekannt.has(lokal.nummer))
+    .sort((a, b) => a.nummer.localeCompare(b.nummer, 'de-DE', { numeric: true }));
+  return [...gruppen, toGruppe(undefined, sonstige, [])].filter(gruppe => gruppe.urne.length + gruppe.brief.length);
 };
 
-/** Wahllokale je Wahlkreis, getrennt nach Urnen- und Briefwahlbezirken, mit Summe von Zetteln und Meldung. */
-export const getWahlkreise = wahllokale => {
-  const gruppen = new Map();
-  [...wahllokale].sort((a, b) => a.nummer.localeCompare(b.nummer, 'de-DE', { numeric: true })).forEach(lokal => {
-    const { wahlkreis, bezirk, brief } = parseWahlbezirk(lokal.nummer);
-    if (!gruppen.has(wahlkreis)) gruppen.set(wahlkreis, { wahlkreis, urne: [], brief: [], zettel: 0, erwartet: 0 });
-    const gruppe = gruppen.get(wahlkreis);
-    gruppe[brief ? 'brief' : 'urne'].push({ lokal, bezirk });
-    gruppe.zettel += lokal.zettel;
-    gruppe.erwartet += lokal.erwartet ?? 0;
-  });
-  return [...gruppen.values()];
-};
-
-/** Die Antwort von GET /api/ergebnisse auf einen Wahlkreis beschraenkt; die Gesamtsumme aus dessen Wahllokalen. */
-export const filterWahlkreis = (data, wahlkreis) => {
-  const wahllokale = data.wahllokale.filter(lokal => parseWahlbezirk(lokal.nummer).wahlkreis === wahlkreis);
+/** Die Antwort von GET /api/ergebnisse auf eine Gruppe aus getWahlkreise beschraenkt; die Gesamtsumme aus deren Wahllokalen. */
+export const filterWahlkreis = (data, gruppe) => {
+  const nummern = new Set([...gruppe.urne, ...gruppe.brief].map(row => row.lokal.nummer));
+  const wahllokale = data.wahllokale.filter(lokal => nummern.has(lokal.nummer));
   const stimmen = data.gesamt.stimmen.map(stimme => {
     const rows = wahllokale.map(lokal => lokal.stimmen.find(row => row.id === stimme.id)).filter(Boolean);
     const summe = key => sum(rows, row => row[key]);

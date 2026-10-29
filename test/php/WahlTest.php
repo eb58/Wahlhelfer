@@ -17,7 +17,7 @@ final class WahlTest extends TestCase
     {
         // Dieselben Werte prueft test/wahl.test.js fuer getWahlDefinition() aus src/erfassungsplatz/wahl.js.
         $this->assertSame('ec7521371a58afa0d5c2224474793391bec2643aea9ecbe3f350a93bbc57e4c5', jsonHash(getWahlDefinition(kalibrierung())));
-        $this->assertSame('e5a1e30c74deded4ddabea95ae317d42ed8d047352d877a35a0e54a608f72c77', jsonHash(getWahlDefinition(kalibrierung('europawahl-sh-2024'))));
+        $this->assertSame('65a8bbe9ccaba8b762becae456cb76d6638047032b4d245a314ac7baaf6af9d5', jsonHash(getWahlDefinition(kalibrierung('bvv-reinickendorf-2026'))));
     }
 
     public function testWahlDefinitionEnthaeltNurFachlicheAngaben(): void
@@ -32,10 +32,12 @@ final class WahlTest extends TestCase
         $this->assertSame(jsonHash($definition), jsonHash(getWahlDefinition($changed)));
     }
 
-    public function testKalibrierungKommtAusConfigurationJs(): void
+    public function testKalibrierungUndGebietKommenAusDemOrdnerDerWahl(): void
     {
-        preg_match("/KALIBRIERUNG\s*=\s*'\.\/([^']+)'/", (string) file_get_contents(__DIR__ . '/../../configuration.js'), $match);
-        $this->assertSame(realpath(__DIR__ . '/../../' . $match[1]), realpath(kalibrierungPath()));
+        preg_match("/WAHL\s*=\s*'\.\/([^']+)'/", (string) file_get_contents(__DIR__ . '/../../configuration.js'), $match);
+        $folder = __DIR__ . '/../../' . $match[1];
+        $this->assertSame(realpath("$folder/kalibrierung.json"), realpath(kalibrierungPath()));
+        $this->assertSame(realpath("$folder/gebiet.json"), realpath(gebietPath()));
     }
 
     public function testStapelWirdOhneDatenbankGeprueft(): void

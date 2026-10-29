@@ -5,7 +5,7 @@ prüfen lassen, Zweifelsfälle dem Wahlvorstand vorlegen. Das Papier bleibt das 
 
 ## Kalibrierung
 
-Je Zettelart liegt unter `Kalibrierungen/` eine Datei, die am leeren Musterzettel **von Hand
+Je Wahl liegt unter `Wahlen/<wahl>/` eine `kalibrierung.json`, die am leeren Musterzettel **von Hand
 vermessen** wurde: Rahmenlinien, Radius der Ankreuzfelder und je Stimme die Feldlagen samt
 Beschriftung. Die Anwendung sucht keine Ankreuzfelder – sie liest, wo sie stehen. Bei Fotos
 richten die gedruckten Ankreuzringe die Feldlage aus; findet sich keine sichere Ringlage, wird
@@ -14,12 +14,14 @@ die Aufnahme abgelehnt statt geraten.
 Eine Kalibrierung sichtbar prüfen (zeichnet die Feldlagen in den Musterzettel):
 
 ```powershell
-python scripts/pruefeKalibrierung.py Kalibrierungen/europawahl-sh-2024.json pruefung-tmp.png
+python scripts/pruefeKalibrierung.py Wahlen/bvv-reinickendorf-2026/kalibrierung.json pruefung-tmp.png
 ```
 
 Das Skript zeichnet mit der Python-Bildbibliothek Pillow; einmalig `pip install pillow`.
 
-Welche Kalibrierung im Einsatz gilt, steht in `configuration.js` – pro Wahl einmal setzen.
+Daneben liegen der Musterzettel, eine Druckvorlage und `gebiet.json` mit Wahlkreisen und
+Wahlbezirken (= Wahllokalen). Welche Wahl im Einsatz gilt, steht in `configuration.js` (`WAHL`) –
+pro Wahl einmal setzen.
 Im Wahllokal selbst gibt es nichts auszuwählen.
 
 ## Entwicklung und Build
@@ -87,7 +89,7 @@ wahlassistent/php-api/bilder/            Originalbelege als <sha256>.jpg/.png, l
 Das Frontend spricht `php-api/index.php/api/…` relativ an; für das Routing braucht es kein
 `mod_rewrite`, wohl aber für die Zugriffssperre in `php-api/.htaccess` (bei Strato vorhanden).
 Die GitHub-Pages-Version hat keine API und kann deshalb keine Stapel speichern.
-Die API liest wie der Browser aus `configuration.js`, welche Kalibrierung gilt, und übernimmt
+Die API liest wie der Browser aus `configuration.js`, welche Wahl gilt, und übernimmt
 daraus nur die fachlichen Wahlvorschläge.
 
 | Methode | Pfad | Zweck |
@@ -207,7 +209,7 @@ JPEG; die API nimmt bis 20 MB je Beleg an, auch ältere PNG- und PDF-Belege blei
 4. Gleich danach `https://<domain>/<app>/controlcenter/` aufrufen und dort das erste
    Admin-Konto anlegen. Die Tabellen entstehen dabei gleich mit.
    Die Wahllokale per SSH im Ordner `php-api/` einspielen:
-   `php -q -d register_argc_argv=1 import-wahllokale.php daten/reinickendorf-2026.json`.
+   `php -q -d register_argc_argv=1 import-wahllokale.php` (liest das Gebiet der eingestellten Wahl).
 5. Prüfen:
    `curl -H "Authorization: Bearer test" https://<domain>/<app>/php-api/index.php/health`
    muss `{"status":"ok","tokenReceived":true}` liefern. Steht dort `false`, reicht der Hoster den

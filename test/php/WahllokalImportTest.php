@@ -7,10 +7,12 @@ final class WahllokalImportTest extends DatabaseTestCase
 {
     public function testReinickendorfImportIstVollstaendigUndWiederholbar(): void
     {
-        $data = json_decode(file_get_contents(__DIR__ . '/../../server/daten/reinickendorf-2026.json'), true, 512, JSON_THROW_ON_ERROR);
-        $rows = $data['wahllokale'];
+        $gebiet = json_decode(file_get_contents(__DIR__ . '/../../Wahlen/bvv-reinickendorf-2026/gebiet.json'), true, 512, JSON_THROW_ON_ERROR);
+        $rows = getGebietWahllokale($gebiet);
         $this->assertCount(311, $rows);
         $this->assertCount(177, array_filter($rows, static fn(array $row): bool => ctype_digit($row['nummer'])));
+        $this->assertSame(['12101', '12102'], array_column(array_slice($rows, 0, 2), 'nummer'));
+        $this->assertSame('121A', $rows[29]['nummer'], 'nach den Urnen- die Briefwahlbezirke des Wahlkreises');
         $this->assertSame(['angelegt' => 311, 'vorhanden' => 0], importWahllokale($rows));
         $this->assertSame(['angelegt' => 0, 'vorhanden' => 311], importWahllokale($rows));
         $this->assertSame(311, (int) query('SELECT COUNT(*) AS n FROM wahllokal WHERE erwartet IS NULL')[0]['n']);

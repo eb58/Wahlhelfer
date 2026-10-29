@@ -5,9 +5,9 @@ import { stimmRows, summary, isUnambiguous, drawFelder } from '../src/erfassungs
 import { loadKalibrierung } from '../src/erfassungsplatz/erkennung/kalibrierung.js';
 import { musterZettel, kreuzeAn } from './zettelWerkstatt.js';
 
-const read = file => readFileSync(new URL(`../Kalibrierungen/${file}`, import.meta.url), 'utf8');
+const read = file => readFileSync(new URL(`../Wahlen/${file}`, import.meta.url), 'utf8');
 const muster = await musterZettel();
-const typ = loadKalibrierung(read('bundestagswahl-2017.json'));
+const typ = loadKalibrierung(read('bundestagswahl-2017/kalibrierung.json'));
 const recognize = image => typ.recognize(image);
 
 test('eindeutiger Zettel wird als Wertung angezeigt', async () => {
@@ -44,9 +44,9 @@ test('Zeilen nennen Stimme, Wertung und Treffer', async () => {
 });
 
 test('ein Zettel mit nur einer Stimme ergibt genau eine Zeile', () => {
-  // Die Stimmen stehen in der Kalibrierung: die Europawahl kennt nur eine.
-  const europa = loadKalibrierung(read('europawahl-sh-2024.json'));
-  const rows = stimmRows({ felder: europa.felder, stimmen: [{ id: 'stimme', name: 'Stimme', status: 'leer', treffer: [] }] });
+  // Die Stimmen stehen in der Kalibrierung: die BVV-Wahl kennt nur eine.
+  const bvv = loadKalibrierung(read('bvv-reinickendorf-2026/kalibrierung.json'));
+  const rows = stimmRows({ felder: bvv.felder, stimmen: [{ id: 'stimme', name: 'Stimme', status: 'leer', treffer: [] }] });
   assert.deepEqual(rows.map(row => row.title), ['Stimme']);
 });
 

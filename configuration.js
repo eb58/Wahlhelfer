@@ -1,8 +1,11 @@
 /**
- * Einstellung fuer den Einsatz: welche Zettelart ausgezaehlt wird.
+ * Einstellung fuer den Einsatz: welche Wahl ausgezaehlt wird.
  *
- * Pro Wahl einmal setzen - im Wahllokal gibt es nichts auszuwaehlen. Die Datei liegt
- * unter `Kalibrierungen/` und ist von Hand am Musterzettel vermessen; mit
- * `python scripts/pruefeKalibrierung.py` laesst sie sich vorher sichtbar pruefen.
+ * Pro Wahl einmal setzen - im Wahllokal gibt es nichts auszuwaehlen. Je Wahl liegt unter `Wahlen/`
+ * ein Ordner mit der Kalibrierung (von Hand am Musterzettel vermessen, mit
+ * `python scripts/pruefeKalibrierung.py` sichtbar pruefbar) und dem Gebiet (Wahlkreise und
+ * Wahlbezirke = Wahllokale).
  */
-export const KALIBRIERUNG = './Kalibrierungen/bundestagswahl-2017.json';
+export const WAHL = './Wahlen/bundestagswahl-2017/';
+export const KALIBRIERUNG = `${WAHL}kalibrierung.json`;
+export const GEBIET = `${WAHL}gebiet.json`;

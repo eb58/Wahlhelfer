@@ -7,7 +7,7 @@ Geometrie ausgerichtet und anschließend nur an den bekannten Feldern ausgewerte
 
 ## 1. Eingaben und Kalibrierung
 
-Eine Kalibrierung unter `Kalibrierungen/` enthält insbesondere:
+Eine Kalibrierung (`Wahlen/<wahl>/kalibrierung.json`) enthält insbesondere:
 
 - `referenz`: Breite und Höhe des vermessenen Musterzettels
 - `frame`: die vier durchgehenden Drucklinien des Musterzettels - genau die Linien, die
@@ -249,7 +249,7 @@ Ein Foto von 1600 Pixel Breite braucht für die Erkennung am PC etwa 230 ms.
 ## 9. Tests und Nachvollziehbarkeit
 
 Die Erkennung wird mit drei Arten von Testdaten geprüft. Sie liegen je Zettelart unter
-`Testdaten/<kalibrierung>/`:
+`Testdaten/<wahl>/`:
 
 - `fotos/`: echte Smartphone-Fotos, bisher nur vom Bundestagszettel (69 Stück aus fünf
   Aufnahmeserien und ein gespeicherter Beleg, im Manifest als `serie`; einige davon quer aufgenommen),
@@ -269,7 +269,7 @@ npm test
 Die Kalibrierung kann zusätzlich sichtbar geprüft werden:
 
 ```powershell
-python scripts/pruefeKalibrierung.py Kalibrierungen/bundestagswahl-2017.json pruefung-tmp.png
+python scripts/pruefeKalibrierung.py Wahlen/bundestagswahl-2017/kalibrierung.json pruefung-tmp.png
 ```
 
 Die Erkennung läuft vollständig lokal im Browser; zum Server gehen nur Wertung und Beleg.

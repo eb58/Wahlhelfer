@@ -357,12 +357,22 @@ function getWahlDefinition(array $kalibrierung): array
 /** Die Kalibrierung liegt neben php-api im App-Ordner; configuration.js sagt welche, wie im Browser. */
 function kalibrierungPath(): string
 {
-    $path = (string) (config()['kalibrierung'] ?? '');
-    if ($path !== '') return $path;
+    return (string) (config()['kalibrierung'] ?? '') ?: wahlPath() . 'kalibrierung.json';
+}
+
+/** Die Gebietsdatei (Wahlkreise und Wahlbezirke) liegt neben der Kalibrierung im Ordner der Wahl. */
+function gebietPath(): string
+{
+    return (string) (config()['gebiet'] ?? '') ?: wahlPath() . 'gebiet.json';
+}
+
+/** Der Ordner der Wahl unter Wahlen/, wie ihn configuration.js nennt; endet mit '/'. */
+function wahlPath(): string
+{
     $configuration = @file_get_contents(dirname(__DIR__) . '/configuration.js');
-    if ($configuration === false || !preg_match("/KALIBRIERUNG\s*=\s*'([^']+)'/", $configuration, $match))
-        throw new ApiError('configuration.js mit KALIBRIERUNG fehlt im App-Ordner.', 500);
-    return dirname(__DIR__) . '/' . preg_replace('#^\./#', '', $match[1]);
+    if ($configuration === false || !preg_match("/WAHL\s*=\s*'([^']+)'/", $configuration, $match))
+        throw new ApiError('configuration.js mit WAHL fehlt im App-Ordner.', 500);
+    return dirname(__DIR__) . '/' . rtrim(preg_replace('#^\./#', '', $match[1]), '/') . '/';
 }
 
 /** Ohne Argument die Wahl dieser Installation, mit Argument aus einer Kalibrierung setzen (fuer Tests). */

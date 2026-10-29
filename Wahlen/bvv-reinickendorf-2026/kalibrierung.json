@@ -1,0 +1,29 @@
+{
+  "version": 4,
+  "name": "BVV-Wahl Reinickendorf 2026 (fiktive Bewerber)",
+  "quelle": "Wahlen/bvv-reinickendorf-2026/musterzettel.png",
+  "vermessenAm": "2026-10-29",
+  "referenz": { "breite": 1241, "hoehe": 1840 },
+  "frame": { "left": 31, "right": 1210, "top": 330, "bottom": 1730 },
+  "radius": 31,
+  "thresholds": { "angekreuzt": 0.1, "zweifel": 0.03 },
+  "stimmen": [
+    {
+      "id": "stimme",
+      "name": "Stimme",
+      "auswahl": 1,
+      "felder": [
+        { "id": "L1", "nummer": 1, "x": 1160, "y": 400, "beschriftung": "CDU", "name": "Christlich Demokratische Union Deutschlands", "bewerber": ["Wendland, Katharina", "Brockmann, Thomas", "Ohlsen, Sabine"] },
+        { "id": "L2", "nummer": 2, "x": 1160, "y": 540, "beschriftung": "SPD", "name": "Sozialdemokratische Partei Deutschlands", "bewerber": ["Hartwig, Jens", "Korkmaz, Aylin", "Lindemann, Peter"] },
+        { "id": "L3", "nummer": 3, "x": 1160, "y": 680, "beschriftung": "GRÜNE", "name": "BÜNDNIS 90/DIE GRÜNEN", "bewerber": ["Marquardt, Lena", "Okafor, Daniel", "Kranich, Ute"] },
+        { "id": "L4", "nummer": 4, "x": 1160, "y": 820, "beschriftung": "Die Linke", "name": "Die Linke", "bewerber": ["Kowalski, Nadine", "Burmeister, Ralf", "Arslan, Selin"] },
+        { "id": "L5", "nummer": 5, "x": 1160, "y": 960, "beschriftung": "AfD", "name": "Alternative für Deutschland", "bewerber": ["Reimers, Frank", "Lammert, Doris", "Schaller, Uwe"] },
+        { "id": "L6", "nummer": 6, "x": 1160, "y": 1100, "beschriftung": "FDP", "name": "Freie Demokratische Partei", "bewerber": ["Albers, Christian", "Matthes, Julia", "Engel, Robert"] },
+        { "id": "L7", "nummer": 7, "x": 1160, "y": 1240, "beschriftung": "Tierschutzpartei", "name": "PARTEI MENSCH KLIMA TIERSCHUTZ", "bewerber": ["Rehberg, Simone", "Ostermann, Michael", "Winkler, Carola"] },
+        { "id": "L9", "nummer": 9, "x": 1160, "y": 1380, "beschriftung": "Volt", "name": "Volt Deutschland", "bewerber": ["Delacroix, Marie", "Hoffmeister, Lukas", "Popescu, Elena"] },
+        { "id": "L11", "nummer": 11, "x": 1160, "y": 1520, "beschriftung": "MIETERPARTEI", "name": "Mieterpartei", "bewerber": ["Wollschläger, Gerd", "Krämer, Bärbel", "Pohl, Renate"] },
+        { "id": "L24", "nummer": 24, "x": 1160, "y": 1660, "beschriftung": "BSW", "name": "Bündnis Sahra Wagenknecht - Vernunft und Gerechtigkeit", "bewerber": ["Grünberg, Olaf", "Neubert, Tanja", "Heinze, Wolfgang"] }
+      ]
+    }
+  ]
+}

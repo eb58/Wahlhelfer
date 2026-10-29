@@ -16,6 +16,7 @@ $config = [
     'bilder_path' => $env('WAHL_BILDER_PATH', __DIR__ . '/bilder'),
     // Leer = aus configuration.js im App-Ordner ablesen, wie im Browser.
     'kalibrierung' => $env('WAHL_KALIBRIERUNG'),
+    'gebiet' => $env('WAHL_GEBIET'),
 ];
 
 $localConfig = __DIR__ . '/config.local.php';

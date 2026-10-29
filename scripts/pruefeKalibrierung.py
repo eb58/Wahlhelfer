@@ -2,7 +2,7 @@
 """Zeichnet eine Kalibrierungsdatei in ihren Musterzettel, damit die von Hand
 abgelesenen Feldlagen mit blossem Auge geprueft werden koennen.
 
-    python scripts/pruefeKalibrierung.py Kalibrierungen/<datei>.json [ausgabe.png]
+    python scripts/pruefeKalibrierung.py Wahlen/<wahl>/kalibrierung.json [ausgabe.png]
 
 Kein Erkennungsverfahren - reine Sichtkontrolle der eingetragenen Koordinaten.
 """
