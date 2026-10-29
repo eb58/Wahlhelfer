@@ -78,5 +78,12 @@ export const testeSynthetischeFotos = (teil, von) => {
         assert.deepEqual(sorted(markiert.map(feld => feld.id)), sorted(fall.markierungen));
         assert.ok(markiert.every(feld => feld.status === 'angekreuzt'));
       });
+    // Kopfueber nimmt der Erfassungsplatz nicht auf; ein so liegender Zettel muss abgelehnt werden,
+    // sonst wertet er Felder, die auf Text statt auf Ringen sitzen.
+    for (const fall of readManifest(folder).faelle.filter(fall => fall.art === 'foto'))
+      test(`${wahl}: ${fall.datei} kopfueber wird abgelehnt`, async () => {
+        const image = await readImage(readFileSync(new URL(fall.datei, folder)));
+        await assert.rejects(typ.recognize(rotateImage(image, (6 - (fall.drehung ?? 0)) % 4)), /nicht sicher gefunden|Ankreuzringe|Zettelrahmen/);
+      });
   }
 };

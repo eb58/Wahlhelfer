@@ -49,10 +49,20 @@ const classify = (fuellgrad, thresholds) =>
  * denselben Mindestabstand wie in den konfigurierten Schwellen - sonst faellt die Zweifelsfall-
  * Zone weg und blasse Markierungen werden ohne Vorlage fuer den Wahlvorstand durchgewinkt.
  */
+/** Fuellgrad der unauffaelligen Felder (65. Perzentil) - auf einem echten Zettel ist die Mehrzahl leer. */
+const getFuellBasis = felder => felder.map(feld => feld.fuellgrad).sort((a, b) => a - b)[Math.floor(felder.length * 0.65)];
+
+/**
+ * Hoechste Fuellbasis, bei der die Felder noch als in ihren Ringen gelten. Aufrecht lag sie auf allen
+ * 80 Testaufnahmen bei 0,00. Kopfueber traegt der BVV-Zettel scheinbar - die fetten Listennummern und
+ * die Spaltenlinie stehen dann, wo die Ringe erwartet werden -, die Felder sitzen aber auf Text:
+ * Basis 0,31 bis 1,0. Dazwischen liegt die Grenze mit Abstand zu beiden Seiten.
+ */
+const MAX_FUELL_BASIS = 0.15;
+
 export const computeImageThresholds = (measuredFelder, thresholds, { ringAlignment } = {}) => {
   if (!ringAlignment) return thresholds;
-  const fuellgrade = measuredFelder.map(feld => feld.fuellgrad).sort((a, b) => a - b);
-  const baseline = fuellgrade[Math.floor(fuellgrade.length * 0.65)];
+  const baseline = getFuellBasis(measuredFelder);
   return {
     ...thresholds,
     angekreuzt: Math.max(thresholds.angekreuzt, baseline + 0.06),
@@ -168,7 +178,8 @@ export const recognizeAnkreuzungen = async (image, kalibrierung, {
   // Jedes Feld muss auf einem gedruckten Ring liegen. Die gemeinsame Ausrichtung braucht nur einige
   // Ringe; kopfueber liegen beim Bundestagszettel 8-10 von 14 Ringen fast symmetrisch auf anderen.
   // Dort fehlt an manchen Feldern der Ring (ringScore hoechstens 0,2), aufrecht nie (mindestens 0,4).
-  if (ringAlignment && measuredFelder.some(feld => feld.ringScore < MIN_RING_SCORE))
+  // Der Ringwert allein trennt das nicht immer (kopfueber bis 0,42, aufrecht ab 0,36), die Fuellung schon.
+  if (ringAlignment && (measuredFelder.some(feld => feld.ringScore < MIN_RING_SCORE) || getFuellBasis(measuredFelder) > MAX_FUELL_BASIS))
     throw new Error('Ankreuzfelder nicht sicher gefunden - Aufnahme bitte gerade, scharf und vollstaendig wiederholen.');
   const imageThresholds = computeImageThresholds(measuredFelder, thresholds, { ringAlignment });
   const felder = measuredFelder.map(feld => ({ ...feld, status: classify(feld.fuellgrad, imageThresholds) }));

@@ -54,8 +54,9 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   Das ist der einzige Erkennungspfad fuer Fotos.
 - Quer gespeicherte Fotos richtet `recognizeInAnyRotation()` auf (nur wenn genau eine Vierteldrehung
   traegt); der Erfassungsplatz erzeugt den Beleg dann aufrecht neu (`toBeleg(file, rotation)`) und
-  erkennt ihn erneut. Jedes Feld muss auf einem gedruckten Ring liegen - sonst trug kopfueber eine
-  falsche Ausrichtung.
+  erkennt ihn erneut. Jedes Feld muss auf einem gedruckten Ring liegen, und die Mehrzahl der Felder
+  muss leer sein (`MAX_FUELL_BASIS`) - sonst trug kopfueber eine falsche Ausrichtung (beim BVV-Zettel
+  sitzen die Felder dann auf den Listennummern).
 - **Ein Foto ohne sichere Ringlage wird abgelehnt, nicht geraten.** Einen OCR-Rueckfall gibt es
   bewusst nicht mehr: auf den 53 echten Fotos wertete er 3 falsch (u. a. eine Stimme fuer den
   falschen Kandidaten), ohne einen Zweifelsfall zu melden, und kostete rund 13 MB Tesseract-Dateien.
@@ -110,9 +111,9 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   seine Antworten deutet - `serverApi.js` (Aufrufe, Anmeldung, Belege), `appUrl.js` (Pfade zum App-Root)
   und `wahllokalAnzeige.js` (was die Zaehler eines Wahllokals bedeuten). Was nur eine Seite braucht und
   nicht mit dem Server zu tun hat, gehoert in deren Ordner.
-- Die Seiten liegen eine Ebene unter dem App-Root und sagen das mit `<html data-app-base="../">`.
-  Alles, was im App-Root liegt (`php-api/`, `Wahlen/`), immer ueber
-  `appUrl()` aus `src/api/appUrl.js` ansprechen, nie relativ zur Seite.
+- Die Seiten liegen genau eine Ebene unter dem App-Root. Alles, was im App-Root liegt (`php-api/`,
+  `Wahlen/`), immer ueber `appUrl()` aus `src/api/appUrl.js` ansprechen - so steht der Weg zurueck
+  (`../`) an einer Stelle.
 - Der Erfassungsplatz ist fuer das Smartphone gebaut: schmale Kopfzeile, je Phase nur das Noetige
   (vor dem Stapel die Stapelgroesse, waehrend des Stapels Fortschritt und Aufnahme, waehrend einer
   Wertung nur diese, am Ende Kontrolle und Senden). Das Wahllokal kommt allein aus dem Link
@@ -183,7 +184,7 @@ Siehe `docs/Konzeptstudie_Digitaler_Wahlassistent.md`, der implementierte Erkenn
   Fotos, sehr blasse Bleistiftkreuze, ein kleiner Zettel ohne erkennbares Papier); alle laufen ueber den Ringpfad. Bekannte Luecken stuenden
   im Manifest als `todo` mit Begruendung. Damit `node --test` sie parallel
   rechnet, sind sie auf mehrere Dateien verteilt (`test/fotos/`, Ablauf in `test/fotoTests.js`); `npm test`
-  dauert so rund 9 s. Eine Datei laeuft in sich nacheinander - lange Testreihen also aufteilen.
+  dauert so rund 12 s. Eine Datei laeuft in sich nacheinander - lange Testreihen also aufteilen.
 - Fuer die anderen Zettelarten gibt es keine echten Fotos; `test/fotos/synthetisch-*.test.js` prueft sie
   mit synthetischen Fotos. Bekannte Luecken stehen dort als `todo` mit Begruendung - sie muessen sicher abgelehnt,
   duerfen aber nie falsch gewertet werden.

@@ -34,8 +34,7 @@
       "drehung": 1,
       "markierungen": [
         "L5"
-      ],
-      "todo": "Quer gespeichert wird abgelehnt statt aufgerichtet: kopfueber traegt der BVV-Zettel ebenfalls (die Listennummern links stehen dann, wo die Ringe erwartet werden). Ein kopfueber liegender Zettel mit Kreuz wird sogar als leer gewertet."
+      ]
     },
     {
       "datei": "mehrfach.jpg",

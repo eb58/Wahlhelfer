@@ -12,7 +12,7 @@ const docker = args => execFileSync('docker', [...compose, ...args], { cwd: root
 export const STARTPASSWORT = 'Startpasswort-e2e';
 export const PASSWORT = 'Neues-Passwort-e2e';
 export const KONTEN = { admin: 'e2e-admin', wahlvorstand: 'e2e-vorstand' };
-export const WAHLLOKAL = '518';
+export const WAHLLOKAL = '12518';
 
 const createUser = (...args) => docker(['exec', '-T', 'wahlassistent', 'php', '/srv/wahlassistent/server/create-user.php', ...args]);
 

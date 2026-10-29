@@ -6,6 +6,6 @@
  * `python scripts/pruefeKalibrierung.py` sichtbar pruefbar) und dem Gebiet (Wahlkreise und
  * Wahlbezirke = Wahllokale).
  */
-export const WAHL = './Wahlen/bundestagswahl-2017/';
+export const WAHL = './Wahlen/bvv-reinickendorf-2026/';
 export const KALIBRIERUNG = `${WAHL}kalibrierung.json`;
 export const GEBIET = `${WAHL}gebiet.json`;

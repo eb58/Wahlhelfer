@@ -107,7 +107,15 @@ Nach der gemeinsamen Ausrichtung muss jedes einzelne Feld auf einem gedruckten R
 (`ringScore` mindestens 0,3). Die Ausrichtung selbst braucht nur 6 passende Ringe; kopfüber liegen
 beim Bundestagszettel 8 bis 10 von 14 Ringen fast symmetrisch auf anderen, und ohne diese Prüfung
 wurde ein kopfüber liegendes Foto ohne Meldung falsch gewertet. Aufrecht liegt der schwächste Ring
-auf allen echten Fotos bei mindestens 0,4, kopfüber bei höchstens 0,2.
+auf allen echten Fotos bei mindestens 0,36.
+
+Der Ringwert allein reicht aber nicht: Beim BVV-Zettel stehen kopfüber die fetten Listennummern und
+die Spaltenlinie dort, wo die Ringe erwartet werden, und erreichen Ringwerte bis 0,42. Deshalb muss
+zusätzlich die Mehrzahl der Felder leer sein: Der Füllgrad der unauffälligen Felder (65. Perzentil)
+darf höchstens 0,15 betragen. Aufrecht liegt er auf allen 80 Testaufnahmen bei 0,00, kopfüber beim
+BVV-Zettel bei 0,31 bis 1,0, weil die Felder dann auf Text sitzen. Ein Zettel, auf dem fast alle
+Felder angekreuzt sind, wird dadurch abgelehnt statt als Mehrfachmarkierung gewertet - er landet
+so oder so beim Wahlvorstand. `test/fotoTests.js` prüft jede synthetische Aufnahme auch kopfüber.
 
 Liegt der Zettel flach, speichert das Smartphone das Foto oft quer (EXIF-Orientierung 1, also
 wirklich quer). Trägt die Aufnahme nicht, versucht `recognizeInAnyRotation()` beide

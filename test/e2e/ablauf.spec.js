@@ -1,17 +1,19 @@
 /**
- * Der ganze Weg einmal durch: Admin legt auf der leeren Datenbank sein Konto und das Wahllokal an, der Wahlvorstand erfasst am Smartphone
- * einen Stapel aus zwei echten Fotos (beide Stimmen bzw. nur die Erststimme angekreuzt) und sendet ihn, das
- * ControlCenter zeigt ihn in allen Ansichten. Keine Seite darf dabei Fehler in die Konsole schreiben.
+ * Der ganze Weg einmal durch, mit der eingestellten BVV-Wahl: Admin legt auf der leeren Datenbank sein Konto und das
+ * Wahllokal an, der Wahlvorstand erfasst am Smartphone einen Stapel aus zwei eindeutigen Fotos, verwirft dabei ein quer
+ * gespeichertes und eines mit zwei Kreuzen und sendet den Stapel; das ControlCenter zeigt ihn in allen Ansichten.
+ * Keine Seite darf dabei Fehler in die Konsole schreiben.
  */
 import { test, expect, devices } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 import { KONTEN, PASSWORT, STARTPASSWORT, WAHLLOKAL, createWahlvorstand } from './stack.js';
 
-const foto = datei => fileURLToPath(new URL(`../../Wahlen/bundestagswahl-2017/testdaten/fotos/${datei}`, import.meta.url));
-const EINDEUTIG = foto('original/PXL_20260803_190650402.jpg'); // E1 + Z4
-const PRUEFFALL = foto('PXL_20260803_190656590.jpg'); // nur E1, Zweitstimme leer: eindeutig, aber Prueffall im ControlCenter
-const MEHRFACH = fileURLToPath(new URL('../../Wahlen/bundestagswahl-2017/testdaten/synthetisch/048-mehrfach-048.png', import.meta.url));
-const QUER = fileURLToPath(new URL('../../Wahlen/bundestagswahl-2017/testdaten/fotos/gedreht-e4-z4.jpg', import.meta.url)); // E4 + Z4
+// Die synthetischen Fotos der BVV-Wahl (scripts/erzeugeSynthetischeFotos.js).
+const foto = datei => fileURLToPath(new URL(`../../Wahlen/bvv-reinickendorf-2026/testdaten/synthetisch/${datei}`, import.meta.url));
+const SPD = foto('gerade.jpg'); // L2
+const GRUENE = foto('schraeg.jpg'); // L3
+const MEHRFACH = foto('mehrfach.jpg'); // L1 + L3
+const QUER = foto('quer.jpg'); // L5, quer gespeichert
 
 const sammleKonsolenfehler = page => {
   const fehler = [];
@@ -76,14 +78,13 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
     // Quer gespeichert: der Erfassungsplatz richtet den Beleg auf; danach verworfen, der Stapel bleibt bei zwei.
     await aufnehmen(vorstand, QUER);
     await expect(vorstand.locator('#wertung')).toHaveAttribute('data-eindeutig', 'true');
-    await expect(vorstand.locator('#wertung')).toContainText('Soundso, Sabine');
+    await expect(vorstand.locator('#wertung')).toContainText('AfD');
     await vorstand.locator('#zettelVerwerfen').click();
     await expect(vorstand.locator('#stapelFortschritt')).toHaveText('0 / 2');
 
-    await aufnehmen(vorstand, EINDEUTIG);
+    await aufnehmen(vorstand, SPD);
     await expect(vorstand.locator('#wertung')).toHaveAttribute('data-eindeutig', 'true');
-    await expect(vorstand.locator('#wertung')).toContainText('Musterfrau, Julia');
-    await expect(vorstand.locator('#wertung')).toContainText('PARTEI D');
+    await expect(vorstand.locator('#wertung')).toContainText('SPD');
     await vorstand.locator('#zettelBestaetigen').click();
     await expect(vorstand.locator('#stapelFortschritt')).toHaveText('1 / 2');
 
@@ -94,8 +95,9 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
     await vorstand.locator('#zettelVerwerfen').click();
     await expect(vorstand.locator('#stapelFortschritt')).toHaveText('1 / 2');
 
-    await aufnehmen(vorstand, PRUEFFALL);
+    await aufnehmen(vorstand, GRUENE);
     await expect(vorstand.locator('#wertung')).toHaveAttribute('data-eindeutig', 'true');
+    await expect(vorstand.locator('#wertung')).toContainText('GRÜNE');
     await vorstand.locator('#zettelBestaetigen').click();
     await expect(vorstand.locator('#stapelFortschritt')).toHaveText('2 / 2');
 
@@ -110,12 +112,17 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
     await admin.reload();
     await expect(admin.locator('.metriken')).toContainText('2 gemeldet');
     await expect(admin.locator('.metriken')).toContainText('1 / 1');
+    // Das Gebiet ordnet 12518 dem Wahlkreis Reinickendorf 5 zu.
+    await expect(admin.locator('#wahl')).toContainText('1205 – Reinickendorf 5');
+    await expect(admin.locator('.wahlkreis h3')).toContainText('Reinickendorf 5');
   });
 
   await test.step('Wahllokale und Detail mit Stapel und Beleg', async () => {
     await admin.goto('controlcenter/#wahllokale');
     const zeile = zeilen(admin).filter({ hasText: 'E2E-Wahllokal' });
-    await expect(zeile).toContainText('Erfasst – Prüffälle offen');
+    // Auf den Stapel kommen nur eindeutige Zettel; bei nur einer Stimme gibt es damit keinen Prueffall.
+    await expect(zeile).toContainText('Erfasst');
+    await expect(zeile).not.toContainText('Prüffälle offen');
     await zeile.click();
     await expect(admin).toHaveURL(new RegExp(`#wahllokal/${WAHLLOKAL}$`));
     await expect(admin.locator('.metriken')).toContainText('2 / 2');
@@ -131,25 +138,19 @@ test('Wahllokal anlegen, Stapel erfassen und im ControlCenter nachvollziehen', a
   await test.step('Ergebnisse, Prüffälle und Eingänge', async () => {
     await admin.goto('controlcenter/#ergebnisse');
     const stimmen = admin.locator('.ergebnis-stimmen > .panel');
-    await expect(stimmen).toHaveCount(2);
-    await expect(stimmen.nth(0)).toContainText('Erststimme');
-    await expect(stimmen.nth(1)).toContainText('Zweitstimme');
-    await admin.setViewportSize({ width: 1600, height: 1000 });
-    const links = await stimmen.nth(0).boundingBox();
-    const rechts = await stimmen.nth(1).boundingBox();
-    expect(Math.abs(links.y - rechts.y)).toBeLessThan(2);
-    expect(rechts.x).toBeGreaterThan(links.x);
-    await admin.setViewportSize({ width: 600, height: 900 });
-    await expect.poll(async () => (await stimmen.nth(1).boundingBox()).y)
-      .toBeGreaterThan((await stimmen.nth(0).boundingBox()).y);
-    await admin.setViewportSize({ width: 1280, height: 720 });
+    await expect(stimmen).toHaveCount(1);
+    await expect(stimmen.first()).toContainText('Stimme');
+    // Bei nur einer Stimme gibt es nichts umzuschalten.
+    await expect(admin.locator('.segmente')).toBeHidden();
     // Nummer und Name sind links angeheftet, AG Grid rendert sie in einem eigenen Container.
     await expect(admin.getByRole('row', { name: `${WAHLLOKAL} E2E-Wahllokal` })).toBeVisible();
     const zahlen = zeilen(admin).first().getByRole('gridcell');
     await expect(zahlen.nth(0)).toHaveText('2'); // erfasst
-    await expect(zahlen.nth(1)).toHaveText('2'); // Erststimme Musterfrau, Julia (E1 auf beiden Zetteln)
+    await expect(zahlen.nth(1)).toHaveText('0'); // CDU
+    await expect(zahlen.nth(2)).toHaveText('1'); // SPD
+    await expect(zahlen.nth(3)).toHaveText('1'); // GRÜNE
     await admin.goto('controlcenter/#prueffaelle');
-    await expect(zeilen(admin)).toHaveCount(1);
+    await expect(admin.getByText('0 Prüffälle in 0 Wahllokalen')).toBeVisible();
     await admin.goto('controlcenter/#eingaenge');
     await expect(zeilen(admin)).toHaveCount(1);
   });
