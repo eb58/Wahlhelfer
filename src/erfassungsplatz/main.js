@@ -8,7 +8,7 @@ import { stimmRows, isUnambiguous, COLORS, drawFelder } from './wertungAnzeige.j
 import { KALIBRIERUNG } from '../../configuration.js';
 import { api, describeUser, putBild, setupAnmeldung, sha256 } from '../api/serverApi.js';
 import { appUrl } from '../api/appUrl.js';
-import { createStapel, addZettel } from './stapel.js';
+import { createStapel, addZettel, getStapelKonflikt, isStapelIntakt } from './stapel.js';
 import { loadStapel, saveStapel, toUpload } from './stapelStorage.js';
 import { getWahlDefinition } from './wahl.js';
 import { getWahllokalStatus } from '../api/wahllokalAnzeige.js';
@@ -17,7 +17,8 @@ import { findWahllokal, getFortschritt } from './wahllokal.js';
 const $ = id => document.querySelector(`#${id}`);
 // Das Wahllokal steht im Link (?wahllokal=518); jedes Wahllokal bekommt seinen eigenen Link.
 const wahllokalNummer = new URL(globalThis.location.href).searchParams.get('wahllokal');
-const state = { typ: undefined, stapel: undefined, pending: undefined, busy: false, wahlHash: undefined, lokal: undefined };
+// fremderStapel: gespeicherter Stapel, der nicht zu Wahl oder Wahllokal passt - er laesst sich nur verwerfen.
+const state = { typ: undefined, stapel: undefined, fremderStapel: undefined, pending: undefined, busy: false, wahlHash: undefined, lokal: undefined };
 if (wahllokalNummer) $('kopfTitel').textContent = `Wahllokal ${wahllokalNummer}`;
 
 /** Je Phase nur das Noetige: vor dem Stapel das Formular, waehrend des Stapels Fortschritt und Aufnahme. */
@@ -26,7 +27,7 @@ const renderStapel = () => {
   const complete = stapel && stapel.zettel.length === stapel.soll;
   $('stapelForm').hidden = !!stapel || !state.lokal || state.lokal.erwartet === null;
   $('meldungBereich').hidden = !state.lokal || state.lokal.erwartet !== null;
-  $('stapelLeiste').hidden = !stapel;
+  $('stapelLeiste').hidden = !stapel && !state.fremderStapel;
   $('ansichtErfassen').hidden = !stapel || (complete && !state.pending);
   if (stapel) {
     $('stapelFortschritt').textContent = `${stapel.zettel.length} / ${stapel.soll}`;
@@ -46,7 +47,8 @@ const renderStapel = () => {
   $('zettelVerwerfen').hidden = !state.pending;
   $('zettelBestaetigen').disabled = state.busy;
   $('zettelVerwerfen').disabled = state.busy;
-  $('stapelVerwerfen').hidden = !stapel || stapel.zettel.length > 0 || state.busy || !!state.pending;
+  $('stapelVerwerfen').hidden = !(state.fremderStapel || stapel?.zettel.length === 0) || state.busy || !!state.pending;
+  $('stapelVerwerfen').textContent = state.fremderStapel ? 'Nicht passenden Stapel verwerfen' : 'Leeren Stapel verwerfen';
 };
 
 const node = (tag, content) => Object.assign(document.createElement(tag), { textContent: content });
@@ -199,9 +201,17 @@ $('meldungForm').addEventListener('submit', async event => {
 });
 
 $('stapelVerwerfen').addEventListener('click', async () => {
-  if (!state.stapel || state.stapel.zettel.length || state.busy || state.pending) return;
-  try { await storeStapel(undefined); renderStapel(); }
-  catch (error) { showError($('stapelStatus'), error); }
+  const fremd = state.fremderStapel;
+  if (state.busy || state.pending || !(fremd || state.stapel?.zettel.length === 0)) return;
+  const anzahl = Array.isArray(fremd?.zettel) ? fremd.zettel.length : 0;
+  if (fremd && !globalThis.confirm(`Stapel mit ${anzahl} erfassten Zetteln endgültig verwerfen? Sie sind nicht beim Server und müssen neu erfasst werden.`)) return;
+  try {
+    await saveStapel(undefined, fremd ?? state.stapel);
+    // Danach wie frisch geladen: Wahl und Wahllokal werden erneut geprueft.
+    if (fremd) return globalThis.location.reload();
+    state.stapel = undefined;
+    renderStapel();
+  } catch (error) { showError($('stapelStatus'), error); }
 });
 $('stapelForm').addEventListener('submit', async event => {
   event.preventDefault();
@@ -270,21 +280,20 @@ try {
   if (!user) throw new Error('Bitte anmelden.');
   if (kalibrierungsFehler) throw kalibrierungsFehler;
   const stored = await loadStapel();
-  if (stored) {
-    const stapel = stored;
-    if (!stapel.wahlHash || !Array.isArray(stapel.zettel) || !Number.isInteger(stapel.soll) || stapel.zettel.length > stapel.soll)
-      throw new Error('Gespeicherter Stapel passt nicht zur aktuellen Wahl. Daten vor einem Wechsel sichern.');
-    state.stapel = stapel;
-    $('stapelSoll').value = stapel.soll;
-  }
-  // Ein laufender Stapel gehoert zu genau einem Wahllokal; geschrieben wird nur unter dessen Link.
-  if (state.stapel && state.stapel.wahllokal !== wahllokalNummer)
-    throw new Error(`Der begonnene Stapel gehört zu Wahllokal ${state.stapel.wahllokal}. Bitte dessen Link öffnen und dort abschließen.`);
   const data = await loadWahllokale();
   const definition = getWahlDefinition(JSON.parse(state.typ.toJson()));
   const localHash = await sha256(new TextEncoder().encode(JSON.stringify(definition)));
-  if (localHash !== data.wahlHash || (state.stapel && state.stapel.wahlHash !== localHash))
-    throw new Error('Wahlvorschläge im Browser, gespeicherten Stapel und Server müssen übereinstimmen.');
+  if (localHash !== data.wahlHash) throw new Error('Wahlvorschläge im Browser und auf dem Server stimmen nicht überein.');
+  // Ein laufender Stapel gehoert zu genau einer Wahl und einem Wahllokal; passt er nicht, bleibt nur Verwerfen.
+  const konflikt = stored && getStapelKonflikt(stored, wahllokalNummer, localHash);
+  if (isStapelIntakt(stored)) {
+    state.stapel = stored;
+    $('stapelSoll').value = stored.soll;
+  }
+  if (konflikt) {
+    state.fremderStapel = stored;
+    throw new Error(konflikt);
+  }
   state.wahlHash = localHash;
   renderMonitor();
   globalThis.setInterval(() => loadWahllokale().catch(() => {}), 15000);

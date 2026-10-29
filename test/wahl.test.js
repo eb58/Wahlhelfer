@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createStapel, addZettel, saveStapel } from '../src/erfassungsplatz/stapel.js';
+import { createStapel, addZettel, getStapelKonflikt, isStapelIntakt, saveStapel } from '../src/erfassungsplatz/stapel.js';
 import { getWahlDefinition } from '../src/erfassungsplatz/wahl.js';
 import { sha256 } from '../src/api/serverApi.js';
 
@@ -41,4 +41,16 @@ test('Stapelmodell begrenzt Sollzahl und gibt Speicherfehler weiter', () => {
   const measured = addZettel(stapel, { stimmen: [{ id: 'stimme', status: 'gueltig', treffer: ['A'] }], felder: [{ id: 'E1', stimme: 'erststimme', fuellgrad: 0.3, status: 'angekreuzt', x: 15 }] });
   assert.equal('felder' in measured.zettel[0], false);
   assert.equal('kalibrierung' in measured, false);
+});
+
+test('Ein gespeicherter Stapel passt nur zu seiner Wahl und seinem Wahllokal', () => {
+  const stapel = addZettel(createStapel('12518', 20, 'bvv'), { stimmen: [{ id: 'stimme', status: 'gueltig', treffer: ['L1'] }] });
+  assert.equal(getStapelKonflikt(stapel, '12518', 'bvv'), undefined);
+  assert.match(getStapelKonflikt(stapel, '12518', 'btw'), /\(1 Zettel\) gehört zu einer anderen Wahl/);
+  assert.match(getStapelKonflikt(stapel, '12519', 'bvv'), /gehört zu Wahllokal 12518/);
+  assert.equal(isStapelIntakt(stapel), true);
+  for (const kaputt of [undefined, { ...stapel, wahlHash: undefined }, { ...stapel, zettel: 'x' }, { ...stapel, soll: 0 }]) {
+    assert.equal(isStapelIntakt(kaputt), false);
+    assert.match(getStapelKonflikt(kaputt, '12518', 'bvv'), /beschädigt/);
+  }
 });

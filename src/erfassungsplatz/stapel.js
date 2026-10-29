@@ -5,7 +5,18 @@ export const createStapel = (wahllokal, soll, wahlHash) => {
   return { id: globalThis.crypto.randomUUID(), wahllokal, soll, wahlHash, zettel: [] };
 };
 
-export const addZettel = (stapel, result, bild) => {
+export const isStapelIntakt = stapel =>
+  !!stapel?.wahlHash && Array.isArray(stapel.zettel) && Number.isInteger(stapel.soll) && stapel.zettel.length <= stapel.soll;
+
+/** Warum ein gespeicherter Stapel hier nicht weitergefuehrt werden kann - undefined, wenn er passt. */
+export const getStapelKonflikt = (stapel, wahllokal, wahlHash) => {
+  if (!isStapelIntakt(stapel)) return 'Der gespeicherte Stapel ist unvollständig oder beschädigt.';
+  if (stapel.wahlHash !== wahlHash) return `Der begonnene Stapel (${stapel.zettel.length} Zettel) gehört zu einer anderen Wahl.`;
+  if (stapel.wahllokal !== wahllokal)
+    return `Der begonnene Stapel gehört zu Wahllokal ${stapel.wahllokal}. Bitte dessen Link öffnen und dort abschließen.`;
+};
+
+export const addZettel =(stapel, result, bild) => {
   if (stapel.zettel.length >= stapel.soll) throw new Error('Stapel ist bereits vollständig.');
   if (!isUnambiguous(result)) throw new Error('Nur eindeutig erkannte Stimmzettel kommen auf den Stapel.');
   const zettel = {
